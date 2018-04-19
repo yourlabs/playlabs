@@ -4,4 +4,4 @@ sshd_options:
   PermitRootLogin: 'no'
   PasswordAuthentication: 'no'
   PermitEmptyPasswords: 'no'
-  Port: 2222
+#  Port: 2222
