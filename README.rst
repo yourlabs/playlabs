@@ -28,6 +28,9 @@ Examples::
     # Example for scaleway debian based box
     ansible-playbook --user root -i yourlabs/inventory.yml -e update_packages='apt update -y' -e install_python='apt install -y python3' bootstrap.yml
 
+    # Example for online debian based box
+    ansible-playbook --become-user root --become-method sudo --become --ask-sudo-pass -i yourlabs/inventory.yml -e update_packages='apt update -y' -e install_python='apt install -y python3' -l kube bootstrap.yml
+
 1. Users and sshd
 =================
 
