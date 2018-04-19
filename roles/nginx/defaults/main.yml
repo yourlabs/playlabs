@@ -1,0 +1,9 @@
+---
+
+nginx_data: /data/nginx/
+
+# For fake certs, no rate limit, but not a valid CA, good for testing
+# letsencrypt_uri: https://acme-staging.api.letsencrypt.org/directory
+
+# For real certs:
+letsencrypt_uri: https://acme-v01.api.letsencrypt.org/directory

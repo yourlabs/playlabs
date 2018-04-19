@@ -1,0 +1,14 @@
+---
+
+- name: Install htaccess
+  with_dict: '{{ users_passwords }}'
+  become: true
+  become_user: root
+  become_method: sudo
+  htpasswd:
+    path: '{{ nginx_data }}htpasswd/{{ dns }}'
+    name: '{{ item.key }}'
+    password: '{{ item.value }}'
+    owner: 101
+    group: 101
+    mode: 0600

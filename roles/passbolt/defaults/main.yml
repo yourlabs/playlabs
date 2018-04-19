@@ -1,0 +1,7 @@
+---
+
+passbolt_data: /data/passbolt/
+passbolt_backup: '{{ passbolt_data }}backup/'
+passbolt_config_source: '{{ passbolt_data }}config/'
+passbolt_config_dest: /var/www/passbolt/app/Config/
+nginx_data: /data/nginx/

@@ -1,0 +1,15 @@
+---
+
+- name: Create minio server
+  docker_container:
+    name: minio
+    image: minio/minio
+    restart_policy: unless-stopped
+    command: server /data
+    volumes:
+    - '{{ minio_home }}data:/data'
+    - '{{ minio_home }}config:/root/.minio'
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ minio_dns }}'
+      VIRTUAL_HOST: '{{ minio_dns }}'

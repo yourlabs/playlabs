@@ -1,0 +1,45 @@
+---
+
+- name: Set facts for Arch
+  when: ansible_os_family == 'Archlinux'
+  set_fact:
+    munin_plugins_path: /usr/lib/munin/plugins
+
+- name: Set facts for Debian
+  when: ansible_os_family == 'Debian'
+  set_fact:
+    munin_plugins_path: /usr/share/munin/plugins
+
+- name: Configure postgresql monitoring
+  with_items:
+  - '{{ munin_plugins_path }}/postgres_cache_'
+  - '{{ munin_plugins_path }}/postgres_connections_'
+  - '{{ munin_plugins_path }}/postgres_locks_'
+  - '{{ munin_plugins_path }}/postgres_oldest_prepared_xact_'
+  - '{{ munin_plugins_path }}/postgres_prepared_xacts_'
+  - '{{ munin_plugins_path }}/postgres_querylength_'
+  - '{{ munin_plugins_path }}/postgres_scans_'
+  - '{{ munin_plugins_path }}/postgres_size_'
+  - '{{ munin_plugins_path }}/postgres_streaming_'
+  - '{{ munin_plugins_path }}/postgres_transactions_'
+  - '{{ munin_plugins_path }}/postgres_tuples_'
+  file:
+    src: '{{ item }}'
+    dest: /etc/munin/plugins/{{ item.split('/')[-1] }}{{ postgresql_instance }}
+    state: link
+    owner: root
+    group: root
+
+- name: Configure plugins
+  notify: Restart munin-node
+  copy:
+    dest: /etc/munin/plugin-conf.d/postgres_{{ postgresql_instance }}
+    owner: root
+    group: root
+    mode: 0644
+    content: |
+      [postgres_*_{{ postgresql_instance }}]
+      env.PGUSER {{ postgresql_user }}
+      env.PGPASSWORD '{{ postgresql_password }}'
+      env.PGHOST {{ postgresql_host }}
+

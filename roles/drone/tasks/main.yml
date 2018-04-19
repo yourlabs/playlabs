@@ -1,0 +1,73 @@
+---
+
+- name: Create drone network
+  docker_network:
+    name: drone
+
+- name: Create drone-postgres container
+  register: drone_postgresql_container
+  docker_container:
+    name: drone-postgres
+    networks:
+    - name: drone
+    image: postgres:10
+    restart_policy: always
+    volumes:
+    - '{{ drone_data }}postgresql/data:/var/lib/postgresql/data'
+    - '{{ drone_data }}postgresql/run:/var/run/postgresql'
+    env:
+      POSTGRES_PASSWORD: '{{ drone_postgresql_password }}'
+      POSTGRES_USER: drone
+
+- name: Wait for postgres to be up
+  wait_for:
+    host: "{{ drone_postgresql_container['ansible_facts']['docker_container']['NetworkSettings']['IPAddress'] }}"
+    port: 5432
+    state: started
+
+- name: Install munin monitoring for postgresql
+  vars:
+    postgresql_instance: drone
+    postgresql_user: drone
+    postgresql_password: '{{ drone_postgresql_password }}'
+    postgresql_host: '{{ drone_data }}postgresql/run'
+  include_role:
+    name: munin_postgresql
+
+- name: Drone server
+  docker_container:
+    name: drone-server
+    image: drone/drone:0.8.2
+    exposed_ports: ['8000', '9000']
+    restart_policy: always
+    networks:
+    - name: drone
+    volumes:
+    - '{{ drone_data }}lib:/var/lib/drone'
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ drone_dns }}'
+      VIRTUAL_HOST: '{{ drone_dns }}'
+      VIRTUAL_PORT: 8000
+      DRONE_HOST: '{{ drone_dns }}'
+      DRONE_GITEA: true
+      DRONE_GITEA_URL: 'https://{{ gitea_dns }}'
+      DRONE_SECRET: '{{ drone_secret }}'
+      DRONE_OPEN: false
+      DRONE_ADMIN: '{{ users[0]["name"] }}'
+      DRONE_DATABASE_DRIVER: postgres
+      DRONE_DATABASE_DATASOURCE: postgres://drone:{{ drone_postgresql_password }}@drone-postgres.drone:5432/drone?sslmode=disable
+      #GIN_MODE: release
+
+- name: Drone agent
+  docker_container:
+    name: drone-agent
+    image: drone/agent:0.8.2
+    restart_policy: always
+    networks:
+    - name: drone
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    env:
+      DRONE_SECRET: '{{ drone_secret }}'
+      DRONE_SERVER: ws://drone-server.drone/ws/broker

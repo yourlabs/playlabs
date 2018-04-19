@@ -1,0 +1,42 @@
+---
+
+- name: Set ssh service name for Arch
+  when: ansible_os_family == 'Archlinux'
+  set_fact:
+    ssh_service_name: sshd
+
+- name: Set ssh service name for Debian
+  when: ansible_os_family == 'Debian'
+  set_fact:
+    ssh_service_name: ssh
+
+- name: Install users group
+  group:
+    name: users
+    state: present
+
+- name: Install users
+  with_items: '{{ users }}'
+  user:
+    name: '{{ item["name"] }}'
+    state: present
+    shell: /bin/bash
+    groups: '{% if item.get("roles", {}).get("ssh") %}{{ item["roles"].get("ssh") }},{% endif %}users'
+    append: yes
+
+- name: Install ssh keys
+  with_items: '{{ users }}'
+  when: '{{ "key" in item.keys() }}'
+  authorized_key:
+    user: '{{ item["name"] }}'
+    state: present
+    key: '{{ item["key"] }}'
+
+- name: Update sshd configuration
+  notify: Restart sshd
+  with_dict: '{{ sshd_options }}'
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: '{{ item.key }} {{ item.value }}'
+    regexp: '^#?{{ item.key }}'
+    backup: yes

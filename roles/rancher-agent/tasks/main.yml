@@ -1,0 +1,12 @@
+---
+
+- name: rancher-server container
+  docker_container:
+    privileged: true
+    auto_remove: true
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /var/lib/rancher:/var/lib/rancher
+    image: rancher/agent:v1.2.9
+    name: rancher-agent-register
+    command: /run.sh {{ rancher_register_url }}

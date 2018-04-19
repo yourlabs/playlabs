@@ -1,0 +1,344 @@
+---
+
+- name: Create passbolt data directory
+  file:
+    path: '{{ passbolt_data }}'
+    state: directory
+    owner: 100
+    group: 101
+    mode: 0755
+
+- name: Create passbolt gpg directory
+  file:
+    path: '{{ passbolt_config_source }}gpg'
+    state: directory
+    owner: 100
+    group: 101
+    mode: 0755
+
+- name: Install gpg private key
+  copy:
+    dest: '{{ passbolt_config_source }}gpg/serverkey.private.asc'
+    owner: 100
+    group: 101
+    mode: 0644
+    content: '{{ gpg_private_key }}'
+
+- name: Install gpg public key
+  copy:
+    dest: '{{ passbolt_config_source }}gpg/serverkey.asc'
+    owner: root
+    group: root
+    mode: 0644
+    content: '{{ gpg_public_key }}'
+
+- name: Install passbolt app configuration file
+  copy:
+    dest: '{{ passbolt_config_source }}app.php'
+    owner: 100
+    group: 101
+    mode: 0644
+    content: |
+      <?php
+      $config = [
+        'App' => [
+           'ssl' => [
+              'force' => True,
+           ],
+           'registration' => [
+              'public' => false,
+           ],
+           'selenium' => [
+              'active' => false,
+           ],
+           'meta' => [
+              'robots' => [
+                'index' => false,
+              ]
+           ],
+        ],
+        'Analytics' => [
+          'piwik' => [
+            // 'url' => ''
+          ],
+        ],
+        'GPG' => [
+          'env' => [
+            'setenv' => true,
+            'home' => '/var/lib/nginx/.gnupg',
+          ],
+          'serverKey' => [
+            'fingerprint' => '{{ gpg_id }}',
+            'public' => APP . 'Config' . DS . 'gpg' . DS . 'serverkey.asc',
+            'private' => APP . 'Config' . DS . 'gpg' . DS . 'serverkey.private.asc',
+            // PHP Gnupg module currently does not support passphrase, please leave blank
+            'passphrase' => ''
+          ]
+        ]
+      ];
+
+- name: Install passbolt email configuration file
+  copy:
+    dest: '{{ passbolt_config_source }}email.php'
+    owner: 100
+    group: 101
+    mode: 0644
+    content: |
+      <?php
+      class EmailConfig {
+        public $default = array(
+           'transport' => 'Smtp',
+           'from' => array('{{ passbolt_email }}' => 'Passbolt'),
+           'host' => '{{ mail_dns }}',
+           'port' => 587,
+           'timeout' => 30,
+           'username' => '{{ passbolt_email }}',
+           'password' => '{{ passbolt_email_password }}',
+           'tls' => true,
+        );
+        public $smtp = array(
+           'transport' => 'Smtp',
+           'from' => array('site@localhost' => 'My Site'),
+           'host' => 'localhost',
+           'port' => 25,
+           'timeout' => 30,
+           'username' => 'user',
+           'password' => 'secret',
+           'client' => null,
+           'log' => false,
+           //'charset' => 'utf-8',
+           //'headerCharset' => 'utf-8',
+        );
+        public $fast = array(
+           'from' => 'you@localhost',
+           'sender' => null,
+           'to' => null,
+           'cc' => null,
+           'bcc' => null,
+           'replyTo' => null,
+           'readReceipt' => null,
+           'returnPath' => null,
+           'messageId' => true,
+           'subject' => null,
+           'message' => null,
+           'headers' => null,
+           'viewRender' => null,
+           'template' => false,
+           'layout' => false,
+           'viewVars' => null,
+           'attachments' => null,
+           'emailFormat' => null,
+           'transport' => 'Smtp',
+           'host' => 'localhost',
+           'port' => 25,
+           'timeout' => 30,
+           'username' => 'user',
+           'password' => 'secret',
+           'client' => null,
+           'log' => true,
+           //'charset' => 'utf-8',
+           //'headerCharset' => 'utf-8',
+        );
+      }
+
+- name: Install passbolt db configuration file
+  copy:
+    dest: '{{ passbolt_config_source }}database.php'
+    owner: 100
+    group: 101
+    mode: 0644
+    content: |
+      <?php
+      class DATABASE_CONFIG {
+        public $default = array(
+          'datasource' => 'Database/Mysql',
+          'persistent' => false,
+          'host' => 'passbolt-mysql',
+          'port' => '3306',
+          'login' => 'passbolt',
+          'password' => '{{ passbolt_mysql_password }}',
+          'database' => 'passbolt',
+          'prefix' => '',
+          'encoding' => 'utf8',
+        );
+      }
+
+- name: Install passbolt core configuration file
+  copy:
+    dest: '{{ passbolt_config_source }}core.php'
+    owner: 100
+    group: 101
+    mode: 0644
+    content: |
+      <?php
+      require_once dirname(__DIR__) . '/Vendor/autoload.php';
+      Configure::write('debug', 0);
+      Configure::write('Error', array(
+        'handler' => 'ErrorHandler::handleError',
+        'level' => E_ALL & ~E_DEPRECATED,
+        'trace' => true
+      ));
+      Configure::write('Exception', array(
+        'handler' => 'ErrorHandler::handleException',
+        'renderer' => 'ExceptionRenderer',
+        'log' => true
+      ));
+      Configure::write('App.encoding', 'UTF-8');
+      Configure::write('App.fullBaseUrl', 'https://{{ passbolt_dns }}');
+      Configure::write('Session', array(
+        'defaults' => 'cache',
+      ));
+      Configure::write('Security.salt', '{{ passbolt_salt }}');
+      Configure::write('Security.cipherSeed', '{{ passbolt_cipherseed }}');
+      Configure::write('Acl.classname', 'DbAcl');
+      Configure::write('Acl.database', 'default');
+      $prefix = 'passbolt_';
+      $commonCache = array(
+        'engine' => 'File', // Required
+        'prefix' => $prefix,
+        'duration' => 3600,
+        'path' => CACHE,
+        'serialize' => true,
+      );
+      Configure::write('Cache.Common', $commonCache);
+      $duration = '+999 days';
+      if (Configure::read('debug') > 0) {
+        $duration = '+10 seconds';
+      }
+      $coreCache = array(
+        'prefix' => $prefix . 'cake_core_',
+        'duration' => $duration,
+      );
+      if ($commonCache['engine'] == 'File') {
+        $coreCache['path'] = CACHE . 'persistent' . DS;
+      }
+      $coreCache = array_merge($commonCache, $coreCache);
+      Cache::config('_cake_core_', $coreCache);
+      $modelCache = array(
+        'prefix' => $prefix . 'cake_model_',
+        'duration' => $duration,
+      );
+      if ($commonCache['engine'] == 'File') {
+        $modelCache['path'] = CACHE . 'models' . DS;
+      }
+      $modelCache = array_merge($commonCache, $modelCache);
+      Cache::config('_cake_model_', $modelCache);
+
+- name: Create passbolt network
+  docker_network:
+    name: passbolt-network
+
+- name: Create passbolt-mysql container
+  docker_container:
+    name: passbolt-mysql
+    image: mysql
+    hostname: passbolt-mysql
+    networks:
+    - name: passbolt-network
+    restart_policy: always
+    volumes:
+    - '{{ passbolt_data }}/mysql:/var/lib/mysql'
+    env:
+      MYSQL_ROOT_PASSWORD: '{{ passbolt_mysql_root_password }}'
+      MYSQL_DATABASE: passbolt
+      MYSQL_USER: passbolt
+      MYSQL_PASSWORD: '{{ passbolt_mysql_password }}'
+
+- name: Check if passbolt has certificate
+  register: passbolt_certificate
+  stat:
+    path: '{{ nginx_data }}certs/{{ passbolt_dns }}/cert.pem'
+
+- name: Create temporary passbolt container for letsencrypt
+  when: not passbolt_certificate.stat.exists
+  docker_container:
+    name: passbolt-letsencrypt
+    image: nginx
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ passbolt_dns }}'
+      VIRTUAL_HOST: '{{ passbolt_dns }}'
+
+- name: Wait for letsencrypt certificate
+  when: not passbolt_certificate.stat.exists
+  wait_for:
+    path: '{{ nginx_data }}certs/{{ passbolt_dns }}/cert.pem'
+
+- name: Destroy letsencrypt container now that we have a mountable cert file
+  docker_container:
+    name: passbolt-letsencrypt
+    state: absent
+
+- name: Create passbolt container
+  docker_container:
+    name: passbolt
+    hostname: '{{ passbolt_dns }}'
+    image: passbolt/passbolt:1.6.5-1-alpine
+    networks:
+    - name: passbolt-network
+    - name: mail
+    restart_policy: always
+    volumes:
+    - '{{ passbolt_config_source }}app.php:{{ passbolt_config_dest }}app.php'
+    - '{{ passbolt_config_source }}core.php:{{ passbolt_config_dest }}core.php'
+    - '{{ passbolt_config_source }}database.php:{{ passbolt_config_dest }}database.php'
+    - '{{ passbolt_config_source }}email.php:{{ passbolt_config_dest }}email.php'
+    - '{{ passbolt_config_source }}gpg/serverkey.asc:{{ passbolt_config_dest }}gpg/serverkey.asc'
+    - '{{ passbolt_config_source }}gpg/serverkey.private.asc:{{ passbolt_config_dest }}gpg/serverkey.private.asc'
+    - '{{ nginx_data }}certs/{{ passbolt_dns }}/cert.pem:/etc/ssl/certs/certificate.crt'
+    - '{{ nginx_data }}certs/{{ passbolt_dns }}/key.pem:/etc/ssl/certs/certificate.key'
+    exposed_ports: ['80', '443']
+    env:
+      DB_HOST: passbolt-mysql
+      DB_PASS: '{{ passbolt_mysql_password }}'
+      EMAIL_FROM: '{{ passbolt_email }}'
+      EMAIL_HOST: '{{ mail_dns }}'
+      EMAIL_USERNAME: '{{ passbolt_email }}'
+      EMAIL_PASSWORD: '{{ passbolt_email_password }}'
+      EMAIL_TLS: 'true'
+      KEY_NAME: passbolt
+      KEY_EMAIL: '{{ gpg_email }}'
+      CIPHERSEED: '{{ passbolt_cipherseed }}'
+      URL: '{{ passbolt_dns }}'
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ passbolt_dns }}'
+      VIRTUAL_HOST: '{{ passbolt_dns }}'
+
+- name: Install passbolt email account
+  vars:
+    email: '{{ passbolt_email }}'
+    password: '{{ passbolt_email_password }}'
+  include_role:
+    name: mail
+
+- name: Install backup scripts
+  vars:
+    unit_name: backup-passbolt
+    unit_description: Passbolt backup
+    script_path: '{{ passbolt_data }}/backup.sh'
+    script_content: |
+      #!/bin/bash -eux
+      export passbolt_dump={{ passbolt_backup }}passbolt.sql
+      mkdir -p ${passbolt_dump%/*}
+      docker exec -t passbolt-mysql mysqldump -upassbolt -p{{ passbolt_mysql_password }} passbolt &> $passbolt_dump
+      export FTP_PASSWORD="{{ backup_ftp_password }}"
+      /usr/bin/duplicity \
+        --encrypt-key={{ gpg_id }} \
+        {{ passbolt_backup }} \
+        {{ backup_dsn }}/passbolt
+      rm -rf $passbolt_dump
+  include_role:
+    name: backup
+
+- name: Create super users
+  failed_when: false
+  with_items: '{{ users }}'
+  tags: users
+  expect:
+    timeout: 30
+    command: docker exec -it passbolt su -s /bin/bash -c "/var/www/passbolt/app/Console/cake passbolt register_user -i" nginx
+    responses:
+      'Username': ["{{ item['email'] }}"]
+      'First': ["{{ item['first_name'] }}"]
+      'Last': ["{{ item['last_name'] }}"]
+      'Role': ["{{ item['roles']['passbolt'] }}"]

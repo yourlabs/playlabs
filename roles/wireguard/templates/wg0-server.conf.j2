@@ -1,0 +1,14 @@
+[Interface]
+Address = {{ wireguard_ip.split('/')[0] }}
+ListenPort = {{ wireguard_listen_port }}
+PrivateKey = {{ wireguard_private_key }}
+
+{% for peer in hostvars.values() %}
+{% if 'wireguard_ip' in peer and peer['wireguard_ip'] != wireguard_ip %}
+[Peer]
+PublicKey = {{ peer['wireguard_public_key'] }}
+AllowedIPs = {{ peer['wireguard_ip'] }}
+PersistentKeepalive = 25
+Endpoint = {{ peer['ansible_ssh_host'] }}:{{ wireguard_listen_port }}
+{% endif %}
+{% endfor %}

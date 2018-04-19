@@ -1,0 +1,157 @@
+---
+- name: Create sentry network
+  docker_network:
+    name: sentry
+
+- name: Create sentry-redis container
+  docker_container:
+    name: sentry-redis
+    networks:
+    - name: sentry
+    image: redis:3.2-alpine
+    restart_policy: always
+    volumes:
+    - '{{ sentry_data }}redis:/data'
+    command: redis-server --appendonly yes
+
+- name: Create sentry-postgres container
+  register: sentry_postgresql_container
+  docker_container:
+    name: sentry-postgres
+    networks:
+    - name: sentry
+    image: postgres:9.5
+    restart_policy: always
+    volumes:
+    - '{{ sentry_data }}postgresql/data:/var/lib/postgresql/data'
+    - '{{ sentry_data }}postgresql/run:/var/run/postgresql'
+    env:
+      POSTGRES_PASSWORD: '{{ sentry_postgresql_password }}'
+      POSTGRES_USER: sentry
+
+- name: Wait for postgres to be up
+  wait_for:
+    host: "{{ sentry_postgresql_container['ansible_facts']['docker_container']['NetworkSettings']['IPAddress'] }}"
+    port: 5432
+    state: started
+
+- name: Install munin monitoring for postgresql
+  vars:
+    postgresql_instance: sentry
+    postgresql_user: sentry
+    postgresql_password: '{{ sentry_postgresql_password }}'
+    postgresql_host: '{{ sentry_data }}postgresql/run'
+  include_role:
+    name: munin_postgresql
+
+- name: Migrate sentry database
+  expect:
+    timeout: 300
+    command:
+      docker run
+      -it
+      --rm
+      --network sentry
+      --env SENTRY_DB_PASSWORD={{ sentry_postgresql_password }}
+      --env SENTRY_DB_USER=sentry
+      --env SENTRY_POSTGRES_HOST=sentry-postgres
+      --env SENTRY_REDIS_HOST=sentry-redis
+      --env SENTRY_SECRET_KEY={{ sentry_secret_key }}
+      sentry upgrade
+    responses:
+      'Would you like to create a user account now':
+      - N
+
+- name: Install sentry email account
+  vars:
+    email: '{{ sentry_email }}'
+    password: '{{ sentry_email_password }}'
+  include_role:
+    name: mail
+
+- name: Create sentry-web container
+  docker_container:
+    name: sentry-web
+    networks:
+    - name: sentry
+    - name: mail
+    image: sentry
+    exposed_ports: ['9000']
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ sentry_dns }}'
+      VIRTUAL_HOST: '{{ sentry_dns }}'
+      VIRTUAL_PORT: 9000
+      SENTRY_DB_PASSWORD: '{{ sentry_postgresql_password }}'
+      SENTRY_DB_USER: sentry
+      SENTRY_POSTGRES_HOST: sentry-postgres
+      SENTRY_REDIS_HOST: sentry-redis
+      SENTRY_SECRET_KEY: '{{ sentry_secret_key }}'
+      SENTRY_EMAIL_HOST: '{{ mail_dns }}'
+      SENTRY_EMAIL_USER: '{{ sentry_email }}'
+      SENTRY_EMAIL_PASSWORD: '{{ sentry_email_password }}'
+      SENTRY_EMAIL_USE_TLS: 'True'
+      SENTRY_SERVER_EMAIL: '{{ sentry_email }}'
+
+- name: Create super users
+  failed_when: false
+  with_items: '{{ users }}'
+  tags: users
+  command:
+    docker run
+    -t
+    --rm
+    --network sentry
+    --env SENTRY_DB_PASSWORD={{ sentry_postgresql_password }}
+    --env SENTRY_DB_USER=sentry
+    --env SENTRY_POSTGRES_HOST=sentry-postgres
+    --env SENTRY_REDIS_HOST=sentry-redis
+    --env SENTRY_SECRET_KEY={{ sentry_secret_key }}
+    sentry sentry createuser --no-input
+    {% if item.get('roles', {}).get('sentry') == 'superuser' %}--superuser{% endif %}
+    --email {{ item['email'] }}
+    --password {{ users_passwords[item['name']] }}
+
+- name: Create sentry-worker container
+  docker_container:
+    name: sentry-worker-01
+    networks:
+    - name: sentry
+    - name: mail
+    image: sentry
+    command: run worker
+    env:
+      SENTRY_DB_PASSWORD: '{{ sentry_postgresql_password }}'
+      SENTRY_DB_USER: sentry
+      SENTRY_POSTGRES_HOST: sentry-postgres
+      SENTRY_REDIS_HOST: sentry-redis
+      SENTRY_SECRET_KEY: '{{ sentry_secret_key }}'
+      SENTRY_EMAIL_HOST: '{{ mail_dns }}'
+      SENTRY_EMAIL_USER: '{{ sentry_email }}'
+      SENTRY_EMAIL_PASSWORD: '{{ sentry_email_password }}'
+      SENTRY_EMAIL_USE_TLS: 'True'
+      SENTRY_SERVER_EMAIL: '{{ sentry_email }}'
+
+- name: Create sentry-cron container
+  docker_container:
+    name: sentry-cron
+    networks:
+    - name: sentry
+    - name: mail
+    image: sentry
+    command: run cron
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ sentry_dns }}'
+      VIRTUAL_HOST: '{{ sentry_dns }}'
+      VIRTUAL_PORT: 9000
+      SENTRY_DB_PASSWORD: '{{ sentry_postgresql_password }}'
+      SENTRY_DB_USER: sentry
+      SENTRY_POSTGRES_HOST: sentry-postgres
+      SENTRY_REDIS_HOST: sentry-redis
+      SENTRY_SECRET_KEY: '{{ sentry_secret_key }}'
+      SENTRY_EMAIL_HOST: '{{ mail_dns }}'
+      SENTRY_EMAIL_USER: '{{ sentry_email }}'
+      SENTRY_EMAIL_PASSWORD: '{{ sentry_email_password }}'
+      SENTRY_EMAIL_USE_TLS: 'True'
+      SENTRY_SERVER_EMAIL: '{{ sentry_email }}'

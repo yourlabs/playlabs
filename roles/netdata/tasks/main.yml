@@ -1,0 +1,74 @@
+---
+
+- name: Create configuration directories
+  with_filetree: roles/netdata/templates
+  when: item.state == 'directory'
+  file:
+    state: directory
+    path: '/etc/netdata/{{ item.path }}'
+
+- name: Upload configuration
+  with_filetree: roles/netdata/templates
+  when: item.state == 'file'
+  template:
+    src: '{{ item.path }}'
+    dest: '/etc/netdata/{{ item.path }}'
+
+- name: Install dependencies
+  apt:
+    name: '{{ netdata_packages }}'
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Clone repo
+  register: netdata_git
+  git:
+    clone: yes
+    update: yes
+    repo: https://github.com/firehol/netdata.git
+    dest: /usr/src/netdata
+
+- name: Install script
+  when: netdata_git.changed
+  shell: cd /usr/src/netdata/ && ./netdata-installer.sh --dont-wait --libs-are-really-here
+
+- name: Make netdata-proxy home
+  file: name=/home/netdata-proxy state=directory
+
+- name: Install nginx proxy config
+  copy:
+    dest: /home/netdata-proxy/nginx.conf
+    content: |
+      server {
+        listen 80;
+        location / {
+          proxy_pass http://172.17.0.1:19999;
+
+          proxy_redirect off;
+          proxy_http_version 1.1;
+
+          proxy_set_header X-Forwarded-Host $host;
+          proxy_set_header Host $host;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Real-IP $remote_addr;
+        }
+      }
+
+- name: Setup nginx proxy container
+  tags: docker
+  docker_container:
+    name: netdata-proxy
+    image: nginx
+    restart_policy: unless-stopped
+    volumes:
+    - /home/netdata-proxy/nginx.conf:/etc/nginx/conf.d/default.conf
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ netdata_dns }}'
+      VIRTUAL_HOST: '{{ netdata_dns }}'
+
+- name: Install netdata htaccess
+  vars:
+    dns: '{{ netdata_dns }}'
+  include_role:
+    name: nginx_htpasswd

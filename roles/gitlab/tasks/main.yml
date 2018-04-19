@@ -1,0 +1,40 @@
+---
+
+- name: Install gitlab email account
+  vars:
+    email: '{{ gitlab_email }}'
+    password: '{{ gitlab_email_password }}'
+  include_role:
+    name: mail
+
+- name: GitLab config directory
+  file: path={{ gitlab_data }}config state=directory
+
+- name: GitLab config file
+  tags: config
+  template:
+    src: gitlab.rb
+    dest: '{{ gitlab_data }}config/gitlab.rb'
+
+- name: GitLab container
+  tags: docker
+  docker_container:
+    name: gitlab
+    image: '{{ gitlab_image }}'
+    restart_policy: always
+    networks:
+    - name: 'mail'
+    hostname: git
+    published_ports: ['22:22']
+    exposed_ports: ['80:80']
+    volumes:
+    - '{{ gitlab_data }}config:/etc/gitlab'
+    - '{{ gitlab_data }}logs:/var/log/gitlab'
+    - '{{ gitlab_data }}data:/var/opt/gitlab'
+    - '{{ nginx_data }}certs/git.yourlabs.org:/etc/letsencrypt/live/{{ gitlab_dns }}'
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ gitlab_dns }},{{ gitlab_pages_dns }}'
+      VIRTUAL_HOST: '{{ gitlab_dns }},{{ gitlab_pages_dns }}'
+      VIRTUAL_PORT: 443
+      VIRTUAL_PROTO: https

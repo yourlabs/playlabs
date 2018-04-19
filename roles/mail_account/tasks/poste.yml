@@ -1,0 +1,12 @@
+---
+
+- name: Check if virtual domain exists
+  register: mail_domain_list
+  shell: docker exec mail poste domain:list
+
+- name: Create virtual domain
+  when: email.split('@')[0] not in mail_domain_list.stdout_lines
+  shell: docker exec mail poste domain:create {{ email.split('@')[0] }}
+
+- name: Create poste.io box
+  shell: docker exec mail poste email:create {{ email }} {{ password }}

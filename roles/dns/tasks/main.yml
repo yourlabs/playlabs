@@ -1,0 +1,91 @@
+---
+- name: Remove bind9 if present
+  failed_when: false
+  package:
+    name: bind9
+    state: absent
+
+- name: Install dnsmasq
+  package:
+    name: dnsmasq
+    state: present
+
+- name: Run docker-dns
+  docker_container:
+    name: dns
+    image: jderusse/dns-gen
+    restart_policy: always
+    published_ports: ['54:53/udp']
+    capabilities: [NET_BIND_SERVICE]
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+
+- name: /etc/systemd/system/docker.service.d
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+
+- name: /etc/systemd/system/docker.service.d/override.conf
+  copy:
+    dest: /etc/systemd/system/docker.service.d/override.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/dockerd -H fd:// --bip=172.17.0.1/16 --dns=172.17.0.1
+
+- name: /etc/systemd/system/dnsmasq.service.d
+  file:
+    path: /etc/systemd/system/dnsmasq.service.d
+    state: directory
+
+- name: /etc/systemd/system/dnsmasq.service.d/override.conf
+  notify: Restart
+  copy:
+    dest: /etc/systemd/system/dnsmasq.service.d/override.conf
+    content: |
+      [Unit]
+      After=docker.service
+
+- name: /etc/dnsmasq.conf
+  notify: Restart
+  lineinfile:
+    path: /etc/dnsmasq.conf
+    line: conf-dir=/etc/dnsmasq.d
+
+- name: /etc/dnsmasq.d
+  file:
+    path: /etc/dnsmasq.d
+    state: directory
+
+- name: /etc/dnsmasq.d/upstream.conf
+  notify: Restart
+  copy:
+    dest: /etc/dnsmasq.d/upstream.conf
+    content: server=8.8.8.8
+
+- name: /etc/dnsmasq.d/docker.conf
+  notify: Restart
+  copy:
+    dest: /etc/dnsmasq.d/docker.conf
+    content: |
+      bind-interfaces
+      interface=lo
+      interface=docker0
+      server=/docker/127.0.0.1#54
+
+- name: /etc/dnsmasq.d/local.conf
+  when: dns_local_resolve is defined
+  notify: Restart
+  copy:
+    dest: /etc/dnsmasq.d/local.conf
+    content: |
+      {% for dns in dns_local_resolve %}
+      server=/{{ dns }}/127.0.0.1#54
+      {% endfor %}
+
+- name: Configure /etc/resolv.conf
+  copy:
+    dest: /etc/resolv.conf
+    content: |
+      search docker
+      nameserver 127.0.0.1

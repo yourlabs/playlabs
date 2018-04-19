@@ -1,0 +1,5 @@
+---
+munin_data: /data/munin/
+munin_plugins:
+- vendor/munin-plugin-docker/docker_cpu
+- vendor/munin-plugin-docker/docker_memory

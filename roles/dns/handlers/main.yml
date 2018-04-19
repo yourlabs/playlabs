@@ -1,0 +1,11 @@
+---
+- name: Restart
+  notify: Restart dnsmasq
+  shell: systemctl daemon-reload
+
+- name: Restart dnsmasq
+  notify: Restart docker
+  service: name=dnsmasq state=restarted enabled=yes
+
+- name: Restart docker
+  service: name=docker state=restarted

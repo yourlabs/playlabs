@@ -1,0 +1,37 @@
+---
+
+- name: Login to Poste.io hub
+  when: poste_pro_username is defined
+  docker_login:
+    registry: poste.io
+    username: '{{ poste_pro_username }}'
+    password: '{{ poste_pro_password }}'
+    reauthorize: yes
+
+- name: Setup poste container
+  docker_container:
+    name: mail
+    state: started
+    image: '{{ poste_image }}'
+    hostname: '{{ mail_dns }}'
+    networks:
+    - name: 'mail'
+    published_ports:
+    - '25:25'
+    - '110:110'
+    - '143:143'
+    - '465:465'
+    - '587:587'
+    - '993:993'
+    - '995:995'
+    exposed_ports: [80]
+    restart_policy: unless-stopped
+    volumes:
+    - '{{ mail_data }}data:/data'
+    - /etc/localtime:/etc/localtime:ro
+    - '{{ nginx_data }}html/.well-known:/opt/www/.well-known'
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ mail_dns }}'
+      VIRTUAL_HOST: '{{ mail_dns }}'
+      HTTPS: 'OFF'

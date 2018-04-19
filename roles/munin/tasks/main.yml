@@ -1,0 +1,158 @@
+---
+- name: Set facts for Arch
+  when: ansible_os_family == 'Archlinux'
+  set_fact:
+    munin_packages: munin-node,perl-dbd-pg
+    munin_plugins_path: /usr/lib/munin/plugins
+
+- name: Set facts for Debian
+  when: ansible_os_family == 'Debian'
+  set_fact:
+    munin_packages: munin-node,libdbd-pg-perl
+    munin_plugins_path: /usr/share/munin/plugins
+
+- name: Install munin-node,libdbd-pg-perl
+  package: name={{ munin_packages }} state=present
+
+- name: Install /etc/munin/munin-node.conf
+  notify: Restart munin-node
+  copy:
+    dest: /etc/munin/munin-node.conf
+    owner: root
+    group: munin
+    mode: 0644
+    content: |
+      log_level 4
+      log_file /var/log/munin/munin-node.log
+      pid_file /var/run/munin/munin-node.pid
+      background 1
+      setsid 1
+      user root
+      group root
+      ignore_file [\#~]$
+      ignore_file DEADJOE$
+      ignore_file \.bak$
+      ignore_file %$
+      ignore_file \.dpkg-(tmp|new|old|dist)$
+      ignore_file \.rpm(save|new)$
+      ignore_file \.pod$
+      # Allow connection from docker
+      cidr_allow 172.16.0.0/12
+      host 172.17.0.1
+      port 4949
+
+- name: Create plugins dir
+  notify: Restart munin-node
+  file:
+    path: /usr/local/munin/lib/plugins
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Upload plugins
+  notify: Restart munin-node
+  with_items: '{{ munin_plugins }}'
+  copy:
+    src: '{{ item }}'
+    dest: /usr/local/munin/lib/plugins
+    mode: 0755
+    owner: root
+    group: root
+
+- name: Install plugins
+  notify: Restart munin-node
+  with_items:
+  - '{{ munin_plugins_path }}/postgres_autovacuum'
+  - '{{ munin_plugins_path }}/postgres_bgwriter'
+  - '{{ munin_plugins_path }}/postgres_checkpoints'
+  - '{{ munin_plugins_path }}/postgres_connections_db'
+  - '{{ munin_plugins_path }}/postgres_users'
+  - '{{ munin_plugins_path }}/postgres_xlog'
+  file:
+    src: '{{ item }}'
+    dest: /etc/munin/plugins/{{ item.split('/')[-1] }}
+    state: link
+    owner: root
+    group: root
+
+- name: Install vendored plugins
+  notify: Restart munin-node
+  with_items: '{{ munin_plugins }}'
+  file:
+    src: /usr/local/munin/lib/plugins/{{ item.split('/')[-1] }}
+    dest: /etc/munin/plugins/{{ item.split('/')[-1] }}
+    state: link
+    owner: root
+    group: root
+
+- name: Configure plugins
+  notify: Restart munin-node
+  copy:
+    dest: /etc/munin/plugin-conf.d/local
+    owner: root
+    group: root
+    mode: 0644
+    content: |
+      [docker_*]
+      user root
+
+- name: Upload docker-munin-server
+  copy:
+    src: vendor/docker-munin-server/
+    dest: /root/docker-munin-server/
+
+- name: Enable trace in start-munin.sh
+  lineinfile:
+    path: /root/docker-munin-server/start-munin.sh
+    regexp: '^#\!/bin/bash$'
+    line: '#!/bin/bash -x'
+
+- name: Build munin-server docker image
+  docker_image:
+    path: /root/docker-munin-server
+    name: munin-server
+
+- name: Install munin email account
+  tags: mail
+  vars:
+    email: '{{ munin_email }}'
+    password: '{{ munin_email_password }}'
+  include_role:
+    name: mail_account
+
+- name: Create munin network
+  tags: docker
+  docker_network:
+    name: munin
+
+- name: Create munin-server container
+  tags: docker
+  docker_container:
+    name: munin-server
+    image: scalingo/munin-server
+    restart_policy: always
+    networks:
+    - name: munin
+    - name: mail
+    volumes:
+    - '{{ munin_data }}log:/var/log/munin'
+    - '{{ munin_data }}lib:/var/lib/munin'
+    - '{{ munin_data }}run:/var/run/munin'
+    - '{{ munin_data }}cache:/var/cache/munin'
+    - /etc/localtime:/etc/localtime:ro
+    exposed_ports: ['8080']
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ munin_dns }}'
+      VIRTUAL_HOST: '{{ munin_dns }}'
+      VIRTUAL_PORT: 8080
+      SMTP_HOST: '{{ mail_dns }}'
+      SMTP_USERNAME: '{{ munin_email }}'
+      SMTP_PASSWORD: '{{ munin_email_password }}'
+      SMTP_USE_TLS: 'true'
+      SMTP_ALWAYS_SEND: 'true'
+      SMTP_MESSAGE: '[${var:group};${var:host}] -> ${var:graph_title} -> warnings: ${loop<,>:wfields  ${var:label}=${var:value}} / criticals: ${loop<,>:cfields  ${var:label}=${var:value}}'
+      ALERT_RECIPIENT: '{{ letsencrypt_email }}'
+      ALERT_SENDER: '{{ munin_email }}'
+      NODES: 'server:172.17.0.1'

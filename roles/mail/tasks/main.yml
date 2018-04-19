@@ -1,0 +1,11 @@
+---
+
+- name: Create mail docker network
+  docker_network:
+    name: mail
+
+- include: mailserver.yml
+  when: poste_image is not defined
+
+- include: poste.yml
+  when: poste_image is defined

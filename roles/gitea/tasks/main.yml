@@ -1,0 +1,36 @@
+---
+
+- name: Install sentry email account
+  vars:
+    email: '{{ gitea_email }}'
+    password: '{{ gitea_email_password }}'
+  include_role:
+    name: mail
+
+- name: Create GiTea config directory
+  file:
+    path: '{{ gitea_data }}data/gitea/conf/'
+    state: directory
+
+- name: Setup GiTea config
+  template:
+    src: app.ini
+    dest: '{{ gitea_data }}data/gitea/conf/app.ini'
+
+- name: Setup git container
+  docker_container:
+    name: git
+    image: gitea/gitea:latest
+    restart_policy: always
+    networks:
+    - name: 'mail'
+    hostname: git
+    published_ports: ['22:22']
+    exposed_ports: [3000]
+    volumes:
+    - '{{ gitea_data }}/data:/data'
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ gitea_dns }}'
+      VIRTUAL_HOST: '{{ gitea_dns }}'
+      VIRTUAL_PORT: 3000

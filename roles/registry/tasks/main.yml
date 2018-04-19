@@ -1,0 +1,22 @@
+---
+
+- name: Install registry htaccess
+  vars:
+    dns: '{{ registry_dns }}'
+  include_role:
+    name: nginx_htpasswd
+
+- name: Setup registry container
+  docker_container:
+    name: registry
+    image: registry:2
+    restart_policy: always
+    hostname: git
+    exposed_ports: [5000]
+    volumes:
+    - '{{ registry_data }}/data:/var/lib/registry'
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ registry_dns }}'
+      VIRTUAL_HOST: '{{ registry_dns }}'
+      VIRTUAL_PORT: 5000

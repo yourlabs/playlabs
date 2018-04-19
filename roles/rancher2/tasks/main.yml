@@ -1,0 +1,14 @@
+---
+
+- name: rancher-server container
+  docker_container:
+    restart_policy: unless-stopped
+    exposed_ports:
+    - '80'
+    published_ports: ['80:80', '443:443']
+    image: rancher/server:preview
+    name: rancher
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: 'rancher.k.yourlabs.org'
+      VIRTUAL_HOST: 'rancher.k.yourlabs.org'

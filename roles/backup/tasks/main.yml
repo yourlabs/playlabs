@@ -1,0 +1,67 @@
+---
+
+- name: Upload rollback script
+  when: rollback_path is defined
+  copy:
+    dest: '{{ rollback_path }}'
+    content: '{{ rollback_content }}'
+    owner: root
+    group: root
+    mode: 0700
+
+- name: Upload backup script
+  register: backup_script
+  copy:
+    dest: '{{ script_path }}'
+    content: '{{ script_content }}'
+    owner: root
+    group: root
+    mode: 0700
+
+- name: Create backup unit
+  register: backup_unit
+  copy:
+    dest: /etc/systemd/system/{{ unit_name }}.service
+    content: |
+      [Unit]
+      Description={{ unit_description }} unit
+
+      [Service]
+      ExecStart={{ script_path }}
+      Type=oneshot
+      StandardOutput=journal
+
+      [Install]
+      WantedBy=basic.target
+
+- name: Create backup timer
+  register: backup_timer
+  copy:
+    dest: /etc/systemd/system/{{ unit_name }}.timer
+    content: |
+      [Unit]
+      Description={{ unit_description }} timer
+
+      [Timer]
+      OnBootSec=20m
+      OnUnitActiveSec=1h
+
+      [Install]
+      WantedBy=timers.target
+
+- name: Reload systemd units
+  when: backup_unit.changed
+  shell: systemctl daemon-reload
+
+- name: Enable and start backup unit
+  when: backup_unit.changed or backup_script.changed
+  service:
+    name: '{{ unit_name }}'
+    state: started
+    enabled: yes
+
+- name: Enable and start backup timer
+  service:
+    name: '{{ unit_name }}.timer'
+    state: started
+    enabled: yes

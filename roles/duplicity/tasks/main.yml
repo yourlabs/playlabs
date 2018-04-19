@@ -1,0 +1,62 @@
+---
+- name: Set facts for Debian
+  when: ansible_os_family == 'Debian'
+  set_fact:
+    duplicity_packages: duplicity,lftp,gnupg2,python-pexpect
+
+- name: Set facts for Arch
+  when: ansible_os_family == 'Archlinux'
+  set_fact:
+    duplicity_packages: duplicity,lftp,gnupg,python-pexpect
+
+- name: Install duplicity, lftp and gnupg2
+  package: name={{ duplicity_packages }} state=present
+
+- name: Create gpg directory
+  file:
+    path: '{{ gpg_home }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+
+- name: Install gpg private key
+  copy:
+    dest: '{{ gpg_home }}private.asc'
+    owner: root
+    group: root
+    mode: 0600
+    content: '{{ gpg_private_key }}'
+
+- name: Install gpg public key
+  copy:
+    dest: '{{ gpg_home }}public.asc'
+    owner: root
+    group: root
+    mode: 0600
+    content: '{{ gpg_public_key }}'
+
+- name: Import public key
+  command: "bash -c 'pkill -9 gpg-agent; source <(gpg-agent --daemon); gpg --import {{ gpg_home }}public.asc'"
+  args:
+    creates: "{{ gpg_home }}trustdb.gpg"
+
+- name: Import private key
+  command: "gpg --allow-secret-key-import {{ gpg_home }}private.asc"
+  args:
+    creates: "{{ gpg_home }}secring.gpg"
+
+- name: Delete temporary files
+  command: shred -u "{{ item }}"
+  with_items:
+    - "{{ gpg_home }}private.asc"
+    - "{{ gpg_home }}public.asc"
+
+- name: Trust imported key
+  expect:
+    command: gpg --edit-key {{ gpg_id }} trust quit
+    responses:
+      decision:
+      - 5
+      really:
+      - y

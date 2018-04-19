@@ -1,0 +1,6 @@
+---
+gitlab_data: /data/gitlab/
+gitlab_image: gitlab/gitlab-ce:latest
+gitlab_dns: git.yourlabs.org
+gitlab_pages_dns: pages.yourlabs.org
+nginx_data: /data/nginx/

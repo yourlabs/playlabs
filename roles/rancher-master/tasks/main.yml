@@ -1,0 +1,24 @@
+---
+
+- name: rancher-server container
+  docker_container:
+    restart_policy: unless-stopped
+    exposed_ports:
+    - '8080'
+    published_ports: ['9345:9345', '8080:8080']
+    image: rancher/server
+    name: rancher-server
+    command: |
+      /usr/bin/s6-svscan
+      /service
+      --db-host {{ rancher_db_host }}
+      --db-port {{ rancher_db_port }}
+      --db-name {{ rancher_db_name }}
+      --db-user {{ rancher_db_user }}
+      --db-password {{ rancher_db_password }}
+      --advertise-address ipify
+    env:
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: 'rancher.k.yourlabs.org'
+      VIRTUAL_HOST: 'rancher.k.yourlabs.org'
+      VIRTUAL_PORT: '8080'

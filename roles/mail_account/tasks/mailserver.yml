@@ -1,0 +1,19 @@
+---
+
+- name: Check if email exists in postfix-accounts.cf
+  shell: grep {{ email }} {{ mail_data }}config/postfix-accounts.cf
+  register: mail_check
+  changed_when: False
+  failed_when: False
+
+- name: Create mail account
+  when: mail_check.rc != 0
+  docker_container:
+    auto_remove: yes
+    image: tvial/docker-mailserver:latest
+    interactive: yes
+    tty: yes
+    name: mail-create
+    command: /bin/sh -c 'echo "{{ email }}|$(doveadm pw -s SHA512-CRYPT -p {{ password }})" >> /config/postfix-accounts.cf'
+    volumes:
+    - '{{ mail_data }}config:/config'

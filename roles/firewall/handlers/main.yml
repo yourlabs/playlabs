@@ -1,0 +1,12 @@
+---
+
+- name: Apply firewall
+  notify: Restart docker
+  shell: systemctl daemon-reload
+
+- name: Restart iptables
+  notify: Restart docker
+  service: name={{ firewall_service }} state=restarted enabled=yes
+
+- name: Restart docker
+  service: name=docker state=restarted

@@ -1,0 +1,7 @@
+---
+
+- include: mailserver.yml
+  when: poste_image is not defined
+
+- include: poste.yml
+  when: poste_image is defined

@@ -1,0 +1,71 @@
+---
+
+- name: Setup mail container
+  register: mail_container
+  docker_container:
+    name: mail
+    state: stopped
+    image: tvial/docker-mailserver:latest
+    hostname: '{{ mail_dns }}'  # must match ssl domain name !
+    networks:
+    - name: mail
+    exposed_ports:
+    - '25'
+    - '143'
+    - '587'
+    - '993'
+    restart_policy: unless-stopped
+    volumes:
+    - '{{ mail_data }}mail/:/var/mail'
+    - '{{ mail_data }}mail-state/:/var/mail-state'
+    - '{{ mail_data }}config/:/tmp/docker-mailserver'
+    - '{{ mail_data }}letsencrypt/log:/var/log/letsencrypt'
+    - '{{ mail_data }}letsencrypt/etc:/etc/letsencrypt'
+    - /data/nginx/certs/{{ mail_dns }}:/etc/letsencrypt/live/{{ mail_dns }}
+    env:
+      ONE_DIR: 1
+      DMS_DEBUG: 1
+      OVERRIDE_HOSTNAME: '{{ mail_dns }}'
+      DOMAIN_NAME: '{{ mail_dns }}'
+      SSL_TYPE: letsencrypt
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+      LETSENCRYPT_HOST: '{{ mail_dns }}'
+    capabilities:
+    - NET_ADMIN
+    - SYS_PTRACE
+
+- name: Install postmaster email account
+  vars:
+    email: '{{ mail_postmaster_email }}'
+    password: '{{ mail_postmaster_password }}'
+  include_role:
+    name: mail
+
+    #  - name: Generate letsencrypt certificate for mail server
+    #    docker_container:
+    #      name: mail-letsencrypt
+    #      image: nginx
+    #      env:
+    #        LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+    #        LETSENCRYPT_HOST: '{{ mail_dns }}'
+    #        VIRTUAL_HOST: '{{ mail_dns }}'
+
+- name: Check if /data/mail.$YOURDOMAIN/config/opendkim/keys/ exists
+  stat: path={{ mail_data }}config/opendkim/keys/
+  register: opendkim
+- name: Generate DKIM
+  docker_container:
+    auto_remove: yes
+    command: generate-dkim-config
+    image: tvial/docker-mailserver:latest
+    name: mail-dkim-generate
+    interactive: yes
+    tty: yes
+    volumes:
+    - '{{ mail_data }}config:/tmp/docker-mailserver'
+  when: not opendkim.stat.exists
+
+- name: Start mail container
+  docker_container:
+    name: mail
+    state: started
