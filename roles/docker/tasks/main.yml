@@ -4,14 +4,14 @@
   file:
     path: /etc/systemd/system/docker.service.d
     state: directory
-
-- name: /etc/systemd/system/docker.service.d/override.conf
-  copy:
-    dest: /etc/systemd/system/docker.service.d/override.conf
-    content: |
-      [Service]
-      ExecStart=
-      ExecStart=/usr/bin/dockerd -H fd:// --iptables=false --ip-masq=false
+#
+# - name: /etc/systemd/system/docker.service.d/override.conf
+#   copy:
+#     dest: /etc/systemd/system/docker.service.d/override.conf
+#     content: |
+#       [Service]
+#       ExecStart=
+#       ExecStart=/usr/bin/dockerd -H fd:// --iptables=false --ip-masq=false
 
 - name: Install apt-transport-https
   when: ansible_os_family == 'Debian'

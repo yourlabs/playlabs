@@ -25,6 +25,9 @@ Examples::
     # If you can only su
     ansible-playbook --become --become-method su --become-user root --ask-su-pass -i inventories/yourlabs/inventory -v playbooks/bootstrap/arch-sudo.yml
 
+    # Example for scaleway debian based box
+    ansible-playbook --user root -i yourlabs/inventory.yml -e update_packages='apt update -y' -e install_python='apt install -y python3' bootstrap.yml
+
 1. Users and sshd
 =================
 
@@ -49,6 +52,10 @@ This requires such variables in the inventory::
     # variable unencrypted which should make diffs easier to read.
     users_passwords:
       jpic: somepassword
+
+Example::
+
+    ansible-playbook --user root -i yourlabs/inventory.yml -e role=ssh -v role.yml
 
 2. Install docker
 =================
