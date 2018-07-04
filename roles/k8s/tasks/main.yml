@@ -1,0 +1,20 @@
+---
+- name: Install pip for openshift pip module required for k8s_raw ansible module
+  package:
+    name: python-pip
+    state: present
+
+- name: Pip install openshift
+  pip:
+    name: openshift
+    state: present
+
+- name: Install namespaces
+  with_dict: '{{ k8s_namespaces }}'
+  k8s_raw:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: '{{ item.key }}'
