@@ -1,29 +1,46 @@
 This repository contains playbooks for YourLabs & partners infrastructure. It
 should support any distro and do as much as possible in docker.
 
-To execute a role, run a command like this for example for the ssh role::
+Getting started
+===============
 
-   ANSIBLE_STDOUT_CALLBACK=debug ansible-playbook --become --become-user=root --become-method=sudo -e role=ssh -i inventories/yourlabs/inventory -v playbooks/role.yml
+Make sure you have working and up to date ansible and git commands.
 
-Otherwise, make your own playbook including the roles.
+Clone the playbooks::
+
+    $ git clone git@git.yourlabs.org:oss/playbooks.git
+
+Clone your inventory next to your playbooks directory.
+
+Rather than organizing around playbooks, we organize around roles, and have one
+playbook to apply any of them: role.yml. Example::
+
+   ANSIBLE_STDOUT_CALLBACK=debug ansible-playbook --become --become-user=root --become-method=sudo -e role=ssh -i inventory -v playbooks/role.yml
+
+To make a role apply to a host, add the host to a group that contains the role
+name. Example:
+
+.. code-block:: yaml
+
+    all:
+      hosts:
+        git:
+          fqdn: git.example.com
+
+      children:
+        # make ssh, gitlab and nginx roles apply on git host
+        ssh-gitlab-nginx:
+          hosts:
+            git:
 
 0. Bootstrap
 ============
 
 Bootstrap means installing your user with your ssh key and make it a sudoer
-without password. This enables executing other playbooks unattended.
-
-Various bootstrap playbooks are located in the ``bootstrap/`` directory of this
-repository, use the one that fits the server you have or do the same manually
-if you prefer.
+without password, along with ansible runtime dependencies on the server. This
+enables executing other playbooks unattended.
 
 Examples::
-
-    # If you have working sudo
-    ansible-playbook --become --become-method sudo --become-user root --ask-sudo-pass -i inventories/yourlabs/inventory playbooks/bootstrap/arch-sudo.yml
-
-    # If you can only su
-    ansible-playbook --become --become-method su --become-user root --ask-su-pass -i inventories/yourlabs/inventory -v playbooks/bootstrap/arch-sudo.yml
 
     # Example for scaleway debian based box
     ansible-playbook --user root -i yourlabs/inventory.yml -e update_packages='apt update -y' -e install_python='apt install -y python3' bootstrap.yml
