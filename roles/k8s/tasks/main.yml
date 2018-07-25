@@ -1,16 +1,5 @@
 ---
-
-- name: Install pip for openshift pip module required for k8s_raw ansible module
-  delegate_to: localhost
-  package:
-    name: python-pip
-    state: present
-
-- name: Pip install openshift
-  delegate_to: localhost
-  pip:
-    name: openshift
-    state: present
+- include: setup.yml
 
 - name: Install users
   include: users.yml
@@ -20,10 +9,7 @@
     loop_var: user
 
 - name: Install namespaces
-  with_dict: '{{ k8s_namespaces }}'
-  delegate_to: localhost
-  k8s:
-    state: present
-    api_version: v1
-    kind: Namespace
-    name: '{{ item.key }}'
+  include: namespaces.yml
+  loop: '{{ k8s_namespaces }}'
+  loop_control:
+    loop_var: namespace

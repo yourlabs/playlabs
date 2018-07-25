@@ -21,7 +21,6 @@
   shell: kubectl config set-credentials {{ user.name }} --client-certificate=/home/{{ user.name }}/.certs/$USER.crt  --client-key=/home/$USER/.certs/$USER.key
 
 - name: Install role
-  with_dict: '{{ k8s_namespaces }}'
   delegate_to: localhost
   k8s:
     state: present

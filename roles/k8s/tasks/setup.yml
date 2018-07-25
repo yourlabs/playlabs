@@ -1,0 +1,13 @@
+---
+
+- name: Install pip for openshift pip module required for k8s_raw ansible module
+  delegate_to: localhost
+  package:
+    name: python-pip
+    state: present
+
+- name: Pip install openshift
+  delegate_to: localhost
+  pip:
+    name: openshift
+    state: present
