@@ -18,19 +18,11 @@
   # Don't crash if python isn't installed, we'll install it
   gather_facts: False
 
-  vars:
-    update_packages: sudo pacman -Sy --noconfirm
-    install_python: sudo pacman -S --noconfirm python
-
   tasks:
-  - name: Update pkg cache
-    raw: bash -c 'which python || {{ update_packages }}'
-    register: pkg_update
-    changed_when: pkg_update.stdout_lines != ['/usr/bin/python']
-
-  - name: Install python for ansible
-    raw: bash -c 'which python || {{ install_python }}'
-    changed_when: pkg_update.stdout_lines != ['/usr/bin/python']
+  - name: Raw bootstrap.sh
+    script: 'bootstrap.sh'
+    register: out
+    changed_when: "'+ exit 0' not in out.stdout_lines"
 
 - hosts: all
   # Setup sudo without password and upload your ssh key.

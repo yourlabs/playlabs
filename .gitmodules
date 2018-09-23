@@ -1,6 +1,6 @@
 [submodule "roles/nfs"]
-	path = roles/nfs
+	path = playlabs/roles/nfs
 	url = https://github.com/geerlingguy/ansible-role-nfs
 [submodule "roles/mysql"]
-	path = roles/mysql
+	path = playlabs/roles/mysql
 	url = https://github.com/geerlingguy/ansible-role-mysql
