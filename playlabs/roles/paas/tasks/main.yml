@@ -1,4 +1,0 @@
----
-- include_role: docker
-- include_role: firewall
-- include_role: nginx

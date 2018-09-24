@@ -12,14 +12,14 @@ LOCAL_BIN = f'{os.getenv("HOME")}/.local/bin'
 LOCAL_BIN_PLAYLABS = f'{LOCAL_BIN}/playlabs'
 BASH_PROFILE = f'{os.getenv("HOME")}/.bash_profile'
 HELP = '''
-Playlabs, the obscene ansible distribution.
+Playlabs: the obscene ansible distribution.
 
 Create your ssh user with your key and secure sshd (bootstrap):
 
     playlabs root@1.2.3.4
     playlabs @somehost --ask-sudo-pass # all options are ansible options
 
-Deploy the paas:
+Deploy the paas on the server:
 
     playlabs @somehost paas
 
@@ -107,7 +107,13 @@ class Ansible(object):
         return r
 
     def bootstrap(self, target, extra_args):
-        user, host = target.split('@')
+        user = None
+
+        if '@' in target:
+            user, host = target.split('@')
+        else:
+            host = target
+
         if not user:
             user = os.getenv('USER')
 
@@ -136,15 +142,20 @@ class Ansible(object):
 
     def play(self, hosts, options, roles):
         retcode = 0
-        for role in roles:
-            retcode = self.role(role, hosts, options)
-            if retcode:
-                sys.exit(retcode)
-        else:
+
+        if not roles:
+            click.echo('Bootstrapping (no role argument found)')
             for host in hosts:
                 retcode = self.bootstrap(host, options)
                 if retcode:
                     sys.exit(retcode)
+
+        click.echo(f'Applying {",".join(roles)}')
+        for role in roles:
+            retcode = self.role(role, hosts, options)
+            if retcode:
+                sys.exit(retcode)
+
         return retcode
 
 
@@ -189,9 +200,16 @@ def cli():
             hosts.append(arg.split('@')[-1])
         elif arg.startswith('-'):
             options.append(arg)
-        elif not roles:
+        elif not roles and not options:
             roles = arg.split(',')
         else:
             options.append(arg)
+
+    for i, role in enumerate(roles):
+        if role == 'paas':
+            del roles[i]
+            roles.insert(i, 'nginx')
+            roles.insert(i, 'firewall')
+            roles.insert(i, 'docker')
 
     sys.exit(ansible.play(hosts, options, roles))
