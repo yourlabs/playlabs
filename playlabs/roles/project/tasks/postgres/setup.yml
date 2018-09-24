@@ -1,0 +1,22 @@
+---
+- name: Create postgres container
+  register: project_postgresql_container
+  docker_container:
+    name: '{{ project_postgresql_host }}'
+    networks:
+    - name: '{{ project_instance }}'
+    image: postgres:10
+    restart_policy: always
+    volumes:
+    - '{{ project_home }}postgresql/data:/var/lib/postgresql/data'
+    - '{{ project_home }}postgresql/run:/var/run/postgresql'
+    env:
+      POSTGRES_PASSWORD: '{{ project_postgresql_password }}'
+      POSTGRES_USER: '{{ project_postgresql_user }}'
+      POSTGRES_DB: '{{ project_postgresql_db }}'
+
+- name: Wait for postgres to be up
+  wait_for:
+    host: "{{ project_postgresql_container['ansible_facts']['docker_container']['NetworkSettings']['IPAddress'] }}"
+    port: 5432
+    state: started

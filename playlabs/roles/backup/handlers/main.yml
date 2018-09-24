@@ -1,0 +1,53 @@
+---
+
+- name: backup unit
+  notify: backup unit service
+  shell: systemctl daemon-reload
+  become: true
+  become_method: sudo
+  become_user: root
+
+- name: backup unit service
+  notify: backup timer
+  become: true
+  become_method: sudo
+  become_user: root
+  service:
+    name: '{{ unit_name }}'
+    state: started
+    enabled: yes
+
+- name: backup timer
+  become: true
+  become_method: sudo
+  become_user: root
+  service:
+    name: '{{ unit_name }}.timer'
+    state: started
+    enabled: yes
+
+- name: prune unit
+  notify: prune unit service
+  shell: systemctl daemon-reload
+  become: true
+  become_method: sudo
+  become_user: root
+
+- name: prune unit service
+  notify: prune timer
+  become: true
+  become_method: sudo
+  become_user: root
+  service:
+    name: '{{ unit_name }}'
+    state: started
+    enabled: yes
+
+- name: prune timer
+  become: true
+  become_method: sudo
+  become_user: root
+  service:
+    name: '{{ unit_name }}.timer'
+    state: started
+    enabled: yes

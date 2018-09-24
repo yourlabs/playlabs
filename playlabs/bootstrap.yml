@@ -56,3 +56,6 @@
       user: '{{ lookup("env", "USER") }}'
       state: present
       key: '{{ lookup("file", lookup("env", "HOME") + "/.ssh/id_rsa.pub") }}'
+
+- hosts: all
+  roles: [ssh]

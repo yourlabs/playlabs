@@ -1,4 +1,5 @@
 ---
+
 - name: Remove bind9 if present
   failed_when: false
   package:

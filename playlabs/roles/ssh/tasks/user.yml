@@ -1,0 +1,6 @@
+---
+
+- name: Add user to their groups
+  with_items: '{{ item["roles"].get("ssh") }}'
+  user:
+    name: '{{ user["name"] }}'

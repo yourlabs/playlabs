@@ -1,0 +1,26 @@
+---
+
+- name: Create deploy group
+  group: name=deploy state=present
+
+- name: Create deploy user
+  user:
+    name: deploy
+    state: present
+    groups: docker,deploy
+    shell: /bin/bash
+
+- name: Deploy user ssh key
+  when: '{{ ssh_public_key|default(False) }}'
+  authorized_key:
+    user: deploy
+    state: present
+    key: '{{ ssh_public_key }}'
+
+- name: Allow deploy user to run backup scripts as sudo
+  when: '{{ ssh_public_key|default(False) }}'
+  lineinfile:
+    path: /etc/sudoers
+    line: 'deploy ALL=(ALL) NOPASSWD: /home/*/backup.sh'
+    backup: yes
+

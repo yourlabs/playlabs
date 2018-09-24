@@ -1,0 +1,214 @@
+---
+
+- include: deploy.yml
+
+- name: Combine base and explicit env vars
+  tags: update
+  set_fact:
+    project_env: '{{ project_env_base|combine(project_env) }}'
+
+- name: Make home directory
+  file: path={{ project_home }} state=directory owner=root group=deploy mode=0771
+  tags: home
+
+- name: Create media, log and spooler dirs
+  with_items: ['{{ project_log }}', '{{ project_media }}', '{{ project_spooler }}']
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: 0700
+    owner: 1000
+    group: 1000
+
+- name: Install backup scripts
+  async: 300
+  when: project_backup_password != False
+  vars:
+    home: '{{ project_home }}'
+    backup_password: '{{ project_backup_password }}'
+    unit_name: 'backup-{{ project_instance }}'
+    unit_description: '{{ project_instance }} backup'
+    script_path: '{{ project_home }}backup.sh'
+    script_content: |
+      #!/bin/bash -eux
+      pushd {{ project_home }}
+
+      {% for service in project_services %}
+        {{ lookup('file', 'tasks/services/' + service + '/backup.sh') }}
+      {% endfor %}
+
+      if docker exec {{ project_instance }} env; then
+          commit="$(docker exec {{ project_instance }} env | grep GIT_COMMIT | grep -o '[0-9a-f]*')"
+          echo $commit > commit
+          tag="--tag $commit"
+      else
+          tag=""
+          touch commit
+      fi
+
+      export RESTIC_PASSWORD_FILE=.backup_password
+      export RESTIC_REPOSITORY=restic
+      restic backup $tag *.log commit docker-run.sh media postgresql/run/data.dump
+      {% if backup_lftp_dsn|default(False) %}
+      lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}; mirror -R {{ project_home }}/restic'
+      {% endif %}
+      popd
+    rollback_path: '{{ project_home }}rollback.sh'
+    rollback_content: |
+      #!/bin/bash -eux
+      pushd {{ project_home }}
+      export RESTIC_PASSWORD_FILE=.backup_password
+      export RESTIC_REPOSITORY=restic
+
+      if ! [ -d $RESTIC_REPOSITORY ]; then
+          echo 'Repository not found ! geting from ftp'
+          {% if backup_lftp_dsn|default(False) %}
+          lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}; mirror {{ project_home }}/restic'
+          {% else %}
+          echo 'FTP not available: backup_lftp_dsn inventory variable not set !'
+          {% endif %}
+      fi
+
+      if [ -z "${1-}" ]; then
+          restic snapshots
+          exit 0
+      fi
+
+      docker rm -f {{ project_instance }} || echo could not rm container {{ project_instance }}
+
+      rm -rf .media_before_restore
+      [ ! -d media ] || mv media .media_before_restore
+      restic restore $1 --target restore
+
+      {% for service in project_services %}
+        {{ lookup('file', 'tasks/services/' + service + '/restore.sh') }}
+      {% endfor %}
+
+      mv restore/media .
+      mv restore/docker-run.sh .
+
+      docker rm -f {{ project_instance }} || echo could not delete container {{ project_instance }}
+      bash -eux {{ project_home }}docker-run.sh
+      popd
+    prune_path: '{{ project_home }}prune.sh'
+    prune_content: |
+      #!/bin/bash -eux
+      pushd {{ project_home }}
+      export RESTIC_PASSWORD_FILE=.backup_password
+      export RESTIC_REPOSITORY=restic
+      cp -a $RESTIC_REPOSITORY .${RESTIC_REPOSITORY}.backup
+      restic forget --keep-last 90 --keep-daily 7 --keep-weekly 5 --keep-monthly 12 --keep-yearly 75
+      if ! restic check; then
+          rm -rf $RESTIC_REPOSITORY && mv .${RESTIC_REPOSITORY}.backup $RESTIC_REPOSITORY
+          exit 1
+      fi
+      restic prune
+
+  include_role:
+    name: backup
+
+- name: Install htaccess
+  when: project_htaccess and users_passwords
+  tags: users
+  async: 300
+  vars:
+    dns: '{{ project_dns }}'
+    service: '{{ project_instance }}'
+  include_role:
+    name: nginx_htpasswd
+
+- name: Configure nginx
+  copy:
+    dest: '{{ nginx_home|default("/home/nginx/") }}vhosts.d/{{ project_dns }}'
+    content: |
+      client_max_body_size 10M;
+      client_body_buffer_size 10M;
+
+- name: Configure nginx for redirects
+  with_items: '{{ project_dns_redirect }}'
+  copy:
+    dest: '{{ nginx_home }}vhosts.d/{{ item }}_location'
+    content: rewrite ^/(.*) https://{{ project_dns }}/$1 permanent;
+
+- name: Pull project image
+  tags: update
+  register: project_docker_pull
+  async: 300
+  docker_image:
+    name: '{{ image }}'
+    force: yes
+
+- name: Create project network
+  docker_network:
+    name: '{{ project_instance }}'
+
+- name: install restic
+  package: name=restic
+  async: 300
+
+- name: Install service containers
+  with_items: '{{ services|default([]) }}'
+  include: services/{{ item }}/setup.yml
+
+- name: Docker pull image
+  async_status: jid={{ project_docker_pull.ansible_job_id }}
+  register: job_result
+  until: job_result.finished
+  retries: 30
+
+- name: Docker inspect image
+  docker_image_facts:
+    name: '{{ image }}'
+  register: project_image
+
+- debug: msg="project_image['images'][0]['Config']['Env'].get('PLAYLABS', None)"
+
+- name: Stop container if any
+  failed_when: false
+  docker_container:
+    name: '{{ project_instance }}'
+    state: stopped
+
+- name: Execute backup
+  when: '{{ project_backup_password|default(False) }}'
+  tags: [update, migrate]
+  shell: sudo {{ project_home }}/backup.sh
+
+#
+#  - name: Get git commit
+#    tags: update, docker-run
+#    shell: "docker run {{image}} env | grep GIT_COMMIT | grep -o '[a-f0-9]*' "
+#    register: project_commit
+#    args:
+#      executable: /bin/bash
+#
+- name: Execute migrate
+  when: profile|default(False)
+  include: 'profiles/{{ profile }}/migrate.yml'
+
+- name: Update docker-run.sh
+  tags: update, docker-run
+  copy:
+    dest: '{{ project_home }}/docker-run.sh'
+    mode: 0744
+    content: |
+      #!/bin/bash -eux
+      docker rm -f {{ project_instance }} || echo could not rm container
+      docker run -d --name {{ project_instance }} --restart unless-stopped \
+          -v {{ project_media }}:/media -v {{ project_log }}:/log -v {{ project_spooler }}:/spooler \
+          {% for key, value in project_env.items() %}
+          -e {{ key }}='{% if value.replace is defined %}{{ value.replace("'", "\\'") }}{% else %}{{ value }}{% endif %}' \
+          {% endfor %}
+          {{ image }}
+      docker network connect {{ project_instance }} {{ project_instance }}
+      {% if 'mailcatcher' in project_env.get('EMAIL_HOST', []) %}
+      docker network connect mailcatcher {{ project_instance }}
+      {% endif %}
+
+- name: Execute docker-run.sh
+  tags: update, docker-run
+  shell: bash -eux {{ project_home }}/docker-run.sh
+
+- name: Execute migrate
+  when: '{{ profile }}'
+  include: 'profiles/{{ profile }}/users.yml'

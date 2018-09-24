@@ -1,4 +1,5 @@
 ---
+# playlabs next=firewall
 
 - name: /etc/systemd/system/docker.service.d
   file:
@@ -73,7 +74,7 @@
     state: started
 
 - name: Add active_users to docker group
-  with_items: '{{ users }}'
+  with_items: '{{ users|default([]) }}'
   user:
     name: '{{ item["name"] }}'
     state: present

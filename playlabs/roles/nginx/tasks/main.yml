@@ -5,8 +5,6 @@
     name: passlib
     state: present
 
-- debug: var=nginx_data
-
 - name: Create nginx-proxy container with jwilder/nginx-proxy
   docker_container:
     name: nginx-proxy
@@ -15,11 +13,11 @@
     published_ports: ['80:80', '443:443']
     restart_policy: always
     volumes:
-    - '{{ nginx_data }}conf.d:/etc/nginx/conf.d'
-    - '{{ nginx_data }}vhosts.d:/etc/nginx/vhost.d'
-    - '{{ nginx_data }}certs:/etc/nginx/certs:ro'
-    - '{{ nginx_data }}html:/usr/share/nginx/html:rw'
-    - '{{ nginx_data }}htpasswd:/etc/nginx/htpasswd:ro'
+    - '{{ nginx_home }}conf.d:/etc/nginx/conf.d'
+    - '{{ nginx_home }}vhosts.d:/etc/nginx/vhost.d'
+    - '{{ nginx_home }}certs:/etc/nginx/certs:ro'
+    - '{{ nginx_home }}html:/usr/share/nginx/html:rw'
+    - '{{ nginx_home }}htpasswd:/etc/nginx/htpasswd:ro'
     - /var/run/docker.sock:/tmp/docker.sock:ro
     labels: com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=nginx-letsencrypt
 
@@ -32,5 +30,5 @@
     env:
       ACME_CA_URI: '{{ letsencrypt_uri }}'
     volumes:
-    - '{{ nginx_data }}certs:/etc/nginx/certs:rw'
+    - '{{ nginx_home }}certs:/etc/nginx/certs:rw'
     - /var/run/docker.sock:/var/run/docker.sock:ro

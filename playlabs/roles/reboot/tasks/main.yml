@@ -1,0 +1,6 @@
+---
+
+# playlabs user=root
+
+- name: Reboot
+  reboot:

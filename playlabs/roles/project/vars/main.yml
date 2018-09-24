@@ -1,0 +1,3 @@
+---
+project_dns: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_dns", dns) }}'
+project_services: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_services", services.split(",") if services is defined else []) }}'

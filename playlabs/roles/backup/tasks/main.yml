@@ -9,8 +9,24 @@
     group: root
     mode: 0700
 
+- name: Upload backup password
+  copy:
+    dest: '{{ home }}.backup_password'
+    content: '{{ backup_password }}'
+    owner: deploy
+    group: root
+    mode: 0700
+
+- name: Init restic repository
+  register: backup_init
+  shell: 'RESTIC_REPOSITORY=restic RESTIC_PASSWORD_FILE=.backup_password restic init --repo restic'
+  args:
+    executable: /bin/bash
+    creates: '{{ home }}restic'
+    chdir: '{{ home }}'
+
 - name: Upload backup script
-  register: backup_script
+  notify: backup unit
   copy:
     dest: '{{ script_path }}'
     content: '{{ script_content }}'
@@ -19,7 +35,7 @@
     mode: 0700
 
 - name: Create backup unit
-  register: backup_unit
+  notify: backup unit
   copy:
     dest: /etc/systemd/system/{{ unit_name }}.service
     content: |
@@ -35,7 +51,7 @@
       WantedBy=basic.target
 
 - name: Create backup timer
-  register: backup_timer
+  notify: backup unit
   copy:
     dest: /etc/systemd/system/{{ unit_name }}.timer
     content: |
@@ -44,24 +60,49 @@
 
       [Timer]
       OnBootSec=20m
-      OnUnitActiveSec=1h
+      OnUnitActiveSec=1d
 
       [Install]
       WantedBy=timers.target
 
-- name: Reload systemd units
-  when: backup_unit.changed
-  shell: systemctl daemon-reload
+- name: Upload prune script
+  notify: prune unit
+  copy:
+    dest: '{{ prune_path }}'
+    content: '{{ prune_content }}'
+    owner: root
+    group: root
+    mode: 0700
 
-- name: Enable and start backup unit
-  when: backup_unit.changed or backup_script.changed
-  service:
-    name: '{{ unit_name }}'
-    state: started
-    enabled: yes
+- name: Create prune unit
+  notify: backup unit
+  copy:
+    dest: /etc/systemd/system/{{ unit_name }}.prune.service
+    content: |
+      [Unit]
+      Description=Prune {{ unit_description }} unit
 
-- name: Enable and start backup timer
-  service:
-    name: '{{ unit_name }}.timer'
-    state: started
-    enabled: yes
+      [Service]
+      ExecStart={{ prune_path }}
+      Type=oneshot
+      StandardOutput=journal
+
+      [Install]
+      WantedBy=basic.target
+
+- name: Create prune timer
+  register: prune_timer
+  when: prune_path is defined
+  copy:
+    dest: /etc/systemd/system/{{ unit_name }}.prune.timer
+    content: |
+      [Unit]
+      Description=Prune {{ unit_description }} timer
+
+      [Timer]
+      OnBootSec=20m
+      OnUnitActiveSec=1d
+
+      [Install]
+      WantedBy=timers.target
+

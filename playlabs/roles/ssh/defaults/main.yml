@@ -1,4 +1,5 @@
 ---
+users: []
 
 sshd_options:
   PermitRootLogin: 'no'
