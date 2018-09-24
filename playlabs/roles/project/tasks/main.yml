@@ -7,18 +7,47 @@
   set_fact:
     project_env: '{{ project_env_base|combine(project_env) }}'
 
+- name: Load vars from plugins if any
+  tags: update
+  with_items: '{{ project_plugins }}'
+  include_vars: plugins/{{ item }}/vars.yml
+
+- name: Combine plugins env vars
+  tags: update
+  with_items: '{{ project_plugins }}'
+  set_fact:
+    project_env: '{{ lookup("vars", "project_" + item + "_env")|combine(project_env) }}'
+
+- name: Configure letsencrypt variable if email is provided
+  when: letsencrypt_email is defined
+  set_fact:
+    project_env: '{{ project_env_base|combine({"LETSENCRYPT_EMAIL": letsencrypt_email, "LETSENCRYPT_HOST": project_dns}) }}'
+
+- name: Configure extra letsencrypt hostnames if project_dns_redirect
+  when: project_dns_redirect
+  set_fact:
+    project_env: '{{ project_env|combine({"LETSENCRYPT_HOST": project_env["LETSENCRYPT_HOST"] + "," + project_dns_redirect|join(",")}) }}'
+
+- name: Combine base and explicit env vars again, to ensure they override plugin defaults
+  tags: update
+  set_fact:
+    project_env: '{{ project_env_base|combine(project_env) }}'
+
 - name: Make home directory
   file: path={{ project_home }} state=directory owner=root group=deploy mode=0771
   tags: home
 
-- name: Create media, log and spooler dirs
-  with_items: ['{{ project_log }}', '{{ project_media }}', '{{ project_spooler }}']
+- name: Create log dir
   file:
-    path: '{{ item }}'
+    path: '{{ project_log }}'
     state: directory
     mode: 0700
     owner: 1000
     group: 1000
+
+- name: The "prepare" plugin provisions the home directory
+  with_items: '{{ project_plugins }}'
+  include: plugins/{{ item }}/prepare.yml
 
 - name: Install backup scripts
   async: 300
@@ -34,7 +63,7 @@
       pushd {{ project_home }}
 
       {% for service in project_services %}
-        {{ lookup('file', 'tasks/services/' + service + '/backup.sh') }}
+        {{ lookup('template', 'services/' + service + '/backup.sh') }}
       {% endfor %}
 
       if docker exec {{ project_instance }} env; then
@@ -81,7 +110,7 @@
       restic restore $1 --target restore
 
       {% for service in project_services %}
-        {{ lookup('file', 'tasks/services/' + service + '/restore.sh') }}
+        {{ lookup('template', 'services/' + service + '/restore.sh') }}
       {% endfor %}
 
       mv restore/media .
@@ -170,7 +199,7 @@
     state: stopped
 
 - name: Execute backup
-  when: '{{ project_backup_password|default(False) }}'
+  when: project_backup_password != False
   tags: [update, migrate]
   shell: sudo {{ project_home }}/backup.sh
 
@@ -183,7 +212,7 @@
 #      executable: /bin/bash
 #
 - name: Execute migrate
-  when: profile|default(False)
+  when: project_profile|default(False)
   include: 'profiles/{{ profile }}/migrate.yml'
 
 - name: Update docker-run.sh
@@ -209,6 +238,6 @@
   tags: update, docker-run
   shell: bash -eux {{ project_home }}/docker-run.sh
 
-- name: Execute migrate
-  when: '{{ profile }}'
-  include: 'profiles/{{ profile }}/users.yml'
+- name: Update users in app if profile supports it
+  when: project_profile != False
+  include: 'profiles/{{ project_profile }}/users.yml'

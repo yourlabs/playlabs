@@ -1,37 +1,30 @@
 ---
 project_prefix: '{% if prefix is defined %}{{ prefix }}{% else %}project{% endif %}'
 project_instance: '{{ project_prefix }}-{{ instance|default("staging") }}'
-project_admin_password: '{{ hostvars[inventory_hostname][project_prefix + "_" + instance|default("staging") + "_admin_password"] }}'
-project_dns_redirect: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_dns_redirect", []) }}'
+project_profile: '{{ profile|default(False) }}'
+project_services: '{{ services|default([]) }}'
+
+# File paths
 project_home: '/home/{{ project_instance }}/'
 project_backup: '{{ project_home }}backup/'
+project_log: '{{ project_home }}log'
+
+project_admin_password: '{{ hostvars[inventory_hostname][project_prefix + "_" + instance|default("staging") + "_admin_password"] }}'
+project_dns_redirect: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_dns_redirect", []) }}'
+
 project_email: '{{ hostvars[inventory_hostname][project_prefix + "_" + instance|default("staging") + "_email"] }}'
-project_email_from: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_email_from", project_prefix + "@exemple.com") }}'
 project_backup_password: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_backup_password", backup_password|default(False)) }}'
 project_htaccess: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_htaccess", false) }}'
-project_log: '{{ project_home }}log'
-project_media: '{{ project_home }}media'
-project_spooler: '{{ project_home }}spooler'
 project_secret_key: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_secret_key") }}'
 project_sentry_dsn: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_sentry_dsn") }}'
-project_postgresql_password: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_postgresql_password", False) }}'
-project_postgresql_user: project
-project_postgresql_host: '{{ project_instance }}-postgres'
-project_postgresql_db: '{{ project_instance }}'
-project_env: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_env", {}) }}'
+project_env: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_env", env|default({})) }}'
 project_env_base:
-  LETSENCRYPT_EMAIL: '{{ letsencrypt_email|default("") }}'
-  LETSENCRYPT_HOST: '{{ project_dns }}{% if project_dns_redirect %},{{ project_dns_redirect|join(",") }}{% endif %}'
   VIRTUAL_HOST: '{{ project_dns }}{% if project_dns_redirect %},{{ project_dns_redirect|join(",") }}{% endif %}'
   ALLOWED_HOSTS: '{{ project_dns }}'
   DEBUG: ''
   SECRET_KEY: '{{ project_secret_key }}'
-  DB_ENGINE: project.db.backends.postgresql
-  DB_USER: '{{ project_postgresql_user }}'
-  DB_PASSWORD: '{{ project_postgresql_password }}'
-  DB_HOST: '{{ project_postgresql_host }}'
-  DB_NAME: '{{ project_postgresql_db }}'
-  DEFAULT_FROM_EMAIL: '{{ project_email_from }}'
+  DB_ENGINE: django.db.backends.postgresql
+  DEFAULT_FROM_EMAIL: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_email_from", project_prefix + "@" + project_dns) }}'
   INSTANCE: '{{ instance|default("staging") }}'
   MEDIA_ROOT: '/media'
   LOG: '/log'

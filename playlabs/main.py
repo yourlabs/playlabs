@@ -64,7 +64,7 @@ class Ansible(object):
         cmd.append('-v')
         cmd += args
         cmd.append(os.path.join(self.playbooks, name))
-        cmd = shlex.split(' '.join(cmd))
+        # cmd = shlex.split(' '.join(cmd))
 
         vault_pass_file = None
         if 'ANSIBLE_VAULT_PASSWORD_FILE' in os.environ:
@@ -96,6 +96,7 @@ class Ansible(object):
         targets = []
 
         noroot = False
+        print(extra_args)
         for arg in extra_args:
             if re.match('^@[\w\d_.-]*$', arg):
                 targets.append(arg[1:])
@@ -111,30 +112,9 @@ class Ansible(object):
             options += ['-i ' + ','.join(targets) + ',']
             playbook = 'role-all.yml'
 
-        tasks = os.path.join(os.path.dirname(__file__), 'roles', name, 'tasks', 'main.yml')
-        next_role = None
-        if os.path.exists(tasks):
-            with open(tasks, 'r') as f:
-                for line in f.readlines():
-                    if not line.startswith('# playlabs '):
-                        continue
-
-                    line = line[len('# playlabs '):].strip()
-                    option, value = line.split('=')
-
-                    if option == 'next':
-                        next_role = value
         retcode = ansible.playbook(playbook, options)
         if retcode != 0:
             return retcode
-
-        if next_role:
-            res = click.confirm(
-                f'Do you want to execute next role {next_role} ?',
-                default=True,
-            )
-            if res:
-                retcode = self.role(next_role, extra_args)
 
         return retcode
 

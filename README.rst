@@ -34,6 +34,9 @@ That will execute the bootstrap.yml playbook, which in turn will execute
 bootstrap.sh on the server with Ansible's script module that doesn't require
 python.
 
+You might need to pass extra options to ansible in some cases, for example if
+your install provides a passworded sudo, add ``--ask-sudo-pass``.
+
 You can then for example reboot the server::
 
     playlabs reboot @somehost  # requires ansible 1.7
@@ -61,10 +64,10 @@ provision fine-grained RBAC in your own apps.
 Configure the server to have not only docker, but also ansible modules to
 execute the docker module of ansible::
 
-    playlabs docker,firewall @somehost
+    playlabs docker,firewall,nginx @somehost
 
-docker and firewall roles will execute on somehost, effectively configuring
-docker and the firewall.
+docker, firewall and nginx roles will execute on somehost, effectively configuring
+docker, the firewall and nginx-proxy with letsencrypt companion.
 
 2. Inventory
 ============
