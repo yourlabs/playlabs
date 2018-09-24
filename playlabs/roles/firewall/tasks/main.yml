@@ -14,6 +14,11 @@
     firewall_packages: iptables,iptables-persistent
     firewall_service: netfilter-persistent
 
+- name: Create /etc/iptables
+  file:
+    path: /etc/iptables
+    state: directory
+
 - name: Install iptables configuration
   notify: Apply firewall
   copy:

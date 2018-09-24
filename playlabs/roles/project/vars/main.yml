@@ -1,4 +1,3 @@
 ---
-project:
-  dns: '{{ dns }}'
-project_plughins: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_hooks", hooks.split(",") if hooks is defined else []) }}'
+project_dns: '{{ dns if dns is defined else inventory_hostname }}'
+project_plugins: '{{ plugins.split(",") if plugins is defined else []) }}'

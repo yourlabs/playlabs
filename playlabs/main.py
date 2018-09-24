@@ -64,7 +64,7 @@ class Ansible(object):
         cmd.append('-v')
         cmd += args
         cmd.append(os.path.join(self.playbooks, name))
-        # cmd = shlex.split(' '.join(cmd))
+        cmd = shlex.split(' '.join(cmd))
 
         vault_pass_file = None
         if 'ANSIBLE_VAULT_PASSWORD_FILE' in os.environ:

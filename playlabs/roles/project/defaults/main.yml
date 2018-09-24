@@ -1,5 +1,4 @@
 ---
-project_prefix: '{% if prefix is defined %}{{ prefix }}{% else %}project{% endif %}'
 project_instance: '{{ project_prefix }}-{{ instance|default("staging") }}'
 project_profile: '{{ profile|default(False) }}'
 project_services: '{{ services|default([]) }}'
