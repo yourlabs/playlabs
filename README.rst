@@ -1,5 +1,12 @@
-Playlabs: the obscene ansible distribution for lone wolves
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Playlabs: the obscene ansible distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Playlabs combines simple ansible patterns with packaged roles to create a
+docker orchestrated paas to prototype products for development to production.
+
+Playlabs does not deal with HA, for HA you will need to do the ansible plugins
+yourself, or use kubernetes ... but Playlabs will do everything else, even
+configure your own sentry or kubernetes servers !
 
 Install playlabs
 ================

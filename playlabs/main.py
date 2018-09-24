@@ -3,6 +3,7 @@ import os
 import re
 import sh
 import shlex
+import shutil
 import subprocess
 import sys
 
@@ -10,10 +11,42 @@ import sys
 LOCAL_BIN = f'{os.getenv("HOME")}/.local/bin'
 LOCAL_BIN_PLAYLABS = f'{LOCAL_BIN}/playlabs'
 BASH_PROFILE = f'{os.getenv("HOME")}/.bash_profile'
+HELP = '''
+Playlabs, the obscene ansible distribution.
+
+Create your ssh user with your key and secure sshd (bootstrap):
+
+    playlabs root@1.2.3.4
+    playlabs @somehost --ask-sudo-pass # all options are ansible options
+
+Deploy the paas:
+
+    playlabs @somehost paas
+
+Deploy a project:
+
+    playlabs @somehost project \\
+        -e image=betagouv/mrs:master \\
+        -e plugins=django,uwsgi,postgres \\
+        -e backup_password=foo \\
+        -e '{"env":{"SECRET_KEY" :"itsnotasecret"}}'
+
+Initiate an inventory, for your users and projects configurations:
+
+    playlabs init your-inventory
+'''
+
+def patch():
+    with open(BASH_PROFILE, 'a+') as f:
+        f.write(
+            'export PATH=$PATH:$HOME/.local/bin # playlabs'
+        )
 
 if os.path.abspath(sys.argv[0]) == LOCAL_BIN_PLAYLABS:
     if LOCAL_BIN not in os.getenv('PATH').split(':'):
-        if os.path.exists(BASH_PROFILE):
+        if not os.path.exists(BASH_PROFILE):
+            patch()
+        else:
             with open(BASH_PROFILE, 'r') as f:
                 res = f.read()
             if '# playlabs' not in res:
@@ -22,10 +55,7 @@ if os.path.abspath(sys.argv[0]) == LOCAL_BIN_PLAYLABS:
                     default=True,
                 )
                 if result:
-                    with open(BASH_PROFILE, 'a+') as f:
-                        f.write(
-                            'export PATH=$PATH:$HOME/.local/bin # playlabs'
-                        )
+                    patch()
                 else:
                     with open(BASH_PROFILE, 'a+') as f:
                         f.write('# playlabs')
@@ -64,7 +94,7 @@ class Ansible(object):
         cmd.append('-v')
         cmd += args
         cmd.append(os.path.join(self.playbooks, name))
-        cmd = shlex.split(' '.join(cmd))
+        cmd = [shlex.quote(i) for i in cmd]
 
         vault_pass_file = None
         if 'ANSIBLE_VAULT_PASSWORD_FILE' in os.environ:
@@ -86,37 +116,37 @@ class Ansible(object):
         ]
         if user != 'root':
             options = self.sudo(options)
-        options += ['--inventory', f'"{host},"'] + extra_args
+        options += ['--inventory', f'{host},'] + extra_args
 
         return ansible.playbook('bootstrap.yml', options)
 
-    def role(self, name, extra_args):
-        playbook = 'role.yml'
+    def role(self, name, hosts, options):
         options = ['-e', f'role={name}']
-        targets = []
 
-        noroot = False
-        print(extra_args)
-        for arg in extra_args:
-            if re.match('^@[\w\d_.-]*$', arg):
-                targets.append(arg[1:])
-            elif arg == '--noroot':
-                noroot = True
-            else:
-                options.append(arg)
-
-        if not noroot:
+        if '--noroot' not in options:
             options = self.sudo(options)
 
-        if targets:
-            options += ['-i ' + ','.join(targets) + ',']
+        if hosts:
+            options += ['--inventory', ','.join(hosts) + ',']
             playbook = 'role-all.yml'
+        else:
+            playbook = 'role.yml'
 
-        retcode = ansible.playbook(playbook, options)
-        if retcode != 0:
-            return retcode
+        return ansible.playbook(playbook, options)
 
+    def play(self, hosts, options, roles):
+        retcode = 0
+        for role in roles:
+            retcode = self.role(role, hosts, options)
+            if retcode:
+                sys.exit(retcode)
+        else:
+            for host in hosts:
+                retcode = self.bootstrap(host, options)
+                if retcode:
+                    sys.exit(retcode)
         return retcode
+
 
 ansible = Ansible(
     '.',
@@ -124,14 +154,44 @@ ansible = Ansible(
 )
 
 
+def init(target):
+    if os.path.exists(target):
+        if click.confirm(f'Drop existing {target}?', default=False):
+            shutil.rmtree(target)
+        else:
+            click.echo('Aborting')
+            sys.exit(1)
+    click.echo(f'Provisioning {target}')
+    shutil.copytree(
+        os.path.join(
+            os.path.dirname(__file__),
+            'inventory_template',
+        ),
+        target,
+    )
+    click.echo(f'{target} ready ! run playlabs in there to execute')
+
+
 def cli():
-    if '@' in sys.argv[1]:
-        sys.exit(ansible.bootstrap(sys.argv[1], sys.argv[2:]))
-    elif ',' in sys.argv[1]:
-        for role in sys.argv[1].split(','):
-            retcode = ansible.role(role, sys.argv[2:])
-            if retcode != 0:
-                sys.exit(retcode)
+    if len(sys.argv) == 1:
+        click.echo(HELP)
         sys.exit(0)
-    else:
-        sys.exit(ansible.role(sys.argv[1], sys.argv[2:]))
+    elif sys.argv[1] == 'init':
+        target = os.path.abspath(sys.argv[2])
+        init(target)
+        sys.exit(0)
+
+    hosts = []
+    options = []
+    roles = []
+    for arg in sys.argv[1:]:
+        if '@' in arg:
+            hosts.append(arg.split('@')[-1])
+        elif arg.startswith('-'):
+            options.append(arg)
+        elif not roles:
+            roles = arg.split(',')
+        else:
+            options.append(arg)
+
+    sys.exit(ansible.play(hosts, options, roles))

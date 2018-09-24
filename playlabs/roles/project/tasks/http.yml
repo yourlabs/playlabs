@@ -1,0 +1,24 @@
+---
+
+- name: Install htaccess
+  when: project_htaccess and users_passwords
+  tags: users
+  async: 300
+  vars:
+    dns: '{{ project_dns }}'
+    service: '{{ project_instance }}'
+  include_role:
+    name: nginx_htpasswd
+
+- name: Configure nginx
+  copy:
+    dest: '{{ nginx_home|default("/home/nginx/") }}vhosts.d/{{ project_dns }}'
+    content: |
+      client_max_body_size 10M;
+      client_body_buffer_size 10M;
+
+- name: Configure nginx for redirects
+  with_items: '{{ project_dns_redirect }}'
+  copy:
+    dest: '{{ nginx_home }}vhosts.d/{{ item }}_location'
+    content: rewrite ^/(.*) https://{{ project_dns }}/$1 permanent;

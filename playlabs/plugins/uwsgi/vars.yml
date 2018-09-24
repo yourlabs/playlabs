@@ -1,0 +1,3 @@
+---
+project_uwsgi_spooler_home: '{{ project_home }}spooler'
+project_uwsgi_env: {}

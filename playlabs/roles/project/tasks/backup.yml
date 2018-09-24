@@ -1,0 +1,92 @@
+---
+
+- name: Install backup scripts
+  async: 300
+  when: project_backup_password != False
+  vars:
+    home: '{{ project_home }}'
+    backup_password: '{{ project_backup_password }}'
+    unit_name: 'backup-{{ project_instance }}'
+    unit_description: '{{ project_instance }} backup'
+    script_path: '{{ project_home }}backup.sh'
+    script_content: |
+      #!/bin/bash -eux
+      pushd {{ project_home }}
+
+      {% for service in project_services %}
+        {{ lookup('template', 'services/' + service + '/backup.sh') }}
+      {% endfor %}
+
+      if docker exec {{ project_instance }} env; then
+          commit="$(docker exec {{ project_instance }} env | grep GIT_COMMIT | grep -o '[0-9a-f]*')"
+          echo $commit > commit
+          tag="--tag $commit"
+      else
+          tag=""
+          touch commit
+      fi
+
+      export RESTIC_PASSWORD_FILE=.backup_password
+      export RESTIC_REPOSITORY=restic
+      restic backup $tag *.log commit docker-run.sh media postgresql/run/data.dump
+      {% if backup_lftp_dsn|default(False) %}
+      lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}; mirror -R {{ project_home }}/restic'
+      {% endif %}
+      popd
+    rollback_path: '{{ project_home }}rollback.sh'
+    rollback_content: |
+      #!/bin/bash -eux
+      pushd {{ project_home }}
+      export RESTIC_PASSWORD_FILE=.backup_password
+      export RESTIC_REPOSITORY=restic
+
+      if ! [ -d $RESTIC_REPOSITORY ]; then
+          echo 'Repository not found ! geting from ftp'
+          {% if backup_lftp_dsn|default(False) %}
+          lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}; mirror {{ project_home }}/restic'
+          {% else %}
+          echo 'FTP not available: backup_lftp_dsn inventory variable not set !'
+          {% endif %}
+      fi
+
+      if [ -z "${1-}" ]; then
+          restic snapshots
+          exit 0
+      fi
+
+      docker rm -f {{ project_instance }} || echo could not rm container {{ project_instance }}
+
+      rm -rf .media_before_restore
+      [ ! -d media ] || mv media .media_before_restore
+      restic restore $1 --target restore
+
+      {% for service in project_services %}
+        {{ lookup('template', 'services/' + service + '/restore.sh') }}
+      {% endfor %}
+
+      mv restore/media .
+      mv restore/docker-run.sh .
+
+      docker rm -f {{ project_instance }} || echo could not delete container {{ project_instance }}
+      bash -eux {{ project_home }}docker-run.sh
+      popd
+    prune_path: '{{ project_home }}prune.sh'
+    prune_content: |
+      #!/bin/bash -eux
+      pushd {{ project_home }}
+      export RESTIC_PASSWORD_FILE=.backup_password
+      export RESTIC_REPOSITORY=restic
+      cp -a $RESTIC_REPOSITORY .${RESTIC_REPOSITORY}.backup
+      restic forget --keep-last 90 --keep-daily 7 --keep-weekly 5 --keep-monthly 12 --keep-yearly 75
+      if ! restic check; then
+          rm -rf $RESTIC_REPOSITORY && mv .${RESTIC_REPOSITORY}.backup $RESTIC_REPOSITORY
+          exit 1
+      fi
+      restic prune
+
+  include_role:
+    name: backup
+
+- name: install restic
+  package: name=restic
+  async: 300

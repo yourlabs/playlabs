@@ -1,0 +1,15 @@
+---
+
+- name: Create super users
+  register: django_createsuperuser
+  failed_when: false
+  with_items: '{{ users }}'
+  when: item['name'] in passwords and ('superuser' in item.get('roles', {}).get(project_instance, []) or project_instance in item.get('roles', {}).get('superuser', {}))
+  tags: users
+  expect:
+    timeout: 30
+    command: docker exec -it {{ project_instance }} su uwsgi -c bash -c "django-admin createsuperuser"
+    responses:
+      'Username': ["{{ item['name'] }}"]
+      'Email': ["{{ item['email'] }}"]
+      'Password': ["{{ passwords[item['name']] }}", "{{ passwords[item['name']] }}"]

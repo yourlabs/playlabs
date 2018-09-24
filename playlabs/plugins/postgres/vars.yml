@@ -1,0 +1,10 @@
+---
+project_postgres_password: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_postgres_password", postgres_password|default("postgres")) }}'
+project_postgres_user: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_postgres_user", postgres_user|default(project_instance)) }}'
+project_postgres_host: '{{ project_instance }}-postgres'
+project_postgres_db: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_postgres_db", postgres_db|default(project_instance)) }}'
+project_postgres_env:
+  DB_USER: '{{ project_postgres_user }}'
+  DB_PASSWORD: '{{ project_postgres_password }}'
+  DB_HOST: '{{ project_postgres_host }}'
+  DB_NAME: '{{ project_postgres_db }}'

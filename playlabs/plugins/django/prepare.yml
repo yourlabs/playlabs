@@ -1,0 +1,9 @@
+---
+
+- name: Create media dir
+  file:
+    path: '{{ project_django_media }}'
+    state: directory
+    mode: 0700
+    owner: 1000
+    group: 1000
