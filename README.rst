@@ -66,21 +66,19 @@ spawning containers in an unpredictible order (that's how compose was in the
 days for me). In fact, you will see role that consist of a single docker
 ansible module call, but the thing is that you can spawn it in one command and
 have it integrated with the rest of your server, and even rely on ansible to
-provision fine-grained RBAC in your own apps.
+provision fine-grained RBAC in your own apps::
 
-Configure the server to have not only docker, but also ansible modules to
-execute the docker module of ansible::
-
-    playlabs docker,firewall,nginx @somehost
-
-docker, firewall and nginx roles will execute on somehost, effectively configuring
-docker, the firewall and nginx-proxy with letsencrypt companion.
+    playlabs @somehost paas   # equivalent to docker,firewall,nginx
+    playbabs @staging sendmail,netdata,mailcatcher,gitlab
+    playbabs @production sendmail,netdata,sentry
 
 2. Inventory
 ============
 
 Most roles require an inventory to be really fun. Initiate an empty repository
-where you will store your data that the roles should use.
+where you will store your data that the roles should use::
+
+    playlabs init your-inventory
 
 In inventory.yml you can define your machines as well as the roles they should
 be included by default in when playing a role without a specific target.
@@ -129,41 +127,28 @@ role, that's why roles is a key value pair.
 Every time you bootstrap a machine from a directory that is an inventory, it
 will install all users.
 
-3. Project
-==========
+3. Project: deployment
+======================
 
 The project role is made to be generic and cover infrastructure needs to
 develop a project, from development to production. Spawn an environment, here
 with an example image this repo is tested against::
 
-    playlabs nginx,project @yourhost -e image=betagouv/mrs:master -e dns=staging.example.com
+    playlabs @yourhost project  -e image=betagouv/mrs:master -e plugins=django -e backup_password=foo -e '{"env":{"SECRET_KEY" :"itsnotasecret"}}'
 
-That could just work, if only the image didn't need any additionnal
-configuration. Let's configure the staging environment in group_vars/all/projects.yml::
+If your project name is yourproject, you can setup the staging environment as
+such in your-inventory/group_vars/all/yourproject-secrets.yml (use
+ansible-vault if you want)::
 
-    ---
-    project_staging_dns: staging.example.com
+    # apply to staging
+    yourproject_staging_backup_password: aotsnesaotnehustoaheuooseutasoeut
 
-And let's configure some secret variables in
-group_vars/all/projects-secrets.yml, in practice you would be using
-ansible-vault to protect secret yml files::
+    # apply to yourproject
+    yourproject_plugins: [django,uwsgi,postgres,sentry]
 
-    ---
-    project_staging_secret_key:
+4. Project: operations
+======================
 
-So yeah, it's not as nice as helm charts that can generate this, but i probably
-won't be going any further than that on my own ("your need dynamic environments
-? go k8s").
-
-Let's check logs also, as playlabs is also going to interfere at the docker
-logs level to fix usability, and by that I mean::
-
-    playlabs docker:logs
-
-The uWSGI role can be used to compensate for when you don't have AutoDevOps in
-your GitLab project.
-
-That's all for the basics, then the best documentation is the list of roles in
-the playlabs repo, and reading the tasks files, which should be generally a lot
-more readable because they strive to orchestrate around docker rather than on
-the host itself.
+backup
+restore
+logs
