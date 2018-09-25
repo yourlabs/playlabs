@@ -208,6 +208,7 @@ def cli():
     for arg in sys.argv[1:]:
         if '@' in arg:
             hosts.append(arg.split('@')[-1])
+            options += ['--user', arg.split('@')[0]]
         elif arg.startswith('-'):
             options.append(arg)
         elif not roles and not options:
