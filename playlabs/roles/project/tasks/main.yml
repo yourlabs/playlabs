@@ -1,7 +1,8 @@
 ---
 
-- include: deploy.yml
 - include: vars.yml
+  tags: update
+- include: deploy.yml
 - include: home.yml
 - include: backup.yml
 - include: http.yml
@@ -16,10 +17,10 @@
 
 - name: Create project network
   docker_network:
-    name: '{{ project_instance }}'
+    name: '{{ fsvar }}'
 
-- name: Install service containers
-  with_items: '{{ services|default([]) }}'
+- name: Install service containers plugin/setup.yml
+  with_items: '{{ project_plugins }}'
   include: services/{{ item }}/setup.yml
 
 - name: Docker pull image

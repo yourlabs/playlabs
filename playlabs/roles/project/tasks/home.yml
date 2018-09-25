@@ -11,6 +11,6 @@
     owner: 1000
     group: 1000
 
-- name: The "prepare" plugin provisions the home directory
+- name: Setup home for plugins plugin/home.yml
   with_items: '{{ project_plugins }}'
-  include: plugins/{{ item }}/prepare.yml
+  include: plugins/{{ item }}/home.yml

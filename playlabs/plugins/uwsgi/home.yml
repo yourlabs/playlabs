@@ -1,0 +1,18 @@
+---
+
+- name: Create spooler dir
+  file:
+    path: '{{ project_uwsgi_spooler_home }}'
+    state: directory
+    mode: 0700
+    owner: 1000
+    group: 1000
+
+- name: Create spoolers subdirs
+  with_items: '{{ project_uwsgi_spooler_names }}'
+  file:
+    path: '{{ project_uwsgi_spooler_home }}/{{ item }}'
+    state: directory
+    mode: 0700
+    owner: 1000
+    group: 1000

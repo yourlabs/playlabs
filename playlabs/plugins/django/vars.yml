@@ -1,8 +1,5 @@
 ---
-project:
-  django:
-    media:
-      home: '{{ project_home }}media'
-  env:
-    PLAYLABS_PROFILE: django
-    SECRET_KEY: 'itsnotasecret'
+project_django_media: '{{ project_home }}media'
+
+project_django_env:
+  SECRET_KEY: 'itsnotasecret'

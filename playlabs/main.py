@@ -127,16 +127,26 @@ class Ansible(object):
         return ansible.playbook('bootstrap.yml', options)
 
     def role(self, name, hosts, options):
-        options = ['-e', f'role={name}']
+        options += ['-e', f'role={name}']
 
         if '--noroot' not in options:
-            options = self.sudo(options)
+            options += self.sudo(options)
 
         if hosts:
-            options += ['--inventory', ','.join(hosts) + ',']
+            options += [
+                '--inventory',
+                ','.join(hosts) + ',',
+                '--limit',
+                ','.join(hosts) + ',',
+            ]
             playbook = 'role-all.yml'
         else:
             playbook = 'role.yml'
+
+        if os.path.exists('inventory.yml'):
+            options += ['-i', 'inventory.yml']
+        elif os.path.exists('group_vars') or os.path.exists('host_vars'):
+            options += ['-i', '.']
 
         return ansible.playbook(playbook, options)
 
@@ -212,4 +222,10 @@ def cli():
             roles.insert(i, 'firewall')
             roles.insert(i, 'docker')
 
+    if hosts:
+        click.echo(f'Play hosts: {hosts}')
+    if roles:
+        click.echo(f'Play roles: {roles}')
+    if options:
+        click.echo(f'Options: {options}')
     sys.exit(ansible.play(hosts, options, roles))

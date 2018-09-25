@@ -1,25 +1,15 @@
 ---
 
-- debug: var=project
-- pause:
+- debug: var=project_home
+- debug: var=project_dns
+- debug: var=project_dns_redirect
+- debug: var=project_htaccess
 
-- name: Find project configuration in inventory if any
-  tags: update
-  set_fact:
-    project_found: '{{ project_env_base|combine(project_env) }}'
-
-- name: Combine base and explicit env vars
-  tags: update
-  set_fact:
-    project_env: '{{ project_env_base|combine(project_env) }}'
-
-- name: Load vars from plugins if any
-  tags: update
+- name: Load vars from plugins if any plugin/vars.yml
   with_items: '{{ project_plugins }}'
   include_vars: plugins/{{ item }}/vars.yml
 
-- name: Combine plugins env vars
-  tags: update
+- name: Combine plugins env vars project_plugin_env
   with_items: '{{ project_plugins }}'
   set_fact:
     project_env: '{{ lookup("vars", "project_" + item + "_env")|combine(project_env) }}'
@@ -27,14 +17,9 @@
 - name: Configure letsencrypt variable if email is provided
   when: letsencrypt_email is defined
   set_fact:
-    project_env: '{{ project_env_base|combine({"LETSENCRYPT_EMAIL": letsencrypt_email, "LETSENCRYPT_HOST": project_dns}) }}'
+    project_env: '{{ project_env|combine({"LETSENCRYPT_EMAIL": letsencrypt_email, "LETSENCRYPT_HOST": project_dns}) }}'
 
 - name: Configure extra letsencrypt hostnames if project_dns_redirect
   when: project_dns_redirect
   set_fact:
     project_env: '{{ project_env|combine({"LETSENCRYPT_HOST": project_env["LETSENCRYPT_HOST"] + "," + project_dns_redirect|join(",")}) }}'
-
-- name: Combine base and explicit env vars again, to ensure they override plugin defaults
-  tags: update
-  set_fact:
-    project_env: '{{ project_env_base|combine(project_env) }}'

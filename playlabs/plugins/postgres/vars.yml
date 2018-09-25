@@ -1,8 +1,56 @@
 ---
-project_postgres_password: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_postgres_password", postgres_password|default("postgres")) }}'
-project_postgres_user: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_postgres_user", postgres_user|default(project_instance)) }}'
-project_postgres_host: '{{ project_instance }}-postgres'
-project_postgres_db: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_postgres_db", postgres_db|default(project_instance)) }}'
+project_postgres_password: >-
+  {{
+    postgres_password|default(
+        hostvars[inventory_hostname].get(
+            pvar + "_postgres_password",
+            ''
+        )
+    )
+  }}
+
+project_postgres_db: >-
+  {{
+    postgres_db|default(
+        hostvars[inventory_hostname].get(
+            pvar + "_postgres_db",
+            fsvar,
+        )
+    )
+  }}
+
+project_postgres_user: >-
+  {{
+    postgres_user|default(
+        hostvars[inventory_hostname].get(
+            pvar + "_postgres_user",
+            fsvar,
+        )
+    )
+  }}
+
+project_postgres_home: >-
+  {{
+    postgres_home|default(
+        hostvars[inventory_hostname].get(
+            pvar + "_postgres_home",
+            project_home + 'postgres/',
+        )
+    )
+  }}
+
+project_postgres_data: >-
+  {{
+    postgres_user|default(
+        hostvars[inventory_hostname].get(
+            pvar + "_postgres_data",
+            {{ project_postgres_home }},
+        )
+    )
+  }}
+
+project_postgres_host: '{{ fsvar }}-postgres'
+
 project_postgres_env:
   DB_USER: '{{ project_postgres_user }}'
   DB_PASSWORD: '{{ project_postgres_password }}'

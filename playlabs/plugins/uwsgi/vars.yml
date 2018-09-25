@@ -1,3 +1,13 @@
 ---
 project_uwsgi_spooler_home: '{{ project_home }}spooler'
-project_uwsgi_env: {}
+project_uwsgi_spooler_names: >-
+  {{
+    hostvars[inventory_hostname].get(
+        pvar + '_spooler_names',
+        []
+    )
+  }}
+
+project_uwsgi_env:
+  UWSGI_SPOOLER: '/spooler'
+  UWSGI_SPOOLER_NAMES: '{{ project_uwsgi_spooler_names }}'

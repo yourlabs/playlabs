@@ -21,4 +21,3 @@
     host: "{{ project_postgres_container['ansible_facts']['docker_container']['NetworkSettings']['IPAddress'] }}"
     port: 5432
     state: started
-

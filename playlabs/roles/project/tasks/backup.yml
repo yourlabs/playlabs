@@ -6,29 +6,21 @@
   vars:
     home: '{{ project_home }}'
     backup_password: '{{ project_backup_password }}'
-    unit_name: 'backup-{{ project_instance }}'
-    unit_description: '{{ project_instance }} backup'
+    unit_name: 'backup-{{ fsvar }}'
+    unit_description: '{{ fsvar }} backup'
     script_path: '{{ project_home }}backup.sh'
     script_content: |
       #!/bin/bash -eux
       pushd {{ project_home }}
 
-      {% for service in project_services %}
-        {{ lookup('template', 'services/' + service + '/backup.sh') }}
+      {% for plugin in project_plugins %}
+        {{ lookup('template', 'plugins/' + plugin + '/backup.sh') }}
       {% endfor %}
-
-      if docker exec {{ project_instance }} env; then
-          commit="$(docker exec {{ project_instance }} env | grep GIT_COMMIT | grep -o '[0-9a-f]*')"
-          echo $commit > commit
-          tag="--tag $commit"
-      else
-          tag=""
-          touch commit
-      fi
 
       export RESTIC_PASSWORD_FILE=.backup_password
       export RESTIC_REPOSITORY=restic
-      restic backup $tag *.log commit docker-run.sh media postgresql/run/data.dump
+      docker logs {{ fsvar }} &> project.log || echo "Couldn't get logs from instance"
+      restic backup $tag log docker-run.sh media postgresql/run/data.dump
       {% if backup_lftp_dsn|default(False) %}
       lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}; mirror -R {{ project_home }}/restic'
       {% endif %}
