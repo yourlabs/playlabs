@@ -12,7 +12,7 @@
   register: project_docker_pull
   async: 300
   docker_image:
-    name: '{{ image }}'
+    name: '{{ project_image }}'
     force: yes
 
 - name: Create project network
@@ -31,10 +31,10 @@
 
 - name: Docker inspect image
   docker_image_facts:
-    name: '{{ image }}'
-  register: project_image
+    name: '{{ project_image }}'
+  register: project_image_out
 
-- debug: msg="project_image['images'][0]['Config']['Env'].get('PLAYLABS', None)"
+- debug: msg="project_image_out['images'][0]['Config']['Env'].get('PLAYLABS', None)"
 
 - name: Stop container if any
   failed_when: false
@@ -47,43 +47,12 @@
   tags: [update, migrate]
   shell: sudo {{ project_home }}/backup.sh
 
-#
-#  - name: Get git commit
-#    tags: update, docker-run
-#    shell: "docker run {{image}} env | grep GIT_COMMIT | grep -o '[a-f0-9]*' "
-#    register: project_commit
-#    args:
-#      executable: /bin/bash
-#
-- name: Execute migrate
-  when: project_profile|default(False)
-  include: 'profiles/{{ profile }}/migrate.yml'
+- name: Running deploy.pre.yml for plugins
+  with_items: '{{ project_plugins }}'
+  include: plugins/{{ item }}/deploy.pre.yml
 
-- name: Update docker-run.sh
-  tags: update, docker-run
-  copy:
-    dest: '{{ project_home }}/docker-run.sh'
-    mode: 0744
-    content: |
-      #!/bin/bash -eux
-      docker rm -f {{ project_instance }} || echo could not rm container
-      docker run -d --name {{ project_instance }} --restart unless-stopped \
-          -v {{ project_media }}:/media \
-          -v {{ project_log }}:/log \
-          -v {{ project_spooler }}:/spooler \
-          {% for key, value in project_env.items() %}
-          -e {{ key }}='{% if value.replace is defined %}{{ value.replace("'", "\\'") }}{% else %}{{ value }}{% endif %}' \
-          {% endfor %}
-          {{ project_image }}
-      docker network connect {{ project_instance }} {{ project_instance }}
-      {% for network in project_networks %}
-          docker network connect {{ network }} {{ project_instance }}
-      {% endfor %}
+- include: docker.yml
 
-- name: Execute docker-run.sh
-  tags: update, docker-run
-  shell: bash -eux {{ project_home }}/docker-run.sh
-
-- name: Update users in app if profile supports it
-  when: project_profile != False
-  include: 'profiles/{{ project_profile }}/users.yml'
+- name: Running deploy.post.yml for plugins
+  with_items: '{{ project_plugins }}'
+  include: plugins/{{ item }}/deploy.post.yml

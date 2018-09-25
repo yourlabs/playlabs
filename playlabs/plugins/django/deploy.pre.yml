@@ -4,9 +4,9 @@
   tags: [update, migrate]
   shell: |
     docker run --name {{ project_instance }}-migrate --rm \
-    -v {{ project_media }}:/media -v {{ project_log }}:/log \
+    -v {{ project_media_home }}:{{ project_media_root }} \
     {% for key, value in project_env.items() %}
     -e {{ key }}='{{ value | regex_replace("\'", "\\\'") }}' \
     {% endfor %}
     --network {{ project_instance }} \
-    {{ image }} su uwsgi -c "django-admin migrate --noinput"
+    {{ project_image }} su uwsgi -c "django-admin migrate --noinput"

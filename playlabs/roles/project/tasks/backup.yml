@@ -7,24 +7,25 @@
   async: 300
   when: project_backup_password != False
   vars:
-    home: '{{ project_home }}'
+    repo: '{{ project_backup_repo }}'
     backup_password: '{{ project_backup_password }}'
     unit_name: 'backup-{{ project_instance }}'
     unit_description: '{{ project_instance }} backup'
-    script_path: '{{ project_home }}backup.sh'
+    script_path: '{{ project_home }}/backup.sh'
     script_content_pre: |
-      # Backup the image this runs with, try to introspect running container,
-      # otherwise rely on image submitted by user at the moment of install
-      # ie. repo:branchname
-      out=$(docker inspect --format='{{.Config.Image}}' {{ project_instance }})
-      if [ "$?" = "0" ]; then
-        echo $out > image
-      else
-        echo {{ project_image }} > image
+      getcommit="docker inspect --format='{{ '{{' }}.Config.Env{{ '}}' }}' {{ project_image }} | grep -o 'GIT_COMMIT=[a-z0-9]*'"
+      if $getcommit; then
+        export $($getcommit)
+        backup="$backup --tag $GIT_COMMIT"
       fi
 
-      # Backup container logs as docker will shoot them
-      docker logs {{ project_instance }} &> {{ project_log }}/docker.log || echo "Couldn't get logs from instance"
+      image="$(docker inspect --format='{{ '{{' }}.Config.Image{{ '}}' }}' {{ project_instance }} || echo {{ project_image }})"
+      backup="$backup --tag $image"
+      echo Image this will restore with is "$image"
+      echo $image > image
+
+      echo Backing-up container logs as docker will shoot them
+      docker logs {{ project_instance }} &> {{ project_log_home }}/docker.log || echo "Couldn't get logs from instance"
 
       backup="$backup log docker-run.sh image"
 
@@ -45,7 +46,7 @@
         {% if loop.last %}# last plugin end: {{ plugin }}{% endif %}
       {% endfor %}
 
-    restore_path: '{{ project_home }}restore.sh'
+    restore_path: '{{ project_home }}/restore.sh'
     restore_content_pre: |
       {% for plugin in project_plugins %}
         # playlabs/plugins/{{ plugin }}/restore.pre.sh: end
@@ -56,17 +57,17 @@
     restore_content_post: |
       docker rm -f {{ project_instance }} || echo could not rm container {{ project_instance }}
 
-      {% for plugin in project_plugins %}
-        # playlabs/plugins/{{ plugin }}/restore.post.sh: end
-        {{ lookup('template', 'plugins/' + plugin + '/restore.post.sh') }}
-        {% if loop.last %}# last plugin end: {{ plugin }}{% endif %}
-      {% endfor %}
+      {%- for plugin in project_plugins %}
+      # playlabs/plugins/{{ plugin }}/restore.post.sh: end
+      {{ lookup('template', 'plugins/' + plugin + '/restore.post.sh') }}
+      {% if loop.last %}# last plugin end: {{ plugin }}{% endif %}
+      {% endfor -%}
 
       mv $restore/docker-run.sh .
-      bash -eux {{ project_home }}docker-run.sh
+      bash -eux {{ project_home }}/docker-run.sh
       popd
 
-    prune_path: '{{ project_home }}prune.sh'
+    prune_path: '{{ project_home }}/prune.sh'
     prune_content: |
       #!/bin/bash -eux
       pushd {{ project_home }}

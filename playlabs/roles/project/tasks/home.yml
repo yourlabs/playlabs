@@ -5,7 +5,7 @@
 
 - name: Create log dir
   file:
-    path: '{{ project_log }}'
+    path: '{{ project_log_home }}'
     state: directory
     mode: 0700
     owner: 1000

@@ -215,6 +215,9 @@ def cli():
         else:
             options.append(arg)
 
+    if hosts == ['localhost']:
+        options += ['-c', 'local']
+
     for i, role in enumerate(roles):
         if role == 'paas':
             del roles[i]

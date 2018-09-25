@@ -1,6 +1,14 @@
 ---
 project_variable: '{{ prefix }}_{{ instance }}'
 project_instance: '{{ prefix }}-{{ instance }}'
+project_image: >-
+  {{
+    image|default(
+        hostvars[inventory_hostname].get(
+            project_variable + '_image',
+        )
+    )
+  }}
 
 project_networks: >-
   {{
@@ -10,7 +18,7 @@ project_networks: >-
             []
         )
     )
-  }}/
+  }}
 
 project_home: >-
   {{
@@ -20,11 +28,12 @@ project_home: >-
             '/home/' + project_instance
         )
     )
-  }}/
-project_log: '{{ project_home }}log'
+  }}
+project_log_home: '{{ project_home }}/log'
+project_log_mount: '/log'
 
-project_backup_home: '{{ project_home }}backup'
-project_backup_repo: '{{ project_home }}restic'
+project_backup_home: '{{ project_home }}/backup'
+project_backup_repo: '{{ project_home }}/restic'
 project_backup_password: >-
   {{
     backup_password|default(

@@ -1,2 +1,2 @@
 include *.rst LICENSE
-recursive-include playlabs *.rst *.html *.css *.js *.py *.po *.mo *.conf *.j2
+recursive-include playlabs *.yml *.yaml *.sh *.rst *.html *.css *.js *.py *.po *.mo *.conf *.j2

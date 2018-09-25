@@ -9,7 +9,7 @@ setup(
     author='James Pic',
     author_email='jamespic@gmail.com',
     url='https://github.com/betagouv/mrs',
-    packages=find_packages('.'),
+    packages=['playlabs'],
     include_package_data=True,
     license='MIT',
     install_requires=[
