@@ -1,22 +1,44 @@
 ---
-pvar: '{{ prefix }}_{{ instance }}'
-fsvar: '{{ prefix }}-{{ instance }}'
+project_variable: '{{ prefix }}_{{ instance }}'
+project_instance: '{{ prefix }}-{{ instance }}'
+
+project_networks: >-
+  {{
+    networks|default(
+        hostvars[inventory_hostname].get(
+            project_variable + '_networks',
+            []
+        )
+    )
+  }}/
 
 project_home: >-
   {{
-    hostvars[inventory_hostname].get(
-        pvar + '_home',
-        '/home/' + fsvar
+    home|default(
+        hostvars[inventory_hostname].get(
+            project_variable + '_home',
+            '/home/' + project_instance
+        )
     )
   }}/
 project_log: '{{ project_home }}log'
 
-project_backup: '{{ project_home }}backup/'
+project_backup_home: '{{ project_home }}backup'
+project_backup_repo: '{{ project_home }}restic'
 project_backup_password: >-
   {{
     backup_password|default(
         hostvars[inventory_hostname].get(
-            pvar + '_backup_password',
+            project_variable + '_backup_password',
+            false,
+        )
+    )
+  }}
+project_backup_lftp_dsn: >-
+  {{
+    backup_lftp_dsn|default(
+        hostvars[inventory_hostname].get(
+            project_variable + '_backup_lftp_dsn',
             false,
         )
     )
@@ -26,7 +48,7 @@ project_dns: >-
   {{
     dns|default(
         hostvars[inventory_hostname].get(
-            pvar + '_dns',
+            project_variable + '_dns',
             ansible_ssh_host
         )
     )
@@ -36,7 +58,7 @@ project_dns_redirect: >-
   {{
     dns_redirect|default(
         hostvars[inventory_hostname].get(
-            pvar + '_dns_redirect',
+            project_variable + '_dns_redirect',
             []
         )
     )
@@ -44,9 +66,9 @@ project_dns_redirect: >-
 
 project_htaccess: >-
   {{
-    dns|default(
+    htaccess|default(
         hostvars[inventory_hostname].get(
-            pvar + '_htaccess',
+            project_variable + '_htaccess',
             false
         )
     )
@@ -56,7 +78,7 @@ project_plugins: >-
   {{
     plugins.split(',') if plugins is defined
     else hostvars[inventory_hostname].get(
-        pvar + '_plugins',
+        project_variable + '_plugins',
         []
     )
   }}
@@ -72,7 +94,7 @@ project_env: >-
   {{
     project_env_base|combine(
         hostvars[inventory_hostname].get(
-            pvar + '_env',
+            project_variable + '_env',
             {}
         )
     )

@@ -9,8 +9,8 @@
     image: postgres:10
     restart_policy: always
     volumes:
-    - '{{ project_home }}postgres/data:/var/lib/postgres/data'
-    - '{{ project_home }}postgres/run:/var/run/postgres'
+    - '{{ project_postgres_data_home }}:{{ project_postgres_data_mount }}'
+    - '{{ project_postgres_run_home }}:{{ project_postgres_run_mount }}'
     env:
       POSTGRES_PASSWORD: '{{ project_postgres_password }}'
       POSTGRES_USER: '{{ project_postgres_user }}'

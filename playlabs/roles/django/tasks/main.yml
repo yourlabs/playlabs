@@ -178,8 +178,8 @@
           --encrypt-key={{ gpg_id }} \
           {{ django_backup }} \
           {{ backup_host }}/django/{{ django_instance }}
-      rollback_path: '{{ django_home }}rollback.sh'
-      rollback_content: |
+      restore_path: '{{ django_home }}restore.sh'
+      restore_content: |
         #!/bin/bash -eux
         pushd /home/{{ django_instance }}
         export RESTIC_PASSWORD_FILE=.restic

@@ -1,67 +1,71 @@
 ---
 
+- name: install restic
+  package: name=restic
+
 - name: Install backup scripts
   async: 300
   when: project_backup_password != False
   vars:
     home: '{{ project_home }}'
     backup_password: '{{ project_backup_password }}'
-    unit_name: 'backup-{{ fsvar }}'
-    unit_description: '{{ fsvar }} backup'
+    unit_name: 'backup-{{ project_instance }}'
+    unit_description: '{{ project_instance }} backup'
     script_path: '{{ project_home }}backup.sh'
-    script_content: |
-      #!/bin/bash -eux
-      pushd {{ project_home }}
+    script_content_pre: |
+      # Backup the image this runs with, try to introspect running container,
+      # otherwise rely on image submitted by user at the moment of install
+      # ie. repo:branchname
+      out=$(docker inspect --format='{{.Config.Image}}' {{ project_instance }})
+      if [ "$?" = "0" ]; then
+        echo $out > image
+      else
+        echo {{ project_image }} > image
+      fi
+
+      # Backup container logs as docker will shoot them
+      docker logs {{ project_instance }} &> {{ project_log }}/docker.log || echo "Couldn't get logs from instance"
+
+      backup="$backup log docker-run.sh image"
 
       {% for plugin in project_plugins %}
-        {{ lookup('template', 'plugins/' + plugin + '/backup.sh') }}
+        # playlabs/plugins/{{ plugin }}/backup.pre.sh: end
+        {{ lookup('template', 'plugins/' + plugin + '/backup.pre.sh') }}
+        {% if loop.last %}# last plugin end: {{ plugin }}{% endif %}
       {% endfor %}
 
-      export RESTIC_PASSWORD_FILE=.backup_password
-      export RESTIC_REPOSITORY=restic
-      docker logs {{ fsvar }} &> project.log || echo "Couldn't get logs from instance"
-      restic backup $tag log docker-run.sh media postgresql/run/data.dump
-      {% if backup_lftp_dsn|default(False) %}
+    script_content_post: |
+      {% if project_backup_lftp_dsn|default(False) %}
       lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}; mirror -R {{ project_home }}/restic'
       {% endif %}
-      popd
-    rollback_path: '{{ project_home }}rollback.sh'
-    rollback_content: |
-      #!/bin/bash -eux
-      pushd {{ project_home }}
-      export RESTIC_PASSWORD_FILE=.backup_password
-      export RESTIC_REPOSITORY=restic
 
-      if ! [ -d $RESTIC_REPOSITORY ]; then
-          echo 'Repository not found ! geting from ftp'
-          {% if backup_lftp_dsn|default(False) %}
-          lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}; mirror {{ project_home }}/restic'
-          {% else %}
-          echo 'FTP not available: backup_lftp_dsn inventory variable not set !'
-          {% endif %}
-      fi
-
-      if [ -z "${1-}" ]; then
-          restic snapshots
-          exit 0
-      fi
-
-      docker rm -f {{ project_instance }} || echo could not rm container {{ project_instance }}
-
-      rm -rf .media_before_restore
-      [ ! -d media ] || mv media .media_before_restore
-      restic restore $1 --target restore
-
-      {% for service in project_services %}
-        {{ lookup('template', 'services/' + service + '/restore.sh') }}
+      {% for plugin in project_plugins %}
+        # playlabs/plugins/{{ plugin }}/backup.post.sh: end
+        {{ lookup('template', 'plugins/' + plugin + '/backup.post.sh') }}
+        {% if loop.last %}# last plugin end: {{ plugin }}{% endif %}
       {% endfor %}
 
-      mv restore/media .
-      mv restore/docker-run.sh .
+    restore_path: '{{ project_home }}restore.sh'
+    restore_content_pre: |
+      {% for plugin in project_plugins %}
+        # playlabs/plugins/{{ plugin }}/restore.pre.sh: end
+        {{ lookup('template', 'plugins/' + plugin + '/restore.pre.sh') }}
+        {% if loop.last %}# last plugin end: {{ plugin }}{% endif %}
+      {% endfor %}
 
-      docker rm -f {{ project_instance }} || echo could not delete container {{ project_instance }}
+    restore_content_post: |
+      docker rm -f {{ project_instance }} || echo could not rm container {{ project_instance }}
+
+      {% for plugin in project_plugins %}
+        # playlabs/plugins/{{ plugin }}/restore.post.sh: end
+        {{ lookup('template', 'plugins/' + plugin + '/restore.post.sh') }}
+        {% if loop.last %}# last plugin end: {{ plugin }}{% endif %}
+      {% endfor %}
+
+      mv $restore/docker-run.sh .
       bash -eux {{ project_home }}docker-run.sh
       popd
+
     prune_path: '{{ project_home }}prune.sh'
     prune_content: |
       #!/bin/bash -eux
@@ -78,7 +82,3 @@
 
   include_role:
     name: backup
-
-- name: install restic
-  package: name=restic
-  async: 300

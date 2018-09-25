@@ -17,11 +17,11 @@
 
 - name: Create project network
   docker_network:
-    name: '{{ fsvar }}'
+    name: '{{ project_instance }}'
 
-- name: Install service containers plugin/setup.yml
+- name: Deploy plugins
   with_items: '{{ project_plugins }}'
-  include: services/{{ item }}/setup.yml
+  include: plugins/{{ item }}/deploy.yml
 
 - name: Docker pull image
   async_status: jid={{ project_docker_pull.ansible_job_id }}
@@ -68,15 +68,17 @@
       #!/bin/bash -eux
       docker rm -f {{ project_instance }} || echo could not rm container
       docker run -d --name {{ project_instance }} --restart unless-stopped \
-          -v {{ project_media }}:/media -v {{ project_log }}:/log -v {{ project_spooler }}:/spooler \
+          -v {{ project_media }}:/media \
+          -v {{ project_log }}:/log \
+          -v {{ project_spooler }}:/spooler \
           {% for key, value in project_env.items() %}
           -e {{ key }}='{% if value.replace is defined %}{{ value.replace("'", "\\'") }}{% else %}{{ value }}{% endif %}' \
           {% endfor %}
-          {{ image }}
+          {{ project_image }}
       docker network connect {{ project_instance }} {{ project_instance }}
-      {% if 'mailcatcher' in project_env.get('EMAIL_HOST', []) %}
-      docker network connect mailcatcher {{ project_instance }}
-      {% endif %}
+      {% for network in project_networks %}
+          docker network connect {{ network }} {{ project_instance }}
+      {% endfor %}
 
 - name: Execute docker-run.sh
   tags: update, docker-run

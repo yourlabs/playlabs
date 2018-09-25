@@ -3,7 +3,7 @@ project_postgres_password: >-
   {{
     postgres_password|default(
         hostvars[inventory_hostname].get(
-            pvar + "_postgres_password",
+            project_variable + "_postgres_password",
             ''
         )
     )
@@ -13,8 +13,8 @@ project_postgres_db: >-
   {{
     postgres_db|default(
         hostvars[inventory_hostname].get(
-            pvar + "_postgres_db",
-            fsvar,
+            project_variable + "_postgres_db",
+            project_instance,
         )
     )
   }}
@@ -23,8 +23,8 @@ project_postgres_user: >-
   {{
     postgres_user|default(
         hostvars[inventory_hostname].get(
-            pvar + "_postgres_user",
-            fsvar,
+            project_variable + "_postgres_user",
+            project_instance,
         )
     )
   }}
@@ -33,23 +33,53 @@ project_postgres_home: >-
   {{
     postgres_home|default(
         hostvars[inventory_hostname].get(
-            pvar + "_postgres_home",
+            project_variable + "_postgres_home",
             project_home + 'postgres/',
         )
     )
   }}
 
-project_postgres_data: >-
+project_postgres_data_home: >-
   {{
-    postgres_user|default(
+    postgres_data_home|default(
         hostvars[inventory_hostname].get(
-            pvar + "_postgres_data",
+            project_variable + "_postgres_data_home",
             {{ project_postgres_home }},
         )
     )
   }}
 
-project_postgres_host: '{{ fsvar }}-postgres'
+project_postgres_data_mount: >-
+  {{
+    postgres_data_mount|default(
+        hostvars[inventory_hostname].get(
+            project_variable + "_postgres_data_mount",
+            '/var/lib/postgres/data',
+        )
+    )
+  }}
+
+project_postgres_run_home: >-
+  {{
+    postgres_run_home|default(
+        hostvars[inventory_hostname].get(
+            project_variable + "_postgres_run_home",
+            {{ project_postgres_run_home }},
+        )
+    )
+  }}
+
+project_postgres_run_mount: >-
+  {{
+    postgres_run_mount|default(
+        hostvars[inventory_hostname].get(
+            project_variable + "_postgres_run_mount",
+            '/var/run/postgres',
+        )
+    )
+  }}
+
+project_postgres_host: '{{ project_instance }}-postgres'
 
 project_postgres_env:
   DB_USER: '{{ project_postgres_user }}'

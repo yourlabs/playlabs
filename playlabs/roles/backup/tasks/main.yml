@@ -1,10 +1,67 @@
 ---
 
-- name: Upload rollback script
-  when: rollback_path is defined
+- name: Upload backup script
+  notify: backup unit
   copy:
-    dest: '{{ rollback_path }}'
-    content: '{{ rollback_content }}'
+    dest: '{{ script_path }}'
+    content: |
+      #/bin/bash
+      set -eu
+      export RESTIC_PASSWORD_FILE={{ project_home }}/.backup_password
+      export backup=restic backup
+      export backup=restic backup $tag log docker-run.sh media postgresql/run/data.dump
+      set -x
+      export RESTIC_REPOSITORY={{ project_backup_repo }}
+      pushd {{ project_home }}
+      {{ script_content_pre }}
+      $backup
+      {{ script_content_post }}
+      popd
+    owner: root
+    group: root
+    mode: 0700
+
+- name: Upload restore script
+  when: restore_path is defined
+  copy:
+    dest: '{{ restore_path }}'
+    content: |
+      #/bin/bash
+      set -eu
+      export RESTIC_PASSWORD_FILE={{ project_home }}/.backup_password
+      set -x
+      export RESTIC_REPOSITORY={{ project_backup_repo }}
+
+      if [ -z "${1-}" ]; then
+          restic snapshots
+          exit 0
+      fi
+
+      export restore={{ project_home }}/restore
+
+      if ! [ -d $RESTIC_REPOSITORY ]; then
+          echo 'Repository not found ! geting from ftp'
+          {% if backup_lftp_dsn|default(False) %}
+          lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}; mirror {{ project_home }}/restic'
+          {% else %}
+          echo 'FTP not available: backup_lftp_dsn inventory variable not set !'
+          {% endif %}
+      fi
+
+      pushd {{ project_home }}
+      {{ restore_content_pre }}
+      restic restore $1 --target $restore
+      {{ restore_content_post }}
+      popd
+    owner: root
+    group: root
+    mode: 0700
+
+- name: Upload prune script
+  notify: prune unit
+  copy:
+    dest: '{{ prune_path }}'
+    content: '{{ prune_content }}'
     owner: root
     group: root
     mode: 0700
@@ -24,15 +81,6 @@
     executable: /bin/bash
     creates: '{{ home }}restic'
     chdir: '{{ home }}'
-
-- name: Upload backup script
-  notify: backup unit
-  copy:
-    dest: '{{ script_path }}'
-    content: '{{ script_content }}'
-    owner: root
-    group: root
-    mode: 0700
 
 - name: Create backup unit
   notify: backup unit
@@ -64,15 +112,6 @@
 
       [Install]
       WantedBy=timers.target
-
-- name: Upload prune script
-  notify: prune unit
-  copy:
-    dest: '{{ prune_path }}'
-    content: '{{ prune_content }}'
-    owner: root
-    group: root
-    mode: 0700
 
 - name: Create prune unit
   notify: backup unit
