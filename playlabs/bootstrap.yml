@@ -27,8 +27,8 @@
 - hosts: all
   # Setup sudo without password and upload your ssh key.
   tasks:
-  - name: Install sudo
-    package: name=sudo state=present
+  - name: Install sudo and pexpect
+    package: name=sudo,python-pexpect state=present
 
   - name: Create sudo group
     group:
