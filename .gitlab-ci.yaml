@@ -1,0 +1,20 @@
+stages:
+- build
+- test
+
+docker:
+  impage: docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+  stage: build
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN hub.yourlabs.io
+    - docker build -t hub.yourlabs.io/oss/playlabs:latest .
+    - docker push hub.yourlabs.io/oss/playlabs:latest
+
+test:
+  stage: test
+  image: hub.yourlabs.io/oss/playlabs:latest
+  script:
+    - playlabs @localhost
