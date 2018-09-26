@@ -92,6 +92,15 @@ class Ansible(object):
     def playbook(self, name, args):
         cmd = ['ansible-playbook']
         cmd.append('-v')
+        find = [
+            'inventory.yaml',
+            'inventory.yml',
+            'inventory/inventory.yaml',
+            'inventory/inventory.yml',
+        ]
+        for i in find:
+            if os.path.exists(i):
+                cmd += ['--inventory', i]
         cmd += args
         cmd.append(os.path.join(self.playbooks, name))
         cmd = [shlex.quote(i) for i in cmd]
@@ -118,11 +127,17 @@ class Ansible(object):
             user = os.getenv('USER')
 
         options = [
-            f'--user={user}'
+            f'--user={user}',
+            '--limit',
+            f'{host},',
+            '--inventory',
+            f'{host},',
         ]
+
         if user != 'root':
             options = self.sudo(options)
-        options += ['--inventory', f'{host},'] + extra_args
+
+        options += extra_args
 
         return ansible.playbook('bootstrap.yml', options)
 
@@ -208,7 +223,8 @@ def cli():
     for arg in sys.argv[1:]:
         if '@' in arg:
             hosts.append(arg.split('@')[-1])
-            options += ['--user', arg.split('@')[0]]
+            if not arg.startswith('@'):
+                options += ['--user', arg.split('@')[0]]
         elif arg.startswith('-'):
             options.append(arg)
         elif not roles and not options:

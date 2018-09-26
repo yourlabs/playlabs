@@ -1,6 +1,7 @@
 ---
+
 - name: Set ssh service name for Arch
-  when: ansible_os_family == 'Archlinux'
+  when: ansible_os_family in ('Archlinux', 'RedHat')
   set_fact:
     ssh_service_name: sshd
 
