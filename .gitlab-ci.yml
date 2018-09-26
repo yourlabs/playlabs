@@ -9,6 +9,7 @@ docker:
     DOCKER_DRIVER: overlay2
   stage: build
   script:
+    - env
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN hub.yourlabs.io
     - docker build -t hub.yourlabs.io/oss/playlabs:latest .
     - docker push hub.yourlabs.io/oss/playlabs:latest
