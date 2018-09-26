@@ -3,14 +3,15 @@ stages:
 - test
 
 variables:
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_DRIVER: overlay2
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
 
 before_script:
 - podman version
 - buildah version
 - podman login --username gitlab-ci-token --password $CI_JOB_TOKEN $CI_REGISTRY
+
+after_script:
+- podman logout $CI_REGISTRY
 
 docker:
   stage: build
