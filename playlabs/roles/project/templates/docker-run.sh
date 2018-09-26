@@ -10,7 +10,7 @@ docker run -d --name {{ project_instance }} --restart unless-stopped \
     {% for key, value in project_env.items() %}
     -e {{ key }}='{% if value.replace is defined %}{{ value.replace("'", "\\'") }}{% else %}{{ value }}{% endif %}' \
     {% endfor %}
-    {{ project_image }} {% if project_secure and 'DOCKER_RUN_SECURE' in project_image_env %}{{ project_image_env['DOCKER_RUN_SECURE'] }}{% elif not project_secure and 'DOCKER_RUN' in project_image_env %}{{ project_image_env['DOCKER_RUN'] %}{% endif %}
+    {{ project_image }}
 docker network connect {{ project_instance }} {{ project_instance }}
 {% for network in project_networks -%}
 docker network connect {{ network }} {{ project_instance }}

@@ -54,7 +54,7 @@ project_postgres_data_mount: >-
     postgres_data_mount|default(
         hostvars[inventory_hostname].get(
             project_variable + '_postgres_data_mount',
-            '/var/lib/postgres/data',
+            '/var/lib/postgresql/data',
         )
     )
   }}
@@ -74,7 +74,7 @@ project_postgres_run_mount: >-
     postgres_run_mount|default(
         hostvars[inventory_hostname].get(
             project_variable + '_postgres_run_mount',
-            '/var/run/postgres',
+            '/var/run/postgresql',
         )
     )
   }}

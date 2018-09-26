@@ -11,13 +11,33 @@ configure your own sentry or kubernetes servers !
 Install playlabs
 ================
 
-Use the docker image or install with: pip3 install --user playlabs
+Install with:: 
 
-Run the ansible-playbook wrapper command: ~/.local/bin/playlabs
+    pip3 install --user -e git+https://yourlabs.io/oss/playlabs#egg=playlabs
+
+Run the ansible-playbook wrapper command:: 
+
+    ~/.local/bin/playlabs
 
 It will prompt if you want to add ~/.local/bin to your ~/.bash_profile, if you
 accept it will setup your shell so that you can call just ``playlabs`` directly
 in future logins.
+
+`playlabs` CLI overview
+=======================
+
+Overview of CLI commands:
+
+- Bootstrap deploys your user, prepares for role deployment
+- Role deployment for project is: docker,firewall,nginx
+- Project deployment includes plugins is settable by `prefix_instance_` variables
+- Initiate a repository from the example repository folder
+
+Clumsily converts `you@host` to `--user=you --limit=host --inventory host,`,
+Adds `--inventory inventory.yml` if it finds an inventory yaml in the current
+working directory,
+Proxies other variables to ansible, such as `-e`/`--extra-var`.
+Has many bugs.
 
 0. Bootstrap
 ============
@@ -72,8 +92,64 @@ provision fine-grained RBAC in your own apps::
     playbabs @staging sendmail,netdata,mailcatcher,gitlab
     playbabs @production sendmail,netdata,sentry
 
-2. Inventory
-============
+2. Project: deployments
+=======================
+
+The project role is made to be generic and cover infrastructure needs to
+develop a project, from development to production. Spawn an environment, here
+with an example image this repo is tested against::
+
+    playlabs @yourhost project -e image=betagouv/mrs:master -e '{"env":{"SECRET_KEY" :"itsnotasecret"}}'
+
+It will use the IP address by default, but you can pass a dns with ``-e
+dns=yourdns.com``, or set it in ``project_staging_dns`` yaml variable of
+your-inventory/group_vars/all/project.yml
+
+This is because the default prefix is ``project`` and the default instance is
+``staging``. Let's learn a new way of specifiying variables, add to your
+variables::
+
+    yourproject_production_image: yourimage:production
+    yourproject_production_env:
+      SECRET_KEY: itsnotsecret
+
+Then you can deploy as such::
+
+    playlabs @yourhost project @host -e prefix=yourproject -e instance=production
+
+If you configure yourhost in your inventory, in group "yourproject-production",
+then you don't have to specify the host anymore::
+
+    playlabs @yourhost project -e prefix=yourproject -e instance=production
+
+Note that you can also use ansible-vault'ed files or variables, refer to
+Ansible documentation for that.
+
+3. Project: plugins
+===================
+
+You can add plugins to your project in several ways, suppose you want to add
+two plugins:
+
+- specify ``-e plugins=django,postgres``
+- configure ``yourprefix_yourinstance_plugins=[django, postgres]``
+- add to Dockerfile ``ENV PLAYLABS_PLUGINS django,postgres``
+
+Plugins are directories located at the root of playlabs repo, but at some point
+might be git repo urls ...
+
+They have the following files:
+
+- vars.yml: variables that are auto-loaded
+- deploy.pre.yml: tasks to execute before deploy of the project image
+- deploy.post.yml: tasks to execute after deploy of the project image
+- backup.pre.sh: inserted in backup.sh before the backup
+- backup.post.sh: inserted in backup.sh before the backup
+- restore.pre.sh: inserted in restore.sh before the restore
+- restore.post.sh: inserted in restore.sh before the restore
+
+5. Inventory (git versioning of cfg)
+====================================
 
 Most roles require an inventory to be really fun. Initiate an empty repository
 where you will store your data that the roles should use::
@@ -127,88 +203,134 @@ role, that's why roles is a key value pair.
 Every time you bootstrap a machine from a directory that is an inventory, it
 will install all users.
 
-3. Project: deployments
-=======================
+Options
+=======
 
-The project role is made to be generic and cover infrastructure needs to
-develop a project, from development to production. Spawn an environment, here
-with an example image this repo is tested against::
+Ansible
+-------
 
-    playlabs @yourhost project -e image=betagouv/mrs:master -e '{"env":{"SECRET_KEY" :"itsnotasecret"}}'
+    -e key=value 			# set variable "key" to "value"
+    -e '{"key":"value"}' 		# same in json
+    -i path/to/inventory_script.ext 	# load any numbers of inventory variables
+    -i 1.2.4.4,				# add a host by ip to this play
+    --limit 1.2.4.4,			# limit play execution to these hosts
+    --user your-other-user 		# specify a particular username
+    --noroot 				# don't try becoming root automatically
 
-It will use the IP address by default, but you can pass a dns with ``-e
-dns=yourdns.com``, or set it in ``project_staging_dns`` yaml variable of
-your-inventory/group_vars/all/project.yml
+Global variables
+----------------
 
-This is because the default prefix is ``project`` and the default instance is
-``staging``. Let's learn a new way of specifiying variables, add to your
-variables::
+Variables that are used by convention accross roles:
 
-    yourproject_production_image: yourimage:production
-    yourproject_production_env:
-      SECRET_KEY: itsnotsecret
+    -e letsencrypt_uri=https...
+    -e letsencrypt_email=your@...
 
-Then you can deploy as such::
+Role variables
+--------------
 
-    playlabs @yourhost project @host -e prefix=yourproject -e instance=production
+Base variable are defined in playlabs/roles/rolename/vars/main.yml and start
+with the `rolename_`, they can be overridden in your inventory's
+`group_vars/all/rolename.yml`.
 
-If you configure yourhost in your inventory, in group "yourproject-production",
-then you don't have to specify the host anymore::
+The base variable will default to the same variable without the `rolename_`
+prefix:
 
-    playlabs @yourhost project -e prefix=yourproject -e instance=production
+    # Set project_image project role variable from the command line
+    -e image=your/image:tag 
 
-Note that you can also use ansible-vault'ed files or variables, refer to
-Ansible documentation for that.
+Role structure
+--------------
 
-4. Project: plugins
-===================
+Default roles live in playlabs/roles and share the
+[standard directory structure with ansible roles](https://docs.ansible.com/ansible/2.5/user_guide/playbooks_reuse_roles.html),
+that you can scaffold with the ansible-galaxy tool.
 
-You can add plugins to your project in several ways, suppose you want to add
-two plugins:
+Playlabs use roles as alternatives as docker-compose
+when possible, rather than polluting the host with
+many services.
 
-- specify ``-e plugins=django,postgres``
-- configure ``yourprefix_yourinstance_plugins=[django, postgres]``
-- add to Dockerfile ``ENV PLAYLABS_PLUGINS django,postgres``
+Project variables
+-----------------
 
-Plugins are directories located at the root of playlabs repo, but at some point
-might be git repo urls ...
+The project role base variables calculate to be overridable by prefix/instance:
 
-They have the following files:
+    # project_{image,*} base value references project_staging_{image,*} from inventory
+    -e instance=staging  
 
-- vars.yml: variables that are auto-loaded
-- deploy.pre.yml: tasks to execute before deploy of the project image
-- deploy.post.yml: tasks to execute after deploy of the project image
-- backup.pre.sh: inserted in backup.sh before the backup
-- backup.post.sh: inserted in backup.sh before the backup
-- restore.pre.sh: inserted in restore.sh before the restore
-- restore.post.sh: inserted in restore.sh before the restore
+    # project_{image,*} base value references mrs_production_{image,*} from inventory
+    -e instance=production -e prefix=mrs
 
-5. Project: operations
-======================
+Project plugins variable
+------------------------
 
-Projects are meant to be operatable by newbies directly on the server manually.
-But remote management commands are in progress.
+The project role has a special plugins variable that can be overridden in the
+usual way, but it will also try to find it by introspecting the docker image
+for the `PLAYLABS_PLUGINS` env var ie::
+
+    ENV PLAYLABS_PLUGINS postgres,django,uwsgi,sentry
+
+Plugin variables
+----------------
+
+Plugin variables are loaded by the project role for
+each plugin that it loads if any.
+
+Base plugin variables start with
+`project_pluginname_` and the special
+`project_pluginname_env` variable should be a dict,
+they will be all merged to add environment variables
+to the project container, project_env will be a
+merge of all them plugin envs.
+
+Plugin env vars should preferably use overridable variabls.
+
+Plugin structure
+----------------
+
+Default plugins live in playlabs/plugins and have
+the following files:
+
+- backup.pre.sh: take files out of containers and add them to the $backup variable
+- backup.post.sh: clean up files you have taken out
+  after the backup has been done
+- restore.pre.sh: clear the place where you want to
+  extract data from the restic backup repository
+- restore.post.sh: load new data and clean after the
+  project was restarted in the snapshot version, 
+- deploy.pre.yml: ansible tasks to execute before
+  project deployment, ie. spawn postgres
+- deploy.post.yml: ansible tasks to execute after
+  project deployment, ie. create users from
+inventory
+- vars.yml: plugin variables declaration
+
+Appendix
+https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html
+
+Operations
+==========
 
 By default, it happens in /home/yourprefix-yourinstance. Contents depend on the
 activated plugins.
 
-Logs are in the log sub-directory and are under backup if enabled.
+In the /home/ directory of the role or project there are scripts:
+
+- docker-run.sh: standalone command to start the
+  project container, feel free to have on that one
+- backup.sh: cause a secure backup, upload with lftp
+  if inventory defines dsn
+- restore.sh: recovers the secure backup repository
+  with lftp if inventory desfines dsn. Without
+argument: list snapshots. With a snapshot argument:
+proceed to a restore of that snapshot including
+project image version and plugin data 
+- prune.sh: removes un-needed old backup snapshots
+- log: logs that playlabs rotates for you, just stack em in
 
 For backups to enable, you need to set backup_password, either with -e, either
 through yourpefix_yourinstance_backup_password.
 
-Run ./restore.sh without argument to get the list of backups.
-Run ./restore.sh backupId to restore a backup.
-Run ./backup.sh to create a backup.
-
 The restic repository is encrypted, if you set the lftp_dsn or
-yourprefix_yourinstance_lft_dsn then it will use lft to mirror them. If you
+yourprefix_yourinstance_lftp_dsn then it will use lftp to mirror them. If you
 trash the local restic repository, and run restore.sh, then it will fetch the
 repository with lftp.
-
-Fun fact
-========
-
-Last software I released like this was like 10 years ago lol
-
-https://github.com/jpic/bashworks/tree/master/vps

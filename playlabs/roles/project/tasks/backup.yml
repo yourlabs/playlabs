@@ -8,7 +8,7 @@
   when: project_backup_password != False
   vars:
     repo: '{{ project_backup_repo }}'
-    backup_password: '{{ project_backup_password }}'
+    restic_password: '{{ project_backup_password }}'
     unit_name: 'backup-{{ project_instance }}'
     unit_description: '{{ project_instance }} backup'
     script_path: '{{ project_home }}/backup.sh'

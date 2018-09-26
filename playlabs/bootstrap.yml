@@ -45,8 +45,11 @@
       mode: 0600
 
   - name: Install your admin account
+    with_items:
+    - root
+    - '{{ lookup("env", "USER") }}'
     user:
-      name: '{{ lookup("env", "USER") }}'
+      name: '{{ item }}'
       state: present
       shell: /bin/bash
       groups: sudo

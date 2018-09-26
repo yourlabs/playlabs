@@ -10,7 +10,7 @@
     project_env: '{{ lookup("vars", "project_" + item + "_env")|combine(project_env) }}'
 
 - name: Configure letsencrypt variable if email is provided
-  when: letsencrypt_email is defined
+  when: project_letsencrypt_email != ''
   set_fact:
     project_env: '{{ project_env|combine({"LETSENCRYPT_EMAIL": letsencrypt_email, "LETSENCRYPT_HOST": project_dns}) }}'
 

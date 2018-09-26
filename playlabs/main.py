@@ -107,7 +107,8 @@ class Ansible(object):
 
         vault_pass_file = None
         if 'ANSIBLE_VAULT_PASSWORD_FILE' in os.environ:
-            vault_pass_file = os.environ.pop('ANSIBLE_VAULT_PASSWORD_FILE')
+            if not os.path.exists(os.getenv('ANSIBLE_VAULT_PASSWORD_FILE')):
+                vault_pass_file = os.environ.pop('ANSIBLE_VAULT_PASSWORD_FILE')
         os.environ['ANSIBLE_STDOUT_CALLBACK'] = 'debug'
         click.echo(' '.join(cmd))
         r = subprocess.call(cmd)

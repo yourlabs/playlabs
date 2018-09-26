@@ -30,7 +30,7 @@
 - name: Upload backup password
   copy:
     dest: '{{ project_home }}/.backup_password'
-    content: '{{ backup_password }}'
+    content: '{{ restic_password }}'
     owner: deploy
     group: root
     mode: 0700

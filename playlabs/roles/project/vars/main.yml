@@ -53,6 +53,37 @@ project_backup_lftp_dsn: >-
     )
   }}
 
+project_letsencrypt_enable: >-
+  {{
+    letsencrypt_enable|default(
+        hostvars[inventory_hostname].get(
+            project_variable + '_letsencrypt_enable',
+            false
+        )
+    )
+  }}
+
+project_letsencrypt_email: >-
+  {{
+    letsencrypt_email|default(
+        hostvars[inventory_hostname].get(
+            project_variable + '_letsencrypt_email',
+            ''
+        )
+    )
+  }}
+
+# letsencrypt_uri: https://acme-v01.api.letsencrypt.org/directory
+project_letsencrypt_uri: >-
+  {{
+    letsencrypt_uri|default(
+        hostvars[inventory_hostname].get(
+            project_variable + '_letsencrypt_uri',
+            'https://acme-staging.api.letsencrypt.org/directory',
+        )
+    )
+  }}
+
 project_dns: >-
   {{
     dns|default(
