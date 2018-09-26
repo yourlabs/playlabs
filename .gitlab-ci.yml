@@ -13,7 +13,7 @@ before_script:
 after_script:
 - podman logout $CI_REGISTRY
 
-docker:
+build:
   stage: build
   image: tomkukral/buildah
   script:
