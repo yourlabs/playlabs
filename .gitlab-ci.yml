@@ -17,8 +17,6 @@ docker:
   stage: build
   image: tomkukral/buildah
   script:
-    - echo $CI_REGISTRY
-    - env
     - buildah bud -t $IMAGE_TAG .
     - buildah push docker://$IMAGE_TAG
 
