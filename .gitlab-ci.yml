@@ -17,10 +17,11 @@ docker:
   stage: build
   image: docker:stable
   script:
+    - echo $CI_REGISTRY
     - env
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN hub.yourlabs.io
-    - docker build -t hub.yourlabs.io/oss/playlabs:latest .
-    - docker push hub.yourlabs.io/oss/playlabs:latest
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
 
 test:
   stage: test
