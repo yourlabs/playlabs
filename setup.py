@@ -5,10 +5,10 @@ import os, sys
 setup(
     name='playlabs',
     version='0.0.0',
-    description='A distribution of ansible playbooks',
+    description='The obscene ansible paas distribution',
     author='James Pic',
     author_email='jamespic@gmail.com',
-    url='https://github.com/betagouv/mrs',
+    url='https://yourlabs.io/oss/playlabs',
     packages=['playlabs'],
     include_package_data=True,
     license='MIT',
