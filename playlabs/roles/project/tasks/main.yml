@@ -24,6 +24,7 @@
 - include: home.yml
 - include: http.yml
 - include: backup.yml
+- include: logrotate.yml
 
 - name: Create project network
   docker_network:

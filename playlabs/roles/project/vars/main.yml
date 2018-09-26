@@ -73,6 +73,16 @@ project_dns_redirect: >-
     )
   }}
 
+project_secure: >-
+  {{
+    secure|default(
+        hostvars[inventory_hostname].get(
+            project_variable + '_secure',
+            true
+        )
+    )
+  }}
+
 project_htaccess: >-
   {{
     htaccess|default(
