@@ -1,10 +1,5 @@
 ---
 
-- debug: var=project_home
-- debug: var=project_dns
-- debug: var=project_dns_redirect
-- debug: var=project_htaccess
-
 - name: Load vars from plugins if any plugin/vars.yml
   with_items: '{{ project_plugins }}'
   include_vars: plugins/{{ item }}/vars.yml

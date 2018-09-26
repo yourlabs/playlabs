@@ -127,28 +127,88 @@ role, that's why roles is a key value pair.
 Every time you bootstrap a machine from a directory that is an inventory, it
 will install all users.
 
-3. Project: deployment
-======================
+3. Project: deployments
+=======================
 
 The project role is made to be generic and cover infrastructure needs to
 develop a project, from development to production. Spawn an environment, here
 with an example image this repo is tested against::
 
-    playlabs @yourhost project  -e image=betagouv/mrs:master -e plugins=django -e backup_password=foo -e '{"env":{"SECRET_KEY" :"itsnotasecret"}}'
+    playlabs @yourhost project -e image=betagouv/mrs:master -e '{"env":{"SECRET_KEY" :"itsnotasecret"}}'
 
-If your project name is yourproject, you can setup the staging environment as
-such in your-inventory/group_vars/all/yourproject-secrets.yml (use
-ansible-vault if you want)::
+It will use the IP address by default, but you can pass a dns with ``-e
+dns=yourdns.com``, or set it in ``project_staging_dns`` yaml variable of
+your-inventory/group_vars/all/project.yml
 
-    # apply to staging
-    yourproject_staging_backup_password: aotsnesaotnehustoaheuooseutasoeut
+This is because the default prefix is ``project`` and the default instance is
+``staging``. Let's learn a new way of specifiying variables, add to your
+variables::
 
-    # apply to yourproject
-    yourproject_plugins: [django,uwsgi,postgres,sentry]
+    yourproject_production_image: yourimage:production
+    yourproject_production_env:
+      SECRET_KEY: itsnotsecret
 
-4. Project: operations
+Then you can deploy as such::
+
+    playlabs @yourhost project @host -e prefix=yourproject -e instance=production
+
+If you configure yourhost in your inventory, in group "yourproject-production",
+then you don't have to specify the host anymore::
+
+    playlabs @yourhost project -e prefix=yourproject -e instance=production
+
+Note that you can also use ansible-vault'ed files or variables, refer to
+Ansible documentation for that.
+
+4. Project: plugins
+===================
+
+You can add plugins to your project in several ways, suppose you want to add
+two plugins:
+
+- specify ``-e plugins=django,postgres``
+- configure ``yourprefix_yourinstance_plugins=[django, postgres]``
+- add to Dockerfile ``ENV PLAYLABS_PLUGINS django,postgres``
+
+Plugins are directories located at the root of playlabs repo, but at some point
+might be git repo urls ...
+
+They have the following files:
+
+- vars.yml: variables that are auto-loaded
+- deploy.pre.yml: tasks to execute before deploy of the project image
+- deploy.post.yml: tasks to execute after deploy of the project image
+- backup.pre.sh: inserted in backup.sh before the backup
+- backup.post.sh: inserted in backup.sh before the backup
+- restore.pre.sh: inserted in restore.sh before the restore
+- restore.post.sh: inserted in restore.sh before the restore
+
+5. Project: operations
 ======================
 
-backup
-restore
-logs
+Projects are meant to be operatable by newbies directly on the server manually.
+But remote management commands are in progress.
+
+By default, it happens in /home/yourprefix-yourinstance. Contents depend on the
+activated plugins.
+
+Logs are in the log sub-directory and are under backup if enabled.
+
+For backups to enable, you need to set backup_password, either with -e, either
+through yourpefix_yourinstance_backup_password.
+
+Run ./restore.sh without argument to get the list of backups.
+Run ./restore.sh backupId to restore a backup.
+Run ./backup.sh to create a backup.
+
+The restic repository is encrypted, if you set the lftp_dsn or
+yourprefix_yourinstance_lft_dsn then it will use lft to mirror them. If you
+trash the local restic repository, and run restore.sh, then it will fetch the
+repository with lftp.
+
+Fun fact
+========
+
+Last software I released like this was like 10 years ago lol
+
+https://github.com/jpic/bashworks/tree/master/vps

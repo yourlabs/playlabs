@@ -1,5 +1,4 @@
 ---
-
 - name: Create spooler dir
   file:
     path: '{{ project_uwsgi_spooler_home }}'
@@ -8,8 +7,10 @@
     owner: 1000
     group: 1000
 
+# https://github.com/unbit/uwsgi/issues/1858
+
 - name: Create spoolers subdirs
-  with_items: '{{ project_uwsgi_spooler_names }}'
+  with_items: '{{ project_image_env.get("UWSGI_SPOOLER_NAMES", "").split(",") }}'
   file:
     path: '{{ project_uwsgi_spooler_home }}/{{ item }}'
     state: directory

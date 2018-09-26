@@ -1,1 +1,1 @@
-rm -rf {{ project_postgres_data_mount }}/data.dump
+rm -rf {{ project_postgres_data_home }}/data.dump

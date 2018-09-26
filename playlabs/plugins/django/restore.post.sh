@@ -1,1 +1,1 @@
-mv $restore/media/* media
+mv $restore/media media

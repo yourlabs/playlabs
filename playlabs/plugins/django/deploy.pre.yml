@@ -1,10 +1,19 @@
 ---
 
+- name: Create media dir
+  file:
+    path: '{{ project_django_media_home }}'
+    state: directory
+    mode: 0700
+    owner: 1000
+    group: 1000
+
 - name: Migrate project database
   tags: [update, migrate]
   shell: |
     docker run --name {{ project_instance }}-migrate --rm \
-    -v {{ project_media_home }}:{{ project_media_root }} \
+    -v {{ project_django_media_home }}:{{ project_django_media_mount }} \
+    -v {{ project_log_home }}:{{ project_log_mount }} \
     {% for key, value in project_env.items() %}
     -e {{ key }}='{{ value | regex_replace("\'", "\\\'") }}' \
     {% endfor %}

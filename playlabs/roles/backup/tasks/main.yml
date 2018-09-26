@@ -1,58 +1,19 @@
 ---
 
-- debug: var=project_home
 - name: Upload backup script
   notify: backup unit
-  copy:
+  template:
     dest: '{{ script_path }}'
-    content: |
-      #!/bin/bash
-      set -eu
-      export RESTIC_PASSWORD_FILE={{ project_home }}/.backup_password
-      export backup=""
-      set -x
-      export RESTIC_REPOSITORY={{ repo }}
-      pushd {{ project_home }}
-      {{ script_content_pre }}
-      restic backup $backup
-      {{ script_content_post }}
-      popd
+    src: backup.sh
     owner: root
     group: root
     mode: 0700
 
 - name: Upload restore script
   when: restore_path is defined
-  copy:
+  template:
     dest: '{{ restore_path }}'
-    content: |
-      #!/bin/bash
-      set -eu
-      export RESTIC_PASSWORD_FILE={{ project_home }}/.backup_password
-      set -x
-      export RESTIC_REPOSITORY={{ repo }}
-
-      if [ -z "${1-}" ]; then
-          restic snapshots
-          exit 0
-      fi
-
-      export restore={{ project_home }}/restore
-
-      if ! [ -d $RESTIC_REPOSITORY ]; then
-          echo 'Repository not found ! geting from ftp'
-          {% if backup_lftp_dsn|default(False) %}
-          lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}; mirror {{ project_home }}/restic'
-          {% else %}
-          echo 'FTP not available: backup_lftp_dsn inventory variable not set !'
-          {% endif %}
-      fi
-
-      pushd {{ project_home }}
-      {{ restore_content_pre }}
-      restic restore $1 --target $restore
-      {{ restore_content_post }}
-      popd
+    src: restore.sh
     owner: root
     group: root
     mode: 0700
@@ -68,7 +29,7 @@
 
 - name: Upload backup password
   copy:
-    dest: '{{ project_home }}.backup_password'
+    dest: '{{ project_home }}/.backup_password'
     content: '{{ backup_password }}'
     owner: deploy
     group: root
@@ -76,7 +37,7 @@
 
 - name: Init restic repository
   register: backup_init
-  shell: 'RESTIC_REPOSITORY=restic RESTIC_PASSWORD_FILE=.backup_password restic init --repo {{ project_backup_repo }}'
+  shell: 'RESTIC_REPOSITORY={{ project_backup_repo }} RESTIC_PASSWORD_FILE={{ project_home }}/.backup_password restic init --repo {{ project_backup_repo }}'
   args:
     executable: /bin/bash
     creates: '{{ project_backup_repo }}'

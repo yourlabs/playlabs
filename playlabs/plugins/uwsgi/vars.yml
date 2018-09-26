@@ -4,14 +4,4 @@ project_uwsgi_spooler_mount: '/spooler'
 
 project_uwsgi_docker_options: "-v {{ project_uwsgi_spooler_home }}:{{ project_uwsgi_spooler_mount }}"
 
-project_uwsgi_spooler_names: >-
-  {{
-    hostvars[inventory_hostname].get(
-        project_variable + '_spooler_names',
-        []
-    )
-  }}
-
-project_uwsgi_env:
-  UWSGI_SPOOLER: '{{ project_uwsgi_spooler_mount }}'
-  UWSGI_SPOOLER_NAMES: '{{ project_uwsgi_spooler_names }}'
+project_uwsgi_env: {}

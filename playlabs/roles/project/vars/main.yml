@@ -58,7 +58,7 @@ project_dns: >-
     dns|default(
         hostvars[inventory_hostname].get(
             project_variable + '_dns',
-            ansible_ssh_host
+            ansible_default_ipv4.address
         )
     )
   }}
@@ -96,7 +96,9 @@ project_env_base:
   PLAYLABS_PLUGINS: '{{ ",".join(project_plugins) }}'
   PLAYLABS_PREFIX: '{{ prefix }}'
   PLAYLABS_INSTANCE: '{{ instance }}'
+  DEFAULT_FROM_EMAIL: '{{ hostvars[inventory_hostname].get(project_instance + "_email_from", prefix + "@" + project_dns) }}'
   ALLOWED_HOSTS: '{{ project_dns }}'
+  VIRTUAL_HOST: '{{ project_dns }}{% if project_dns_redirect %},{{ project_dns_redirect|join(",") }}{% endif %}'
   LOG: '/log'
 
 project_env: >-
@@ -108,45 +110,3 @@ project_env: >-
         )
     )
   }}
-
-# project_env: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_env", env|default({})) }}'
-# project_env_base:
-#   VIRTUAL_HOST: '{{ project_dns }}{% if project_dns_redirect %},{{ project_dns_redirect|join(",") }}{% endif %}'
-#   ALLOWED_HOSTS: '{{ project_dns }}'
-#   DEBUG: ''
-#   SECRET_KEY: '{{ project_secret_key }}'
-#   DB_ENGINE: django.db.backends.postgresql
-#   DEFAULT_FROM_EMAIL: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_email_from", project_prefix + "@" + project_dns) }}'
-#   INSTANCE: '{{ instance|default("staging") }}'
-#   MEDIA_ROOT: '/media'
-#   LOG: '/log'
-#   SPOOLER: '/spooler'
-#   SENTRY_DSN: '{{ project_sentry_dsn }}'
-
-#
-# # File paths
-# project_home: '/home/{{ project_instance }}/'
-# project_backup: '{{ project_home }}backup/'
-# project_log: '{{ project_home }}log'
-#
-# project_admin_password: '{{ hostvars[inventory_hostname][project_prefix + "_" + instance|default("staging") + "_admin_password"] }}'
-# project_dns_redirect: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_dns_redirect", []) }}'
-#
-# project_email: '{{ hostvars[inventory_hostname][project_prefix + "_" + instance|default("staging") + "_email"] }}'
-# project_backup_password: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_backup_password", backup_password|default(False)) }}'
-# project_htaccess: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_htaccess", false) }}'
-# project_secret_key: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_secret_key") }}'
-# project_sentry_dsn: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_sentry_dsn") }}'
-# project_env: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_env", env|default({})) }}'
-# project_env_base:
-#   VIRTUAL_HOST: '{{ project_dns }}{% if project_dns_redirect %},{{ project_dns_redirect|join(",") }}{% endif %}'
-#   ALLOWED_HOSTS: '{{ project_dns }}'
-#   DEBUG: ''
-#   SECRET_KEY: '{{ project_secret_key }}'
-#   DB_ENGINE: django.db.backends.postgresql
-#   DEFAULT_FROM_EMAIL: '{{ hostvars[inventory_hostname].get(project_prefix + "_" + instance|default("staging") + "_email_from", project_prefix + "@" + project_dns) }}'
-#   INSTANCE: '{{ instance|default("staging") }}'
-#   MEDIA_ROOT: '/media'
-#   LOG: '/log'
-#   SPOOLER: '/spooler'
-#   SENTRY_DSN: '{{ project_sentry_dsn }}'

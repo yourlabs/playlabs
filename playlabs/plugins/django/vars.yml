@@ -1,9 +1,9 @@
 ---
 project_django_media_home: '{{ project_home }}/media'
 project_django_media_mount: '/media'
-
 project_django_docker_options: "-v {{ project_django_media_home }}:{{ project_django_media_mount }}"
 
 project_django_env:
   SECRET_KEY: 'itsnotasecret'
   MEDIA_ROOT: '{{ project_django_media_mount }}'
+  DB_ENGINE: django.db.backends.{{ 'postgresql' if 'postgres' in project_plugins else 'sqlite3' }}
