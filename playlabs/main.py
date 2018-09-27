@@ -100,10 +100,10 @@ class Ansible(object):
         child = pexpect.spawn(' '.join(cmd), encoding='utf8')
         try:
             if self.password:
-                child.expect('SSH password.*')
+                child.expect('SSH password.*', timeout=120)
                 child.sendline(self.password)
                 child.expect('SUDO password.*')
-                child.sendline(self.password)
+                child.sendline(self.password, timeout=120)
 
             self.interact(child)
         except Exception as e:
