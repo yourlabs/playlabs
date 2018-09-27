@@ -68,7 +68,7 @@ ubuntu:
   stage: test
   image: $IMAGE_TAG
   script:
-  - playlabs --nostrict -e ssh_norestart=1 root:root@ubuntu-sshd
+  - playlabs --nostrict -e ssh_norestart=1 docker:docker@target
 
 pypi:
   stage: release
