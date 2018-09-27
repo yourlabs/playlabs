@@ -5,6 +5,7 @@ stages:
 
 variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  ANSIBLE_FORCE_COLOR: true
   USER: gitlab
 
 build:
@@ -45,6 +46,7 @@ py-test:
 alpine:
   stage: test
   image: $IMAGE_TAG
+  before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
   script:
   - playlabs @localhost
 
