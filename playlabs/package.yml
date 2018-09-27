@@ -1,0 +1,5 @@
+---
+
+- hosts: '*'
+  tasks:
+  - package: name={{ package }}

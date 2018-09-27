@@ -43,11 +43,11 @@ arch:
   stage: test
   image: $IMAGE_TAG
   script:
-  - playlabs --nostrict root:root@archlinux-sshd
+  - playlabs --nostrict -e ssh_norestart=1 root:root@archlinux-sshd
 
 ubuntu:
   services: [rastasheep/ubuntu-sshd]
   stage: test
   image: $IMAGE_TAG
   script:
-  - playlabs --nostrict root:root@ubuntu-sshd
+  - playlabs --nostrict -e ssh_norestart=1 root:root@ubuntu-sshd

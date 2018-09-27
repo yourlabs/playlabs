@@ -127,7 +127,7 @@ class Ansible(object):
 
         options += extra_args
 
-        return ansible.playbook('bootstrap.yml', options)
+        return self.playbook('bootstrap.yml', options)
 
     def role(self, name, hosts, options):
         options += ['-e', f'role={name}']
@@ -151,22 +151,24 @@ class Ansible(object):
         elif os.path.exists('group_vars') or os.path.exists('host_vars'):
             options += ['-i', '.']
 
-        return ansible.playbook(playbook, options)
+        return self.playbook(playbook, options)
 
-    def sshpass(self):
-        args = ['ansible', '-m', 'package', '-a', 'name=sshpass']
-        args += [
+    def package(self, package):
+        if sh.which(package):
+            return 0
+
+        options = [
             '-c',
             'local',
             '-i',
             'localhost,',
-            'localhost',
+            '-e',
+            f'package={package}',
         ]
         user = os.getenv('USER')
         if user != 'root':
-            args = self.sudo(args)
-        print(' '.join(args))
-        res = subprocess.call(args)
+            options = self.sudo(options)
+        res = self.playbook('package.yml', options)
         if res != 0:
             click.echo('Passing passwords requires sshpass command')
         return res
@@ -174,10 +176,16 @@ class Ansible(object):
     def play(self, hosts, options, roles, password):
         self.password = None
 
-        if password and not sh.which('sshpass'):
-            res = self.sshpass()
+        if password:
+            res = self.package('sshpass')
             if res != 0:
                 sys.exit(res)
+
+        # todo: check if connection works with provided credentials if any
+        # otherwise try without credentials, and strip them from now on
+        # because that would mean that the host is already bootstrapped
+        # meanwhile, it fails with root@ ... Permission denied because
+        # we disable root login in ssh role
 
         self.password = password
 
