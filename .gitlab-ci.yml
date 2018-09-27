@@ -22,8 +22,15 @@ build:
 
 py-qa:
   stage: build
-  image: jpic/tox
-  script: tox --sitepackages -e qa
+  image: python:3-alpine
+  before_script: >-
+    pip3 install flake8 mccabe
+  script: >-
+    flake8 
+    --show-source
+    --max-complexity=8
+    --ignore=E305
+    playlabs
 
 alpine:
   stage: test
