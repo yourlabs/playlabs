@@ -99,10 +99,10 @@ class Ansible(object):
     def spawn(self, cmd):
         child = pexpect.spawn(' '.join(cmd), encoding='utf8', timeout=300)
         if self.password:
-            child.expect('SSH password.*', timeout=120)
+            child.expect('SSH password.*')
             child.sendline(self.password)
             child.expect('SUDO password.*')
-            child.sendline(self.password, timeout=120)
+            child.sendline(self.password)
         self.interact(child)
         return child.exitstatus
 
