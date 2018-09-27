@@ -90,15 +90,17 @@ class Ansible(object):
         os.environ['ANSIBLE_STDOUT_CALLBACK'] = 'debug'
         click.echo(' '.join(cmd))
         child = pexpect.spawn(' '.join(cmd))
+        child.logfile = sys.stdout
+
         if self.password:
             child.expect('SSH password.*')
             child.sendline(self.password)
             child.expect('SUDO password.*')
             child.sendline(self.password)
+
         if sys.stdout.isatty():
             child.interact()
-        else:
-            print(child.out)
+
         child.wait()
         if vault_pass_file:
             os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
