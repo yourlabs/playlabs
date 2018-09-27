@@ -69,7 +69,7 @@ class Ansible(object):
 
         return options
 
-    def playbook(self, name, args):
+    def playbook(self, name, args):  # noqa
         cmd = ['ansible-playbook']
         cmd.append('-v')
         find = [
