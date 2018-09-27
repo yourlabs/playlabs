@@ -20,6 +20,11 @@ build:
   after_script:
   - podman logout $CI_REGISTRY
 
+py-qa:
+  stage: build
+  image: jpic/tox
+  script: tox -e qa
+
 alpine:
   stage: test
   image: $IMAGE_TAG
