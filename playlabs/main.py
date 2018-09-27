@@ -1,7 +1,6 @@
 import click
 import os
 import pexpect
-import re
 import sh
 import shlex
 import shutil
@@ -15,6 +14,7 @@ BASH_PROFILE = f'{os.getenv("HOME")}/.bash_profile'
 
 with open(os.path.join(os.path.dirname(__file__), 'help')) as f:
     HELP = f.read()
+
 
 def patch():
     with open(BASH_PROFILE, 'a+') as f:
@@ -67,7 +67,6 @@ class Ansible(object):
             ]
 
         return options
-
 
     def playbook(self, name, args):
         cmd = ['ansible-playbook']
@@ -154,26 +153,31 @@ class Ansible(object):
 
         return ansible.playbook(playbook, options)
 
+    def sshpass(self):
+        args = ['ansible', '-m', 'package', '-a', 'name=sshpass']
+        args += [
+            '-c',
+            'local',
+            '-i',
+            'localhost,',
+            'localhost',
+        ]
+        user = os.getenv('USER')
+        if user != 'root':
+            args = self.sudo(args)
+        print(' '.join(args))
+        res = subprocess.call(args)
+        if res != 0:
+            click.echo('Passing passwords requires sshpass command')
+        return res
+
     def play(self, hosts, options, roles, password):
         self.password = None
 
         if password and not sh.which('sshpass'):
-            args = ['ansible', '-m', 'package', '-a', 'name=sshpass']
-            args += [
-                '-c',
-                'local',
-                '-i',
-                'localhost,',
-                'localhost',
-            ]
-            user = os.getenv('USER')
-            if user != 'root':
-                args = self.sudo(args)
-            print(' '.join(args))
-            res = subprocess.call(args)
+            res = self.sshpass()
             if res != 0:
-                click.echo('Passing passwords requires sshpass command')
-                return res
+                sys.exit(res)
 
         self.password = password
 
@@ -219,37 +223,38 @@ def init(target):
     click.echo(f'{target} ready ! run playlabs in there to execute')
 
 
-def cli():
-    if len(sys.argv) == 1:
-        click.echo(HELP)
-        sys.exit(0)
-    elif sys.argv[1] == 'init':
-        target = os.path.abspath(sys.argv[2])
-        init(target)
-        sys.exit(0)
+def nostrict(options):
+    options += [
+        '--ssh-extra-args',
+        '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no',
+    ]
+    return options
 
+
+def hostparse(arg, hosts, options, password):
+    hosts.append(arg.split('@')[-1])
+    if not arg.startswith('@'):
+        left = arg.split('@')[0]
+        if ':' in left:
+            user, password = left.split(':')
+            options.append('--ask-become-pass')
+            options.append('--ask-pass')
+        else:
+            user = left
+        options += ['--user', user]
+    return hosts, options, password
+
+
+def parse(args):
     hosts = []
     options = []
     roles = []
     password = None
-    args = sys.argv[1:]
     for arg in args:
         if arg == '--nostrict':
-            options += [
-                '--ssh-extra-args', 
-                '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no',
-            ]
+            options = nostrict(options)
         elif '@' in arg:
-            hosts.append(arg.split('@')[-1])
-            if not arg.startswith('@'):
-                left = arg.split('@')[0]
-                if ':' in left:
-                    user, password = left.split(':')
-                    options.append('--ask-become-pass')
-                    options.append('--ask-pass')
-                else:
-                    user = left
-                options += ['--user', user]
+            host, options, password = hostparse(arg, hosts, options, password)
         elif arg.startswith('-'):
             options.append(arg)
         elif not roles and not options:
@@ -260,12 +265,19 @@ def cli():
     if hosts == ['localhost']:
         options += ['-c', 'local']
 
-    for i, role in enumerate(roles):
-        if role == 'paas':
-            del roles[i]
-            roles.insert(i, 'nginx')
-            roles.insert(i, 'firewall')
-            roles.insert(i, 'docker')
+    return hosts, options, roles, password
+
+
+def cli():
+    if len(sys.argv) == 1:
+        click.echo(HELP)
+        sys.exit(0)
+    elif sys.argv[1] == 'init':
+        target = os.path.abspath(sys.argv[2])
+        init(target)
+        sys.exit(0)
+
+    hosts, options, roles, password = parse(sys.argv[1:])
 
     if hosts:
         click.echo(f'Play hosts: {hosts}')

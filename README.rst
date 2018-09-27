@@ -88,7 +88,7 @@ ansible module call, but the thing is that you can spawn it in one command and
 have it integrated with the rest of your server, and even rely on ansible to
 provision fine-grained RBAC in your own apps::
 
-    playlabs @somehost paas   # equivalent to docker,firewall,nginx
+    playlabs @somehost docker,firewall,nginx  # the paas for the project role
     playbabs @staging sendmail,netdata,mailcatcher,gitlab
     playbabs @production sendmail,netdata,sentry
 
