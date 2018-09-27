@@ -28,10 +28,6 @@ build:
   before_script:
   - podman login --username gitlab-ci-token --password $CI_JOB_TOKEN $CI_REGISTRY
   script:
-  - cat  /etc/containers/storage.conf
-  - echo 'driver = "vfs"' >> /etc/containers/storage.conf
-  - echo 'runroot = "/var/run/containers/storage"' >>  /etc/containers/storage.conf
-  - echo 'graphroot = "/var/lib/containers/storage"' >>  /etc/containers/storage.conf
   - buildah bud -t $IMAGE_TAG .
   - buildah push $IMAGE_TAG docker://$IMAGE_TAG
   after_script:
@@ -45,7 +41,7 @@ py-qa:
 py-test:
   stage: test
   image: $IMAGE_TAG
-  script: cd playlabs && py.test --cov
+  script: py.test --cov playlabs
 
 alpine:
   stage: test
