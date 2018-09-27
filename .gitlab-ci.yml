@@ -4,7 +4,7 @@ stages:
 - release
 
 variables:
-  IMAGE_TAG: ${CI_REGISTRY_IMAGE-hub.yourlabs.io/oss/playlabs}:$CI_COMMIT_SHA
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
 build:
   stage: build
