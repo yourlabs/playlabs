@@ -22,6 +22,6 @@ build:
 
 test:
   stage: test
-  image: hub.yourlabs.io/oss/playlabs:latest
+  image: $IMAGE_TAG
   script:
     - playlabs @localhost
