@@ -50,9 +50,9 @@ alpine:
   script:
   - playlabs @localhost
 
-arch:
+ubuntu:
   services: 
-  - name: retorillo/archlinux-sshd
+  - name: rastasheep/ubuntu-sshd
     alias: target
   stage: test
   image: $IMAGE_TAG
@@ -60,7 +60,7 @@ arch:
   script:
   - playlabs --nostrict -e ssh_norestart=1 root:root@target
 
-ubuntu:
+arch:
   services: 
   - name: retorillo/archlinux-sshd
     alias: target
