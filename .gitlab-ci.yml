@@ -23,9 +23,7 @@ build:
 
 py-qa:
   stage: build
-  image: python:3-alpine
-  before_script:
-  - pip3 install flake8 mccabe
+  image: yourlabs/python
   script: >-
     flake8 
     --show-source
@@ -55,11 +53,10 @@ ubuntu:
 
 pypi:
   stage: release
-  image: $IMAGE_TAG
+  image: yourlabs/python
   only: [tags]
   script: |
     set -eux
-    cd /app
     export PLAYLABS_VERSION="$CI_COMMIT_REF_NAME"
     pip3 install twine
     python3 setup.py sdist
