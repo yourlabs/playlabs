@@ -69,7 +69,7 @@ class Ansible(object):
 
         return options
 
-    def playbook(self, name, args):  # noqa
+    def playbook(self, name, args):
         cmd = ['ansible-playbook']
         cmd.append('-v')
         find = [
@@ -91,8 +91,13 @@ class Ansible(object):
                 vault_pass_file = os.environ.pop('ANSIBLE_VAULT_PASSWORD_FILE')
         click.echo(' '.join(cmd))
 
-        child = pexpect.spawn(' '.join(cmd), encoding='utf8')
+        res = self.spawn(cmd)
+        if vault_pass_file:
+            os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
+        return res
 
+    def spawn(self, cmd):
+        child = pexpect.spawn(' '.join(cmd), encoding='utf8')
         try:
             if self.password:
                 child.expect('SSH password.*')
@@ -104,9 +109,6 @@ class Ansible(object):
         except Exception as e:
             print(child.read(), end='', flush=True)
             raise
-
-        if vault_pass_file:
-            os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
         return child.exitstatus
 
     def interact(self, child):
