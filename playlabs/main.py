@@ -97,7 +97,8 @@ class Ansible(object):
             child.sendline(self.password)
             child.expect('SUDO password.*')
             child.sendline(self.password)
-        child.interact()
+        if sys.stdout.isatty():
+            child.interact()
         child.wait()
         if vault_pass_file:
             os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
