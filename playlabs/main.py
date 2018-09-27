@@ -97,18 +97,13 @@ class Ansible(object):
         return res
 
     def spawn(self, cmd):
-        child = pexpect.spawn(' '.join(cmd), encoding='utf8')
-        try:
-            if self.password:
-                child.expect('SSH password.*', timeout=120)
-                child.sendline(self.password)
-                child.expect('SUDO password.*')
-                child.sendline(self.password, timeout=120)
-
-            self.interact(child)
-        except Exception as e:
-            print(child.read(), end='', flush=True)
-            raise
+        child = pexpect.spawn(' '.join(cmd), encoding='utf8', timeout=300)
+        if self.password:
+            child.expect('SSH password.*', timeout=120)
+            child.sendline(self.password)
+            child.expect('SUDO password.*')
+            child.sendline(self.password, timeout=120)
+        self.interact(child)
         return child.exitstatus
 
     def interact(self, child):
