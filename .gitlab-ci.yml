@@ -8,20 +8,34 @@ variables:
 
 build:
   stage: build
-  image: docker:stable
-  services: ['docker:dind']
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
+  image: tomkukral/buildah
   script:
-  - docker build -t $IMAGE_TAG .
-  - docker push $IMAGE_TAG
+  - buildah bud -t $IMAGE_TAG .
+  - buildah push $IMAGE_TAG docker://$IMAGE_TAG
 
   before_script:
-  - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+  - podman version
+  - buildah version
+  - podman login --username gitlab-ci-token --password $CI_JOB_TOKEN $CI_REGISTRY
   
   after_script:
-  - docker logout
+  - podman logout $CI_REGISTRY
+
+# docker version of the above:
+#  image: docker:stable
+#  services: ['docker:dind']
+#  variables:
+#    DOCKER_HOST: tcp://docker:2375
+#    DOCKER_DRIVER: overlay2
+#  script:
+#  - docker build -t $IMAGE_TAG .
+#  - docker push $IMAGE_TAG
+#
+#  before_script:
+#  - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+#  
+#  after_script:
+#  - docker logout
 
 py-qa:
   stage: build
