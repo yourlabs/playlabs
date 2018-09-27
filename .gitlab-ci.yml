@@ -31,15 +31,15 @@ build:
 #  after_script:
 #  - podman logout $CI_REGISTRY
 
+py-test:
+  stage: build
+  image: yourlabs/python
+  script: py.test --cov playlabs
+
 py-qa:
   stage: build
   image: yourlabs/python
-  script: >-
-    flake8 
-    --show-source
-    --max-complexity=8
-    --ignore=E305
-    playlabs
+  script: flake8 --show-source --max-complexity=8 --ignore=E305 playlabs
 
 alpine:
   stage: test
