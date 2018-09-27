@@ -61,7 +61,9 @@ arch:
   - playlabs --nostrict -e ssh_norestart=1 root:root@target
 
 ubuntu:
-  services: [rastasheep/ubuntu-sshd]
+  services: 
+  - name: retorillo/archlinux-sshd
+    alias: target
   before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
   stage: test
   image: $IMAGE_TAG
