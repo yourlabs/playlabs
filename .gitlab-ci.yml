@@ -9,8 +9,8 @@ build:
   stage: build
   image: tomkukral/buildah
   script:
-    - buildah bud -t $IMAGE_TAG .
-    - buildah push $IMAGE_TAG docker://$IMAGE_TAG
+  - buildah bud -t $IMAGE_TAG .
+  - buildah push $IMAGE_TAG docker://$IMAGE_TAG
 
   before_script:
   - podman version
@@ -24,4 +24,4 @@ test:
   stage: test
   image: $IMAGE_TAG
   script:
-    - playlabs @localhost
+  - playlabs @localhost
