@@ -28,13 +28,13 @@
 - hosts: all
   # Setup sudo without password and upload your ssh key.
   tasks:
-  - name: Install user management tools
-    block:
-    - name: Try shadow package
-      package: name=shadow
-    rescue:
-    - name: Fallback on passwd package
-      package: name=passwd
+  - name: Install shadow package
+    package: name=shadow
+    when: ansible_os_family == 'Alpine'
+
+  - name: Fallback on passwd package
+    package: name=passwd
+    when: ansible_os_family == 'Debian'
 
   - name: Install sudo
     package: name=sudo state=present

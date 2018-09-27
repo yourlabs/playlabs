@@ -1,4 +1,4 @@
 ---
 
 - name: Restart sshd
-  service: name={{ ssh_service_name }} state=restarted
+  service: name={{ ssh_service_name }} state=reloaded

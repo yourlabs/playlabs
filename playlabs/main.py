@@ -1,5 +1,4 @@
 import click
-import delegator
 import os
 import pexpect
 import re
@@ -13,30 +12,9 @@ import sys
 LOCAL_BIN = f'{os.getenv("HOME")}/.local/bin'
 LOCAL_BIN_PLAYLABS = f'{LOCAL_BIN}/playlabs'
 BASH_PROFILE = f'{os.getenv("HOME")}/.bash_profile'
-HELP = '''
-Playlabs: the obscene ansible distribution.
 
-Create your ssh user with your key and secure sshd (bootstrap):
-
-    playlabs root@1.2.3.4
-    playlabs @somehost --ask-sudo-pass # all options are ansible options
-
-Deploy the paas on the server:
-
-    playlabs @somehost paas
-
-Deploy a project:
-
-    playlabs @somehost project \\
-        -e image=betagouv/mrs:master \\
-        -e plugins=django,uwsgi,postgres \\
-        -e backup_password=foo \\
-        -e '{"env":{"SECRET_KEY" :"itsnotasecret"}}'
-
-Initiate an inventory, for your users and projects configurations:
-
-    playlabs init your-inventory
-'''
+with open(os.path.join(os.path.dirname(__file__), 'help')) as f:
+    HELP = f.read()
 
 def patch():
     with open(BASH_PROFILE, 'a+') as f:

@@ -31,11 +31,11 @@ arch:
   stage: test
   image: $IMAGE_TAG
   script:
-  - playlabs root:root@archlinux-sshd
+  - playlabs --nostrict root:root@archlinux-sshd
 
 ubuntu:
   services: [rastasheep/ubuntu-sshd]
   stage: test
   image: $IMAGE_TAG
   script:
-  - playlabs root:root@ubuntu-sshd
+  - playlabs --nostrict root:root@ubuntu-sshd

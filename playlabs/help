@@ -1,0 +1,23 @@
+Playlabs: the obscene ansible distribution.
+
+Create your ssh user with your key and secure sshd (bootstrap):
+
+    playlabs root@1.2.3.4
+    # all options are ansible options are proxied
+    playlabs @somehost --ask-become-pass 
+
+Deploy roles that project depends on on the server:
+
+    playlabs @somehost docker,firewall,nginx
+
+Deploy a project:
+
+    playlabs @somehost project \
+        -e image=betagouv/mrs:master \
+        -e plugins=postgres,django,uwsgi \
+        -e backup_password=foo \
+        -e '{"env":{"SECRET_KEY" :"itsnotasecret"}}
+
+Initiate an inventory, for your users and projects configurations:
+
+    playlabs init your-inventory
