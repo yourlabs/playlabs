@@ -89,20 +89,8 @@ class Ansible(object):
         if 'ANSIBLE_VAULT_PASSWORD_FILE' in os.environ:
             if not os.path.exists(os.getenv('ANSIBLE_VAULT_PASSWORD_FILE')):
                 vault_pass_file = os.environ.pop('ANSIBLE_VAULT_PASSWORD_FILE')
-        os.environ['ANSIBLE_STDOUT_CALLBACK'] = 'debug'
+        os.environ['ANSIBLE_STDOUT_CALLBACK'] = 'yaml'
         click.echo(' '.join(cmd))
-
-        '''
-        import subprocess
-        process = subprocess.Popen(
-            cmd, 
-            stdin=subprocess.PIPE, 
-            stdout=subprocess.PIPE, 
-            stderr=subprocess.PIPE,
-        )
-        for line in process.stderr:
-            print('LINE', line)
-        '''
 
         child = pexpect.spawn(' '.join(cmd), encoding='utf8')
 
@@ -115,11 +103,12 @@ class Ansible(object):
 
         if sys.stdout.isatty():
             child.interact()
+            child.wait()
         else:
-            for i in child.readlines():
-                print(i.strip())
+            while child.isalive():
+                for i in child.read(1):
+                    print(i, end='', flush=True)
 
-        child.wait()
         if vault_pass_file:
             os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
         return child.exitstatus
