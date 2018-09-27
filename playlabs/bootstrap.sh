@@ -6,10 +6,13 @@ if which python3; then
     exit 0
 fi
 
+sudo=""
+[ "$USER" = "root" ] || sudo=sudo
+
 if which apt; then
-    apt update -y
-    apt install -y python3
+    $sudo apt update -y
+    $sudo apt install -y python3
 elif which pacman; then
-    pacman -Sy --noconfirm
-    pacman -S --noconfirm python
+    $sudo pacman -Sy --noconfirm
+    $sudo pacman -S --noconfirm python
 fi

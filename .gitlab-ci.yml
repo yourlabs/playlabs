@@ -23,7 +23,8 @@ build:
   - docker push $IMAGE_TAG
   after_script:
   - docker logout
-#buildah version, better but where is caching support ?
+#buildah version, better because ci is not privileged, but where is caching
+#support ? Not to mention the random failures ...
 #  image: tomkukral/buildah
 #  before_script:
 #  - podman login --username gitlab-ci-token --password $CI_JOB_TOKEN $CI_REGISTRY
