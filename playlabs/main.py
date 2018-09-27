@@ -111,7 +111,14 @@ class Ansible(object):
                 vault_pass_file = os.environ.pop('ANSIBLE_VAULT_PASSWORD_FILE')
         os.environ['ANSIBLE_STDOUT_CALLBACK'] = 'debug'
         click.echo(' '.join(cmd))
-        r = subprocess.call(cmd)
+        p = subprocess.Popen(
+            cmd,
+            stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
+        if self.password:
+            p.communicate(input=bytes(self.password))
         if vault_pass_file:
             os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
         return r
@@ -166,7 +173,8 @@ class Ansible(object):
 
         return ansible.playbook(playbook, options)
 
-    def play(self, hosts, options, roles):
+    def play(self, hosts, options, roles, password):
+        self.password = password
         retcode = 0
 
         if not roles:
@@ -221,11 +229,18 @@ def cli():
     hosts = []
     options = []
     roles = []
+    password = None
     for arg in sys.argv[1:]:
         if '@' in arg:
             hosts.append(arg.split('@')[-1])
             if not arg.startswith('@'):
-                options += ['--user', arg.split('@')[0]]
+                left = arg.split('@')[0]
+                if ':' in left:
+                    user, password = left.split(':')
+                    options.append('--ask-become-password')
+                else:
+                    user = left
+                options += ['--user', user]
         elif arg.startswith('-'):
             options.append(arg)
         elif not roles and not options:
@@ -249,4 +264,4 @@ def cli():
         click.echo(f'Play roles: {roles}')
     if options:
         click.echo(f'Options: {options}')
-    sys.exit(ansible.play(hosts, options, roles))
+    sys.exit(ansible.play(hosts, options, roles, password=password))

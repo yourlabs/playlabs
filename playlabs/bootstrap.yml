@@ -27,8 +27,8 @@
 - hosts: all
   # Setup sudo without password and upload your ssh key.
   tasks:
-  - name: Install sudo
-    package: name=sudo state=present
+  - name: Install sudo & shadow
+    package: name=sudo,shadow state=present
 
   - name: Create sudo group
     group:
