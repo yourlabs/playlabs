@@ -12,6 +12,7 @@
 # Example to bootstrap an arch linux server from Online.net:
 #
 #   ansible-playbook --ask-sudo-pass --become --become-user=root --become-method=sudo -i inventories/yourlabs/inventory -v playbooks/bootstrap/arch-sudo.yml
+#
 
 - hosts: all
 
@@ -27,8 +28,16 @@
 - hosts: all
   # Setup sudo without password and upload your ssh key.
   tasks:
-  - name: Install sudo & shadow
-    package: name=sudo,shadow state=present
+  - name: Install user management tools
+    block:
+    - name: Try shadow package
+      package: name=shadow
+    rescue:
+    - name: Fallback on passwd package
+      package: name=passwd
+
+  - name: Install sudo
+    package: name=sudo state=present
 
   - name: Create sudo group
     group:

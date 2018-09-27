@@ -1,5 +1,7 @@
 import click
+import delegator
 import os
+import pexpect
 import re
 import sh
 import shlex
@@ -111,17 +113,17 @@ class Ansible(object):
                 vault_pass_file = os.environ.pop('ANSIBLE_VAULT_PASSWORD_FILE')
         os.environ['ANSIBLE_STDOUT_CALLBACK'] = 'debug'
         click.echo(' '.join(cmd))
-        p = subprocess.Popen(
-            cmd,
-            stderr=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-        )
+        child = pexpect.spawn(' '.join(cmd))
         if self.password:
-            p.communicate(input=bytes(self.password))
+            child.expect('SSH password.*')
+            child.sendline(self.password)
+            child.expect('SUDO password.*')
+            child.sendline(self.password)
+        child.interact()
+        child.wait()
         if vault_pass_file:
             os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
-        return r
+        return child.exitstatus
 
     def bootstrap(self, target, extra_args):
         user = None
@@ -174,7 +176,28 @@ class Ansible(object):
         return ansible.playbook(playbook, options)
 
     def play(self, hosts, options, roles, password):
+        self.password = None
+
+        if password and not sh.which('sshpass'):
+            args = ['ansible', '-m', 'package', '-a', 'name=sshpass']
+            args += [
+                '-c',
+                'local',
+                '-i',
+                'localhost,',
+                'localhost',
+            ]
+            user = os.getenv('USER')
+            if user != 'root':
+                args = self.sudo(args)
+            print(' '.join(args))
+            res = subprocess.call(args)
+            if res != 0:
+                click.echo('Passing passwords requires sshpass command')
+                return res
+
         self.password = password
+
         retcode = 0
 
         if not roles:
@@ -230,14 +253,21 @@ def cli():
     options = []
     roles = []
     password = None
-    for arg in sys.argv[1:]:
-        if '@' in arg:
+    args = sys.argv[1:]
+    for arg in args:
+        if arg == '--nostrict':
+            options += [
+                '--ssh-extra-args', 
+                '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no',
+            ]
+        elif '@' in arg:
             hosts.append(arg.split('@')[-1])
             if not arg.startswith('@'):
                 left = arg.split('@')[0]
                 if ':' in left:
                     user, password = left.split(':')
-                    options.append('--ask-become-password')
+                    options.append('--ask-become-pass')
+                    options.append('--ask-pass')
                 else:
                     user = left
                 options += ['--user', user]
@@ -264,4 +294,5 @@ def cli():
         click.echo(f'Play roles: {roles}')
     if options:
         click.echo(f'Options: {options}')
+
     sys.exit(ansible.play(hosts, options, roles, password=password))
