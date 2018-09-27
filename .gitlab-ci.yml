@@ -26,6 +26,13 @@ alpine:
   script:
   - playlabs @localhost
 
+arch:
+  services: [retorillo/archlinux-sshd]
+  stage: test
+  image: $IMAGE_TAG
+  script:
+  - playlabs root:root@archlinux-sshd
+
 ubuntu:
   services: [rastasheep/ubuntu-sshd]
   stage: test
