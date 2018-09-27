@@ -10,28 +10,28 @@ variables:
 
 build:
   stage: build
-#  image: docker:stable
-#  services: ['docker:dind']
-#  variables:
-#    DOCKER_HOST: tcp://docker:2375
-#    DOCKER_DRIVER: overlay2
-#  before_script:
-#  - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
-#  script:
-#  - docker pull $CI_REGISTRY_IMAGE:master || true
-#  - docker build --cache-from $CI_REGISTRY_IMAGE:master -t $IMAGE_TAG .
-#  - docker push $IMAGE_TAG
-#  after_script:
-#  - docker logout
-#buildah version, better but where is caching support ?
-  image: tomkukral/buildah
+  image: docker:stable
+  services: ['docker:dind']
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
   before_script:
-  - podman login --username gitlab-ci-token --password $CI_JOB_TOKEN $CI_REGISTRY
+  - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
   script:
-  - buildah bud -t $IMAGE_TAG .
-  - buildah push $IMAGE_TAG docker://$IMAGE_TAG
+  - docker pull $CI_REGISTRY_IMAGE:master || true
+  - docker build --cache-from $CI_REGISTRY_IMAGE:master -t $IMAGE_TAG .
+  - docker push $IMAGE_TAG
   after_script:
-  - podman logout $CI_REGISTRY
+  - docker logout
+#buildah version, better but where is caching support ?
+#  image: tomkukral/buildah
+#  before_script:
+#  - podman login --username gitlab-ci-token --password $CI_JOB_TOKEN $CI_REGISTRY
+#  script:
+#  - buildah bud -t $IMAGE_TAG .
+#  - buildah push $IMAGE_TAG docker://$IMAGE_TAG
+#  after_script:
+#  - podman logout $CI_REGISTRY
 
 py-qa:
   stage: build

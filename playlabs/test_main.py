@@ -1,4 +1,4 @@
-from .main import nostrict
+from playlabs.main import nostrict
 
 
 def test_nostrict():
