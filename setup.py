@@ -2,6 +2,10 @@ import pip
 from setuptools import setup, find_packages, Command
 import os, sys
 
+with open('requirements.txt') as reqs_file:
+    install_reqs = reqs_file.readlines()
+
+
 setup(
     name='playlabs',
     version='0.0.0',
@@ -12,11 +16,7 @@ setup(
     packages=['playlabs'],
     include_package_data=True,
     license='MIT',
-    install_requires=[
-        'ansible',
-        'click',
-        'sh',
-    ],
+    install_requires=install_reqs,
     entry_points={
         'console_scripts': [
             'playlabs = playlabs.main:cli',
