@@ -7,7 +7,7 @@ RUN apk update && apk --no-cache upgrade && apk add --no-cache openssh-client py
 
 RUN mkdir -p /app
 COPY requirements.txt /app/requirements.txt
-RUN pip3 install -Ur /app/requirements.txt
+RUN pip3 install -r /app/requirements.txt
 COPY . /app
 RUN pip3 install -e /app
 
