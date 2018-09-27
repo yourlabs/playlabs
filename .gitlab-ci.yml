@@ -23,7 +23,7 @@ build:
 py-qa:
   stage: build
   image: jpic/tox
-  script: tox -e qa
+  script: tox --sitepackages -e qa
 
 alpine:
   stage: test
