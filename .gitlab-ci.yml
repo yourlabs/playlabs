@@ -5,6 +5,7 @@ stages:
 
 variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  USER: gitlab
 
 build:
   stage: build
@@ -45,18 +46,19 @@ alpine:
   stage: test
   image: $IMAGE_TAG
   script:
-  - ansible-playbook -v --user=None --limit localhost, --inventory localhost, --become --become-method sudo --become-user root -c local /app/playlabs/bootstrap.yml
   - playlabs @localhost
 
 arch:
   services: [retorillo/archlinux-sshd]
   stage: test
   image: $IMAGE_TAG
+  before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
   script:
   - playlabs --nostrict -e ssh_norestart=1 root:root@archlinux-sshd
 
 ubuntu:
   services: [rastasheep/ubuntu-sshd]
+  before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
   stage: test
   image: $IMAGE_TAG
   script:
