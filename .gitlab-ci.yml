@@ -51,12 +51,14 @@ alpine:
   - playlabs @localhost
 
 arch:
-  services: [retorillo/archlinux-sshd]
+  services: 
+  - name: retorillo/archlinux-sshd
+    alias: target
   stage: test
   image: $IMAGE_TAG
   before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
   script:
-  - playlabs --nostrict -e ssh_norestart=1 root:root@archlinux-sshd
+  - playlabs --nostrict -e ssh_norestart=1 root:root@target
 
 ubuntu:
   services: [rastasheep/ubuntu-sshd]
