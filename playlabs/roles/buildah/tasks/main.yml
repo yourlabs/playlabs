@@ -1,0 +1,7 @@
+---
+
+- script: ./debian.sh
+  when: ansible_distribution == 'Debian'
+
+- script: ./ubuntu.sh
+  when: ansible_os_family == 'Debian'
