@@ -14,16 +14,14 @@ build:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
   script:
-  - buildah bud -t $IMAGE_TAG .
-  - buildah push $IMAGE_TAG docker://$IMAGE_TAG
+  - docker build -t $IMAGE_TAG .
+  - docker push $IMAGE_TAG
 
   before_script:
-  - podman version
-  - buildah version
-  - podman login --username gitlab-ci-token --password $CI_JOB_TOKEN $CI_REGISTRY
+  - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin
   
   after_script:
-  - podman logout $CI_REGISTRY
+  - docker logout
 
 py-qa:
   stage: build
