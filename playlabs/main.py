@@ -133,9 +133,6 @@ class Ansible(object):
             f'{host},',
         ]
 
-        if user != 'root':
-            options = self.sudo(options)
-
         options += extra_args
 
         return self.playbook('bootstrap.yml', options)
