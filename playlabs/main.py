@@ -4,7 +4,9 @@ import shutil
 import sys
 
 import click
+
 import pexpect
+
 import sh
 
 LOCAL_BIN = f'{os.getenv("HOME")}/.local/bin'
