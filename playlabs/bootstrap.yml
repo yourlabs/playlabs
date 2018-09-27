@@ -71,3 +71,6 @@
 
 - hosts: all
   roles: [ssh]
+  become: yes
+  become_method: sudo
+  become_user: root
