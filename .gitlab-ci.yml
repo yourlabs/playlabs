@@ -16,7 +16,7 @@ build:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
   before_script:
-  - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+  - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
   - docker pull $CI_REGISTRY_IMAGE:master || true
   - docker build --cache-from $CI_REGISTRY_IMAGE:master -t $IMAGE_TAG .
