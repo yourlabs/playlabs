@@ -8,7 +8,7 @@ with open('requirements.txt') as reqs_file:
 
 setup(
     name='playlabs',
-    version='0.0.0',
+    version=os.getenv('PLAYLABS_VERSION', 'dev'),
     description='The obscene ansible paas distribution',
     author='James Pic',
     author_email='jamespic@gmail.com',

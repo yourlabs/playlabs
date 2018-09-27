@@ -1,6 +1,7 @@
 stages:
 - build
 - test
+- release
 
 variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
@@ -51,3 +52,20 @@ ubuntu:
   image: $IMAGE_TAG
   script:
   - playlabs --nostrict -e ssh_norestart=1 root:root@ubuntu-sshd
+
+pypi:
+  stage: release
+  image: $IMAGE_TAG
+  only: [tags]
+  script: |
+    set -eux
+    cd /app
+    export PLAYLABS_VERSION="$CI_COMMIT_REF_NAME"
+    pip3 install twine
+    python3 setup.py sdist
+    cat <<EOF > ~/.pypirc
+    [pypi]
+    username=yourlabs
+    password=$PYPI_PASSWORD
+    EOF
+    twine upload dist/*
