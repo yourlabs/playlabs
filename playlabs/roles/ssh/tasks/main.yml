@@ -32,6 +32,12 @@
     state: present
     key: '{{ item["key"] }}'
 
+- name: Find sshd configuration
+  stat: path=/etc/ssh/sshd_config
+  register: sshd_config
+
+- debug: var=sshd_config
+
 - name: Update sshd configuration
   notify: Restart sshd
   with_dict: '{{ sshd_options }}'
