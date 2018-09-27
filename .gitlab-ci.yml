@@ -19,7 +19,7 @@ build:
   - docker push $IMAGE_TAG
 
   before_script:
-  - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin
+  - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
   
   after_script:
   - docker logout
