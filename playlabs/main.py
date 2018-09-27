@@ -93,13 +93,17 @@ class Ansible(object):
 
         child = pexpect.spawn(' '.join(cmd), encoding='utf8')
 
-        if self.password:
-            child.expect('SSH password.*')
-            child.sendline(self.password)
-            child.expect('SUDO password.*')
-            child.sendline(self.password)
+        try:
+            if self.password:
+                child.expect('SSH password.*')
+                child.sendline(self.password)
+                child.expect('SUDO password.*')
+                child.sendline(self.password)
 
-        self.interact(child)
+            self.interact(child)
+        except Exception as e:
+            print(child.read(), end='', flush=True)
+            raise
 
         if vault_pass_file:
             os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
