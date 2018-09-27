@@ -1,5 +1,4 @@
 ---
 
 - name: Restart sshd
-  service: name={{ ssh_service_name }} state=restarted
-  when: ssh_norestart|default('') != ''
+  service: name={{ ssh_service_name }} state={{ sshd_handler|default('restarted') }}

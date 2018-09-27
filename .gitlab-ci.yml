@@ -59,7 +59,7 @@ ubuntu:
   image: $IMAGE_TAG
   before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
   script:
-  - playlabs --nostrict -e ssh_norestart=1 root:root@target
+  - playlabs --nostrict -e sshd_handler=reloaded root:root@target
 
 arch:
   services: 
@@ -69,7 +69,7 @@ arch:
   stage: test
   image: $IMAGE_TAG
   script:
-  - playlabs --nostrict -e ssh_norestart=1 docker:docker@target
+  - playlabs --nostrict -e sshd_handler=reloaded docker:docker@target
 
 pypi:
   stage: release
