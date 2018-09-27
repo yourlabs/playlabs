@@ -1,11 +1,11 @@
-import click
 import os
-import pexpect
-import sh
 import shlex
 import shutil
 import sys
 
+import click
+import pexpect
+import sh
 
 LOCAL_BIN = f'{os.getenv("HOME")}/.local/bin'
 LOCAL_BIN_PLAYLABS = f'{LOCAL_BIN}/playlabs'
