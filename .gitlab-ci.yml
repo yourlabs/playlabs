@@ -18,7 +18,7 @@ build:
   image: tomkukral/buildah
   script:
     - buildah bud -t $IMAGE_TAG .
-    - buildah push docker://$IMAGE_TAG
+    - buildah push $IMAGE_TAG docker://$IMAGE_TAG
 
 test:
   stage: test
