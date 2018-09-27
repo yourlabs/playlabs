@@ -91,8 +91,20 @@ class Ansible(object):
                 vault_pass_file = os.environ.pop('ANSIBLE_VAULT_PASSWORD_FILE')
         os.environ['ANSIBLE_STDOUT_CALLBACK'] = 'debug'
         click.echo(' '.join(cmd))
-        child = pexpect.spawn(' '.join(cmd))
-        child.logfile = sys.stdout
+
+        '''
+        import subprocess
+        process = subprocess.Popen(
+            cmd, 
+            stdin=subprocess.PIPE, 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE,
+        )
+        for line in process.stderr:
+            print('LINE', line)
+        '''
+
+        child = pexpect.spawn(' '.join(cmd), encoding='utf8')
 
         if self.password:
             child.expect('SSH password.*')
@@ -100,8 +112,12 @@ class Ansible(object):
             child.expect('SUDO password.*')
             child.sendline(self.password)
 
+
         if sys.stdout.isatty():
             child.interact()
+        else:
+            for i in child.readlines():
+                print(i.strip())
 
         child.wait()
         if vault_pass_file:
@@ -202,12 +218,13 @@ class Ansible(object):
                 retcode = self.bootstrap(host, options)
                 if retcode:
                     sys.exit(retcode)
+        else:
+            click.echo(f'Applying {",".join(roles)}')
 
-        click.echo(f'Applying {",".join(roles)}')
-        for role in roles:
-            retcode = self.role(role, hosts, options)
-            if retcode:
-                sys.exit(retcode)
+            for role in roles:
+                retcode = self.role(role, hosts, options)
+                if retcode:
+                    sys.exit(retcode)
 
         return retcode
 
