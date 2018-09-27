@@ -4,7 +4,6 @@ import pexpect
 import sh
 import shlex
 import shutil
-import subprocess
 import sys
 
 
