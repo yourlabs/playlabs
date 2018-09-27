@@ -5,7 +5,7 @@ stages:
 
 variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-  ANSIBLE_FORCE_COLOR: true
+  ANSIBLE_FORCE_COLOR: 'true'
   USER: gitlab
 
 build:
