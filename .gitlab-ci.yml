@@ -62,18 +62,6 @@ ubuntu:
   script:
   - playlabs --nostrict -e sshd_handler=reloaded root:root@target
 
-arch:
-  services: 
-  - name: retorillo/archlinux-sshd
-    alias: target
-  before_script:
-  - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-  - ssh-keygen -f $HOME/.ssh/id_rsa
-  stage: test
-  image: $IMAGE_TAG
-  script:
-  - playlabs --nostrict -e sshd_handler=reloaded docker:docker@target
-
 pypi:
   stage: release
   image: yourlabs/python
