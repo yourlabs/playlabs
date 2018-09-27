@@ -100,7 +100,13 @@ class Ansible(object):
             child.expect('SUDO password.*')
             child.sendline(self.password)
 
+        self.interact(child)
 
+        if vault_pass_file:
+            os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
+        return child.exitstatus
+
+    def interact(self, child):
         if sys.stdout.isatty():
             child.interact()
             child.wait()
@@ -108,10 +114,6 @@ class Ansible(object):
             while child.isalive():
                 for i in child.read(1):
                     print(i, end='', flush=True)
-
-        if vault_pass_file:
-            os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
-        return child.exitstatus
 
     def bootstrap(self, target, extra_args):
         user = None
