@@ -35,6 +35,7 @@ alpine:
   stage: test
   image: $IMAGE_TAG
   script:
+  - ansible-playbook -v --user=None --limit localhost, --inventory localhost, --become --become-method sudo --become-user root -c local /app/playlabs/bootstrap.yml
   - playlabs @localhost
 
 arch:
