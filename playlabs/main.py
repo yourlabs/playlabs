@@ -89,7 +89,7 @@ class Ansible(object):
         if 'ANSIBLE_VAULT_PASSWORD_FILE' in os.environ:
             if not os.path.exists(os.getenv('ANSIBLE_VAULT_PASSWORD_FILE')):
                 vault_pass_file = os.environ.pop('ANSIBLE_VAULT_PASSWORD_FILE')
-        os.environ['ANSIBLE_STDOUT_CALLBACK'] = 'yaml'
+        os.environ.setdefault('ANSIBLE_STDOUT_CALLBACK', 'yaml')
         click.echo(' '.join(cmd))
 
         child = pexpect.spawn(' '.join(cmd), encoding='utf8')
