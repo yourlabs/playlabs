@@ -9,6 +9,6 @@ RUN mkdir -p /app
 ADD requirements.txt /app/requirements.txt
 RUN pip3 install -r /app/requirements.txt
 ADD . /app
-RUN pip3 install -e /app
+RUN pip3 install --no-deps -e /app
 
 WORKDIR /app
