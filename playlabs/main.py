@@ -287,7 +287,7 @@ def nostrict(options):
     return options
 
 
-def cli():
+def cli():  # noqa
     if len(sys.argv) == 1:
         print(HELP)
         sys.exit(0)
