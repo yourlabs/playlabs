@@ -335,7 +335,7 @@ def cli():
         retcode = ansible.role('project')
         if retcode:
             return retcode
-        
+ 
     elif sys.argv[1] == 'bootstrap':
         print('Bootstrapping (no role argument found)')
         for host in parser.hosts:
@@ -343,8 +343,8 @@ def cli():
             if retcode:
                 sys.exit(retcode)
     elif sys.argv[1] == 'install':
-        print(f'Applying {",".join(roles)}')
-        for role in roles:
+        print(f'Applying {",".join(parser.roles)}')
+        for role in parser.roles:
             retcode = ansible.role(role)
             if retcode:
                 sys.exit(retcode)
