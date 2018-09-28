@@ -2,7 +2,9 @@ import os
 import shlex
 import shutil
 import sys
+
 import pexpect
+
 import sh
 
 LOCAL_BIN = f'{os.getenv("HOME")}/.local/bin'
@@ -217,7 +219,7 @@ class Parser(object):
                 else:
                     self.options.append(f'plugins={plugins[0]}')
             else:
-                print('command line -p option set but no available plugins specified')
+                print('no plugins specified')
 
     def handle_vars(self, arg):
         if arg == '-e':
@@ -250,7 +252,9 @@ class Parser(object):
 
         if self.hosts == ['localhost']:
             self.options += ['-c', 'local']
+        self.print()
 
+    def print(self):
         if self.hosts:
             print(f'Play hosts: {self.hosts}')
         if self.roles:
