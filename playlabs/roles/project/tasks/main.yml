@@ -64,5 +64,6 @@
       validate_certs: '{{ "yes" if project_letsencrypt_environment == "production" else "no" }}'
       dest: /dev/null
   always:
-  - debug: var=url_verify 
+  - shell: docker logs {{ project_instance }} | tail -n 100
     tags: check
+    changed_when: false
