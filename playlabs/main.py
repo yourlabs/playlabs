@@ -224,7 +224,7 @@ class Parser(object):
     def handle_vars(self, arg):
         if arg == '-e':
             return
-        if '=' in arg:
+        if '=' in arg and not arg.startswith('--'):
             self.options += ['-e', arg]
         else:
             self.options.append(arg)

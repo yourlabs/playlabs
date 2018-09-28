@@ -32,21 +32,25 @@
 
 - name: Stop container if any
   failed_when: false
+  tags: stop
   docker_container:
     name: '{{ project_instance }}'
     state: stopped
 
 - name: Execute backup
   when: project_backup_password != False
-  tags: [update, migrate]
+  tags: [update, migrate, backup]
   shell: sudo {{ project_home }}/backup.sh
 
 - name: Running deploy.pre.yml for plugins
   with_items: '{{ project_plugins }}'
   include: plugins/{{ item }}/deploy.pre.yml
+  tags: predeploy
 
 - include: docker.yml
+  tags: deploy
 
 - name: Running deploy.post.yml for plugins
   with_items: '{{ project_plugins }}'
   include: plugins/{{ item }}/deploy.post.yml
+  tags: postdeploy
