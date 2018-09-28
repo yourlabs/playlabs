@@ -1,13 +1,13 @@
 ---
-
+- pause:
 - name: Install pexpect
-  when: ansible_os_family != 'Debian'
+  when: ansible_os_family != 'Alpine'
   package: name=python3-pexpect
 
 - name: Install pexpect
   when: ansible_os_family == 'Alpine'
   package: name=py3-pexpect
-
+- pause:
 - name: Create super users (don't worry about the failures, it's the way it works for now)
   register: django_createsuperuser
   failed_when: false
