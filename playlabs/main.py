@@ -78,9 +78,9 @@ class Ansible(object):
         child = pexpect.spawn(' '.join(cmd), encoding='utf8', timeout=300)
         if self.parser.password:
             child.expect('SSH password.*')
-            child.sendline(self.password)
+            child.sendline(self.parser.password)
             child.expect('SUDO password.*')
-            child.sendline(self.password)
+            child.sendline(self.parser.password)
         self.interact(child)
         return child.exitstatus
 
@@ -94,22 +94,11 @@ class Ansible(object):
                     print(i, end='', flush=True)
 
     def bootstrap(self, target):
-        user = None
-
-        if '@' in target:
-            user, self.parser.host = target.split('@')
-        else:
-            self.parser.host = target
-
-        if not user:
-            user = os.getenv('USER')
-
         options = [
-            f'--user={user}',
             '--limit',
-            f'{self.parser.host},',
+            f'{self.parser.hosts},',
             '--inventory',
-            f'{self.parser.host},',
+            f'{self.parser.hosts},',
         ]
 
         options += self.parser.options
@@ -162,38 +151,51 @@ class Ansible(object):
 
 class Parser(object):
     def __init__(self):
-        self.primary_tokens = ['-h', '-r', '-u', '-i', '-p']
         self.handles = {
-            '-h': self.handle_hosts,
-            '-r': self.handle_roles,
-            '-u': self.handle_user,
+            'install': self.handle_install,
+            'deploy': self.handle_deploy,
+            'bootstrap': self.handle_bootstrap,
             '-i': self.handle_inventory,
             '-p': self.handle_plugins,
         }
-        self.hosts = []
+        self.primary_tokens = self.handles.keys()
+        self.makeinstall = False
+        self.makedeploy = False
+        self.makebootstrap = False
         self.roles = []
+        self.hosts = []
         self.options = []
         self.password = None
 
-    def handle_hosts(self, arg):
-        self.hosts += arg.split(',')
-
-    def handle_roles(self, arg):
-        self.roles += arg.split(',')
-
-    def handle_user(self, arg):
-        if ':' in arg:
-            user, self.password = arg.split(':')
-            if '--ask-become-pass' not in self.options:
-                self.options.append('--ask-become-pass')
-                self.options.append('--ask-pass')
+    def handle_install(self, arg):
+        if arg:
+            self.makeinstall = True
+            self.roles = arg.split(',')
         else:
-            user = arg
-        if '--user' in self.options:
-            print(f'command line user already set, overriding by {user}')
-            self.options[self.options.index('--user') + 1] = user
+            print('no role to install')
+
+    def handle_deploy(self, arg):
+        self.makedeploy = True
+
+    def handle_bootstrap(self, arg):
+        self.makebootstrap = True
+
+    def handle_host(self, arg):
+        user = None
+        self.hosts.append(arg.split('@')[-1])
+        if not arg.startswith('@'):
+            left = arg.split('@')[0]
+            if ':' in left:
+                user, self.password = arg.split(':')
+                if '--ask-become-pass' not in self.options:
+                    self.options.append('--ask-become-pass')
+                    self.options.append('--ask-pass')
+            else:
+                user = left
         else:
-            self.options += ['--user', user]
+            user = os.getenv("USER")
+        if user:
+            self.options.append(f'--user={user}')
 
     def handle_inventory(self, arg):
         for i in arg.split(','):
@@ -232,21 +234,17 @@ class Parser(object):
     def skip(self, arg):
         return
 
-    def hostparse(self, arg):
-        self.hosts.append(arg.split('@')[-1])
-        if not arg.startswith('@'):
-            left = arg.split('@')[0]
-            self.handle_user(left)
-
     def parse(self, args):
         while args:
             arg = args.pop(0)
-            if args == '--nostrict':
+            if arg == '--nostrict':
                 self.options = nostrict(self.options)
-            elif '@' in arg:
-                self.hostparse(arg)
+            elif '@' in arg and '=' not in arg:
+                self.handle_host(arg)
+            elif arg in ['bootstrap', 'deploy']:
+                self.handles[arg](None)
             elif arg in self.primary_tokens:
-                self.handles[arg](args.pop(0))
+                self.handles[arg](args.pop(0) if args else None)
             else:
                 self.handle_vars(arg)
 
@@ -299,8 +297,12 @@ def cli():  # noqa
         target = os.path.abspath(sys.argv[2])
         init(target)
         sys.exit(0)
+    commands = ['deploy', 'bootstrap']
     parser = Parser()
-    parser.parse(sys.argv[2:])
+    if sys.argv[1] in commands:
+        parser.parse(sys.argv[2:])
+    else:
+        parser.parse(sys.argv[1:])
 
     # todo: check if connection works with provided credentials if any
     # otherwise try without credentials, and strip them from now on
@@ -315,18 +317,19 @@ def cli():  # noqa
         if retcode:
             return retcode
 
-    if sys.argv[1] == 'deploy':
+    if parser.makedeploy:
         retcode = ansible.role('project')
         if retcode:
             return retcode
 
-    elif sys.argv[1] == 'bootstrap':
+    elif parser.makebootstrap:
         print('Bootstrapping (no role argument found)')
         for host in parser.hosts:
             retcode = ansible.bootstrap(host)
             if retcode:
                 sys.exit(retcode)
-    elif sys.argv[1] == 'install':
+
+    elif parser.makeinstall:
         print(f'Applying {",".join(parser.roles)}')
         for role in parser.roles:
             retcode = ansible.role(role)

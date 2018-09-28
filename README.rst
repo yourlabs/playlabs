@@ -50,8 +50,9 @@ ansible-playbook call.
 
 Run::
 
-    playlabs root@somehost
-    playlabs @somehost          # will use sudo as your user
+		playlabs bootstrap user:pass@somehost
+		playlabs bootstrap user@somehost
+    playlabs bootstrap @somehost          # will use sudo as your user
 
 That will execute the bootstrap.yml playbook, which in turn will execute
 bootstrap.sh on the server with Ansible's script module that doesn't require
@@ -84,9 +85,9 @@ ansible module call, but the thing is that you can spawn it in one command and
 have it integrated with the rest of your server, and even rely on ansible to
 provision fine-grained RBAC in your own apps::
 
-    playlabs @somehost docker,firewall,nginx  # the paas for the project role
-    playbabs @staging sendmail,netdata,mailcatcher,gitlab
-    playbabs @production sendmail,netdata,sentry
+    playlabs install docker,firewall,nginx @somehost # the paas for the project role
+    playbabs install sendmail,netdata,mailcatcher,gitlab @staging
+    playbabs install sendmail,netdata,sentry user@production
 
 2. Project: deployments
 =======================
@@ -95,10 +96,10 @@ The project role is made to be generic and cover infrastructure needs to
 develop a project, from development to production. Spawn an environment, here
 with an example image this repo is tested against::
 
-    playlabs @yourhost project -e image=betagouv/mrs:master -e '{"env":{"SECRET_KEY" :"itsnotasecret"}}'
+    playlabs @yourhost deploy betagouv/mrs:master '{"env":{"SECRET_KEY" :"itsnotasecret"}}'
 
-It will use the IP address by default, but you can pass a dns with ``-e
-dns=yourdns.com``, or set it in ``project_staging_dns`` yaml variable of
+It will use the IP address by default, but you can pass a dns with ``dns=yourdns.com``, 
+or set it in ``project_staging_dns`` yaml variable of
 your-inventory/group_vars/all/project.yml
 
 This is because the default prefix is ``project`` and the default instance is
@@ -111,12 +112,12 @@ variables::
 
 Then you can deploy as such::
 
-    playlabs @yourhost project @host -e prefix=yourproject -e instance=production
+    playlabs @yourhost deploy prefix=yourproject instance=production
 
 If you configure yourhost in your inventory, in group "yourproject-production",
 then you don't have to specify the host anymore::
 
-    playlabs @yourhost project -e prefix=yourproject -e instance=production
+    playlabs @yourhost project prefix=yourproject instance=production
 
 Note that you can also use ansible-vault'ed files or variables, refer to
 Ansible documentation for that.
@@ -127,7 +128,7 @@ Ansible documentation for that.
 You can add plugins to your project in several ways, suppose you want to add
 two plugins:
 
-- specify ``-e plugins=django,postgres``
+- specify ``-p django,postgres``
 - configure ``yourprefix_yourinstance_plugins=[django, postgres]``
 - add to Dockerfile ``ENV PLAYLABS_PLUGINS django,postgres``
 
@@ -218,8 +219,8 @@ Global variables
 
 Variables that are used by convention accross roles:
 
-    -e letsencrypt_uri=https...
-    -e letsencrypt_email=your@...
+    letsencrypt_uri=https...
+    letsencrypt_email=your@...
 
 Role variables
 --------------
@@ -232,7 +233,7 @@ The base variable will default to the same variable without the `rolename_`
 prefix:
 
     # Set project_image project role variable from the command line
-    -e image=your/image:tag 
+    image=your/image:tag 
 
 Role structure
 --------------
@@ -251,10 +252,10 @@ Project variables
 The project role base variables calculate to be overridable by prefix/instance:
 
     # project_{image,*} base value references project_staging_{image,*} from inventory
-    -e instance=staging  
+    instance=staging  
 
     # project_{image,*} base value references mrs_production_{image,*} from inventory
-    -e instance=production -e prefix=mrs
+    instance=production prefix=mrs
 
 Project plugins variable
 ------------------------
