@@ -151,19 +151,34 @@ class Ansible(object):
 
 class Parser(object):
     def __init__(self):
-        self.primary_tokens = ['-r', '-i', '-p']
         self.handles = {
-            '-r': self.handle_roles,
+            'install': self.handle_install,
+            'deploy': self.handle_deploy,
+            'bootstrap': self.handle_bootstrap,
             '-i': self.handle_inventory,
             '-p': self.handle_plugins,
         }
+        self.primary_tokens = self.handles.keys()
+        self.makeinstall = False
+        self.makedeploy = False
+        self.makebootstrap = False
         self.roles = []
         self.hosts = []
         self.options = []
         self.password = None
 
-    def handle_roles(self, arg):
-        self.roles = arg.split(',')
+    def handle_install(self, arg):
+        if arg:
+            self.makeinstall = True
+            self.roles = arg.split(',')
+        else:
+            print('no role to install')
+
+    def handle_deploy(self, arg):
+        self.makedeploy = True
+
+    def handle_bootstrap(self, arg):
+        self.makebootstrap = True
 
     def handle_host(self, arg):
         user = None
@@ -226,8 +241,10 @@ class Parser(object):
                 self.options = nostrict(self.options)
             elif '@' in arg and '=' not in arg:
                 self.handle_host(arg)
+            elif arg in ['bootstrap', 'deploy']:
+                self.handles[arg](None)
             elif arg in self.primary_tokens:
-                self.handles[arg](args.pop(0))
+                self.handles[arg](args.pop(0) if args else None)
             else:
                 self.handle_vars(arg)
 
@@ -280,8 +297,12 @@ def cli():  # noqa
         target = os.path.abspath(sys.argv[2])
         init(target)
         sys.exit(0)
+    commands = ['deploy', 'bootstrap']
     parser = Parser()
-    parser.parse(sys.argv[2:])
+    if sys.argv[1] in commands:
+        parser.parse(sys.argv[2:])
+    else:
+        parser.parse(sys.argv[1:])
 
     # todo: check if connection works with provided credentials if any
     # otherwise try without credentials, and strip them from now on
@@ -296,18 +317,19 @@ def cli():  # noqa
         if retcode:
             return retcode
 
-    if sys.argv[1] == 'deploy':
+    if parser.makedeploy:
         retcode = ansible.role('project')
         if retcode:
             return retcode
 
-    elif sys.argv[1] == 'bootstrap':
+    elif parser.makebootstrap:
         print('Bootstrapping (no role argument found)')
         for host in parser.hosts:
             retcode = ansible.bootstrap(host)
             if retcode:
                 sys.exit(retcode)
-    elif sys.argv[1] == 'install':
+
+    elif parser.makeinstall:
         print(f'Applying {",".join(parser.roles)}')
         for role in parser.roles:
             retcode = ansible.role(role)
