@@ -246,7 +246,7 @@ with the `rolename_`, they can be overridden in your inventory's
 `group_vars/all/rolename.yml`.
 
 The base variable will default to the same variable without the `rolename_`
-prefix:
+prefix::
 
     # Set project_image project role variable from the command line
     image=your/image:tag
@@ -265,7 +265,7 @@ polluting the host with many services.
 Project variables
 -----------------
 
-The project role base variables calculate to be overridable by prefix/instance:
+The project role base variables calculate to be overridable by prefix/instance::
 
     # project_{image,*} base value references project_staging_{image,*} from inventory
     instance=staging
@@ -300,22 +300,19 @@ Plugin structure
 
 Default plugins live in playlabs/plugins and have the following files:
 
-- backup.pre.sh: take files out of containers and add them to the $backup
-  variable
-- backup.post.sh: clean up files you have taken out after the backup has been
-  done
-- restore.pre.sh: clear the place where you want to extract data from the
-  restic backup repository
-- restore.post.sh: load new data and clean after the project was restarted in
-  the snapshot version,
-- deploy.pre.yml: ansible tasks to execute before project deployment, ie. spawn
-  postgres
-- deploy.post.yml: ansible tasks to execute after project deployment, ie.
-  create users from inventory
-- vars.yml: plugin variables declaration
-
-Appendix
-https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html
+- `backup.pre.sh` take files out of containers and add them to the $backup
+  `variable
+- `backup.post.sh` clean up files you have taken out after the backup has been
+  `done
+- `restore.pre.sh` clear the place where you want to extract data from the
+  `restic backup repository
+- `restore.post.sh` load new data and clean after the project was restarted in
+  `the snapshot version,
+- `deploy.pre.yml` ansible tasks to execute before project deployment, ie. spawn
+  `postgres
+- `deploy.post.yml` ansible tasks to execute after project deployment, ie.
+  `create users from inventory
+- `vars.yml` plugin variables declaration
 
 Operations
 ==========
@@ -325,15 +322,16 @@ activated plugins.
 
 In the /home/ directory of the role or project there are scripts:
 
-- docker-run.sh: standalone command to start the project container, feel free
-  to have on that one
-- backup.sh: cause a secure backup, upload with lftp if inventory defines dsn
-- restore.sh: recovers the secure backup repository
-  with lftp if inventory desfines dsn. Without argument: list snapshots. With a
-  snapshot argument: proceed to a restore of that snapshot including project
-  image version and plugin data
-- prune.sh: removes un-needed old backup snapshots
-- log: logs that playlabs rotates for you, just stack em in
+- `docker-run.sh` standalone command to start the project container, feel free
+  `to have on that one
+- `backup.sh` cause a secure backup, upload with lftp if inventory defines dsn
+- `restore.sh` recovers the secure backup repository
+  `with lftp if inventory desfines dsn. Without argument` list snapshots. With a
+  `snapshot argument` proceed to a restore of that snapshot including project
+  `image version and plugin data
+- `prune.sh` removes un-needed old backup snapshots
+- `log` logs that playlabs rotates for you, just fill in log files, it will do
+  a copy truncate though, but works until you need prometheus or something
 
 For backups to enable, you need to set backup_password, either with -e, either
 through yourpefix_yourinstance_backup_password.
