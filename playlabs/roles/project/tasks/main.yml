@@ -54,3 +54,14 @@
   with_items: '{{ project_plugins }}'
   include: plugins/{{ item }}/deploy.post.yml
   tags: postdeploy
+
+- name: Verify URL
+  register: url_verify
+  tags: check
+  get_url:
+    url: '{{ "https" if project_letsencrypt_email else "http" }}://{{ project_dns }}'
+    validate_certs: '{{ "yes" if project_letsencrypt_environment == "production" else "no" }}'
+    dest: /dev/null
+
+- debug: var=urlverify 
+  tags: check

@@ -19,10 +19,6 @@ Run the ansible-playbook wrapper command::
 
     ~/.local/bin/playlabs
 
-It will prompt if you want to add ~/.local/bin to your ~/.bash_profile, if you
-accept it will setup your shell so that you can call just ``playlabs`` directly
-in future logins.
-
 `playlabs` CLI overview
 =======================
 

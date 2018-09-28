@@ -53,12 +53,12 @@ project_backup_lftp_dsn: >-
     )
   }}
 
-project_letsencrypt_enable: >-
+project_letsencrypt_environment: >-
   {{
-    letsencrypt_enable|default(
+    letsencrypt_environment|default(
         hostvars[inventory_hostname].get(
-            project_variable + '_letsencrypt_enable',
-            false
+            project_variable + '_letsencrypt_environment',
+            'staging',
         )
     )
   }}
