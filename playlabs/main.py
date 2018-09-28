@@ -20,26 +20,6 @@ def patch():
             'export PATH=$PATH:$HOME/.local/bin # playlabs'
         )
 
-if os.path.abspath(sys.argv[0]) == LOCAL_BIN_PLAYLABS:
-    if LOCAL_BIN not in os.getenv('PATH').split(':'):
-        if not os.path.exists(BASH_PROFILE):
-            patch()
-        else:
-            with open(BASH_PROFILE, 'r') as f:
-                res = f.read()
-            if '# playlabs' not in res:
-                result = click.confirm(
-                    'Patch ~/.local/bin in ~/.bash_profile $PATH ?',
-                    default=True,
-                )
-                if result:
-                    patch()
-                else:
-                    with open(BASH_PROFILE, 'a+') as f:
-                        f.write('# playlabs')
-
-os.environ['PATH'] = f'{os.getenv("PATH")}:'
-
 
 class Ansible(object):
     def __init__(self, parser):
@@ -125,9 +105,9 @@ class Ansible(object):
         options = [
             f'--user={user}',
             '--limit',
-            f'{parser.host},',
+            f'{self.parser.host},',
             '--inventory',
-            f'{parser.host},',
+            f'{self.parser.host},',
         ]
 
         options += self.parser.options
@@ -195,14 +175,14 @@ class Parser(object):
 
     def handle_hosts(self, arg):
         self.hosts += arg.split(',')
-   
+
     def handle_roles(self, arg):
         self.roles += arg.split(',')
 
     def handle_user(self, arg):
         if ':' in arg:
             user, self.password = arg.split(':')
-            if not '--ask-become-pass' in self.options:
+            if '--ask-become-pass' not in self.options:
                 self.options.append('--ask-become-pass')
                 self.options.append('--ask-pass')
         else:
@@ -216,9 +196,9 @@ class Parser(object):
     def handle_inventory(self, arg):
         for i in arg.split(','):
             if os.path.exists(i):
-              self.options += ['-i', i]
+                self.options += ['-i', i]
             else:
-              print(f'command line inventory {i} cannot be found')
+                print(f'command line inventory {i} cannot be found')
 
     def handle_plugins(self, arg):
         plugins_path = os.path.join(os.path.dirname(__file__), 'plugins')
@@ -238,7 +218,6 @@ class Parser(object):
                     self.options.append(f'plugins={plugins[0]}')
             else:
                 print('command line -p option set but no available plugins specified')
-
 
     def handle_vars(self, arg):
         if arg == '-e':
@@ -261,7 +240,7 @@ class Parser(object):
         while args:
             arg = args.pop(0)
             if args == '--nostrict':
-                self.options = nostrict(options)
+                self.options = nostrict(self.options)
             elif '@' in arg:
                 self.hostparse(arg)
             elif arg in self.primary_tokens:
@@ -282,7 +261,8 @@ class Parser(object):
 
 def init(target):
     if os.path.exists(target):
-        if click.confirm(f'Drop existing {target}?', default=False):
+        print(f'Drop existing {target}?')
+        if input().lower() in ['y', 'yes']:
             shutil.rmtree(target)
         else:
             print('Aborting')
@@ -295,7 +275,7 @@ def init(target):
         ),
         target,
     )
-    #ask to confirm bootstrap maybe?
+    # ask to confirm bootstrap maybe?
     print(f'{target} ready ! run playlabs in there to execute')
 
 
@@ -335,7 +315,7 @@ def cli():
         retcode = ansible.role('project')
         if retcode:
             return retcode
- 
+
     elif sys.argv[1] == 'bootstrap':
         print('Bootstrapping (no role argument found)')
         for host in parser.hosts:
