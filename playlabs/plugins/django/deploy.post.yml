@@ -1,7 +1,7 @@
 ---
 
 - name: Install pexpect
-  when: ansible_os_family != 'Alpine'
+  when: ansible_os_family != 'Debian'
   package: name=python3-pexpect
 
 - name: Install pexpect
