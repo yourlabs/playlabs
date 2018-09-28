@@ -58,11 +58,14 @@
 - block:
   - name: Verify URL
     register: url_verify
+    retries: 60
+    delay: 1
     tags: check
     get_url:
       url: '{{ "https" if project_letsencrypt_email else "http" }}://{{ project_dns }}'
       validate_certs: '{{ "yes" if project_letsencrypt_environment == "production" else "no" }}'
       dest: /dev/null
+
   always:
   - shell: docker logs {{ project_instance }} | tail -n 100
     tags: check
