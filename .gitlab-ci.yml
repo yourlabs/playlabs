@@ -5,6 +5,8 @@ stages:
 
 variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  RELEASE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  PUBLIC_RELEASE_TAG: yourlabs/playlabs:$CI_COMMIT_REF_NAME
   ANSIBLE_FORCE_COLOR: 'true'
   USER: gitlab
 
@@ -85,3 +87,21 @@ pypi:
     password=$PYPI_PASSWORD
     EOF
     twine upload dist/*
+
+docker-push:
+  stage: release
+  image: docker:stable
+  services: ['docker:dind']
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+  before_script:
+  - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+  - docker pull $IMAGE_TAG
+  - docker tag $IMAGE_TAG $RELEASE_TAG
+  - docker push $RELEASE_TAG
+  - docker logout
+  - echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+  - docker tag $IMAGE_TAG $RELEASE_TAG
+  - docker push $RELEASE_TAG
+  - docker logout
