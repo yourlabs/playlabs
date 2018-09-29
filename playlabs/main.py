@@ -59,6 +59,7 @@ class Ansible(object):
         for i in find:
             if os.path.exists(i):
                 return ['--inventory', i]
+        return []
 
     def playbook(self, name, args, sudo=True):
         if sudo and '--nosudo' not in args:
