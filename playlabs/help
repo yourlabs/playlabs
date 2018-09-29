@@ -19,7 +19,7 @@ And deploy a project, examples:
         backup_password=foo
         prefix=ybs
         instance=hack
-        '{"env":{"SECRET_KEY" :"itsnotasecret"}}
+        env.SECRET_KEY=itsnotasecret
     playlabs @somehost deploy
         prefix=testenv
         instance=$CI_BRANCH

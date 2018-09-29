@@ -1,4 +1,5 @@
 import collections
+import json
 import os
 import re
 import shlex
@@ -187,6 +188,7 @@ class Parser(object):
         self.hosts = []
         self.options = []
         self.password = None
+        self.subvars = dict()
 
     def handle_install(self, arg):
         if arg:
@@ -253,8 +255,14 @@ class Parser(object):
     def handle_vars(self, arg):
         if arg == '-e':
             return
+
         if '=' in arg and not arg.startswith('--'):
-            self.options += ['-e', arg]
+            if '.' in arg:
+                descriptor, value = arg.split('=')
+                variable, attribute = descriptor.split('.')
+                self.subvars[attribute] = value
+            else:
+                self.options += ['-e', arg]
         else:
             self.options.append(arg)
 
@@ -263,12 +271,10 @@ class Parser(object):
 
     def parse(self, args):
         ssh = collections.OrderedDict()
+
         while args:
             arg = args.pop(0)
-            if arg == '--nostrict':
-                ssh['UserKnownHostsFile'] = '/dev/null'
-                ssh['StrictHostKeyChecking'] = 'no'
-            elif '@' in arg and '=' not in arg:
+            if '@' in arg and '=' not in arg:
                 self.handle_host(arg)
             elif arg in ['init', 'deploy']:
                 self.handles[arg](None)
@@ -286,6 +292,9 @@ class Parser(object):
             self.options += ['--ssh-extra-args', ' '.join([
                 f'-o {key}={value}' for key, value in ssh.items()
             ])]
+
+        if self.subvars:
+            self.options += ['-e', json.dumps(self.subvars)]
 
         self.print()
 
