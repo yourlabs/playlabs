@@ -44,13 +44,6 @@ py-test:
   image: $IMAGE_TAG
   script: py.test --cov playlabs
 
-alpine-local:
-  stage: test
-  image: $IMAGE_TAG
-  before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
-  script:
-  - playlabs init @localhost
-
 ubuntu-ssh:
   services:
   - name: rastasheep/ubuntu-sshd
