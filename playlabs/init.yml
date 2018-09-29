@@ -71,3 +71,6 @@
     copy:
       content: Initialized by {{ lookup("env", "USER") }} lookup('pipe', 'date  +\"%Y%m%d\"')
       dest: /etc/playlabs/initialized
+
+- hosts: '*'
+  roles: [ssh]

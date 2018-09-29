@@ -15,32 +15,30 @@ Install with::
 
     pip3 install --user -e git+https://yourlabs.io/oss/playlabs#egg=playlabs
 
-Run the ansible-playbook wrapper command::
+Run the ansible-playbook wrapper command without argument to see the quick
+getting started commands::
 
     ~/.local/bin/playlabs
 
-`playlabs` CLI overview
-=======================
+Read the following for more gory details.
 
-.. include:: playlabs/help
+0. Init
+=======
 
-0. Bootstrap
-============
-
-"Boostrap" means going from a naked system to a system with your own user, ssh
-key, dotfiles, sudo access and all necessary dependencies to execute ansible,
-such as python3. It will also install your friend account if you have an
-ansible inventory repository where you store your friend list in yaml.
-and then installing all your friends
-
-Run::
-
-    playlabs init user:pass@somehost
-    playlabs init user@somehost
-    playlabs init @somehost          # will use sudo as your user
+Initializing means going from a naked system to a system with your own user,
+ssh key, dotfiles, sudo access, secure sshd, and all necessary dependencies to
+execute ansible, such as python3. It will also install your friend account if
+you have an ansible inventory repository where you store your friend list in
+yml.
 
 You might need to pass extra options to ansible in some cases, for example if
-your install provides a passworded sudo, add ``--ask-sudo-pass``.
+your install provides a passworded sudo, add ``--ask-sudo-pass`` or put the
+password in the CLI, since initializing will remove ::
+
+    playlabs init @somehost
+    playlabs init user:pass@somehost
+    playlabs init user@somehost --ask-sudo-pass
+    playlabs init root@somehost
 
 1. Roles
 ========
