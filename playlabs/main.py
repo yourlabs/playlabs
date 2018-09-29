@@ -222,11 +222,6 @@ class Parser(object):
 
         if user:
             self.options.append(f'--user={user}')
-            if os.path.exists(f'keys/{user}'):
-                import ssh_agent_setup
-                ssh_agent_setup.setup()
-                ssh_agent_setup.addKey(f'keys/{user}')
-                # self.options(f'--key-file=keys/{user}')
 
     def handle_inventory(self, arg):
         for i in arg.split(','):
