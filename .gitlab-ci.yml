@@ -48,7 +48,7 @@ py-test:
 
 ubuntu-init:
   stage: test
-  image: yourlabs/playlabs:master
+  image: $IMAGE_TAG
   services:
   - name: rastasheep/ubuntu-sshd
     alias: target
