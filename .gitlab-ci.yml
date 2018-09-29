@@ -56,7 +56,11 @@ ubuntu-ssh:
   - name: rastasheep/ubuntu-sshd
     alias: target
     command:
-    - /usr/sbin/sshd -e -o LogLevel=DEBUG -D
+    - /usr/sbin/sshd
+    - -e
+    - -o
+    - LogLevel=DEBUG
+    - -D
 
   stage: test
   image: yourlabs/playlabs:master
