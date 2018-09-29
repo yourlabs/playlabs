@@ -108,7 +108,7 @@ class Ansible(object):
         ssh = f'{os.getenv("HOME")}/.ssh'
         if not os.path.exists(ssh):
             os.makedirs(ssh)
-            os.chmod(ssh, 700)
+            os.chmod(ssh, 0o700)
 
         known_hosts = f'{ssh}/known_hosts'
         skip = False
@@ -121,7 +121,7 @@ class Ansible(object):
             key = subprocess.check_output(['ssh-keyscan', target])
             with open(known_hosts, 'ab+') as f:
                 f.write(key)
-            os.chmod(known_hosts, 600)
+            os.chmod(known_hosts, 0o600)
 
         options += self.parser.options
 
