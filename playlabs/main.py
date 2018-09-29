@@ -371,10 +371,28 @@ def cli():  # noqa
             if retcode:
                 sys.exit(retcode)
     elif sys.argv[1] == 'backup':
-        print('not available yet')
+        subprocess.call([
+            'ssh',
+            parser.hosts[0],
+            'sudo',
+            '/home/' + sys.argv[3] + '/backup.sh'
+        ])
     elif sys.argv[1] == 'restore':
-        print('not available yet')
+        subprocess.call([
+            'ssh',
+            parser.hosts[0],
+            'sudo',
+            '/home/' + sys.argv[3] + '/restore.sh',
+        ] + sys.argv[4:])
     elif sys.argv[1] == 'log':
-        print('not available yet')
+        subprocess.call([
+            'ssh',
+            parser.hosts[0],
+            'sudo',
+            'docker',
+            'logs',
+            '-f',
+            sys.argv[3]
+        ])
 
     sys.exit(retcode)
