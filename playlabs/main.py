@@ -49,26 +49,6 @@ class Ansible(object):
 
         return options
 
-    def known_host(self, target):
-        ssh = f'{os.getenv("HOME")}/.ssh'
-        if not os.path.exists(ssh):
-            os.makedirs(ssh)
-            os.chmod(ssh, 0o700)
-
-        known_hosts = f'{ssh}/known_hosts'
-        skip = False
-        if os.path.exists(known_hosts):
-            with open(known_hosts, 'r') as f:
-                for l in f.readlines():
-                    if re.match('^' + target + ' ', l):
-                        skip = True
-
-        if not skip:
-            key = subprocess.check_output(['ssh-keyscan', target])
-            with open(known_hosts, 'ab+') as f:
-                f.write(key)
-            os.chmod(known_hosts, 0o600)
-
     def inventory(self):
         find = [
             'inventory.yaml',
@@ -81,9 +61,6 @@ class Ansible(object):
                 return ['--inventory', i]
 
     def playbook(self, name, args, sudo=True):
-        for host in self.parser.hosts:
-            self.known_host(host)
-
         if sudo and '--nosudo' not in args:
             args = self.sudo(args)
 
@@ -342,6 +319,27 @@ def scaffold(target):
     print(f'{target} ready ! run playlabs in there to execute')
 
 
+def known_host(target):
+    ssh = f'{os.getenv("HOME")}/.ssh'
+    if not os.path.exists(ssh):
+        os.makedirs(ssh)
+        os.chmod(ssh, 0o700)
+
+    known_hosts = f'{ssh}/known_hosts'
+    skip = False
+    if os.path.exists(known_hosts):
+        with open(known_hosts, 'r') as f:
+            for l in f.readlines():
+                if re.match('^' + target + ' ', l):
+                    skip = True
+
+    if not skip:
+        key = subprocess.check_output(['ssh-keyscan', target])
+        with open(known_hosts, 'ab+') as f:
+            f.write(key)
+        os.chmod(known_hosts, 0o600)
+
+
 def cli():  # noqa
     if len(sys.argv) == 1:
         print(HELP)
@@ -375,6 +373,9 @@ def cli():  # noqa
         with open('.ssh_private_key', 'w+') as f:
             f.write(key)
         parser.options += ['--private-key', '.ssh_private_key']
+
+    for host in parser.hosts:
+        known_host(host)
 
     if parser.makedeploy:
         retcode = ansible.role('project')
