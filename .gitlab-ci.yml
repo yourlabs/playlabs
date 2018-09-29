@@ -56,7 +56,7 @@ ubuntu-ssh:
   - name: rastasheep/ubuntu-sshd
     alias: target
   stage: test
-  image: $IMAGE_TAG
+  image: yourlabs/playlabs:master
   before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
   script:
   - playlabs init root:root@target sshd_handler=reloaded
