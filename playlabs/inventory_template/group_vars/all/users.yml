@@ -9,6 +9,7 @@ users:
   roles:
     netdata: [sysadmin, domainadmin, dba, webmaster, proxyadmin]
     superuser: [sentry, project-staging]
+    ssh: [sudo]
     # To generate your own crypted password run this command:
     # $ echo -n your vault password > .vault
     # $ ansible-vault --vault-id .vault encrypt_string 'mypassword'

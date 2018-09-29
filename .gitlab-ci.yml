@@ -65,7 +65,10 @@ ubuntu-deploy:
   stage: test
   image: yourlabs/playlabs:master
   script:
-  - playlabs deploy @ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME
+  - echo testing install as sudoer
+  - playlabs deploy hacker@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME
+  - echo testing deploy as deploy user
+  - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME
 
 pypi:
   stage: release

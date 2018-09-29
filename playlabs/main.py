@@ -353,6 +353,12 @@ def cli():  # noqa
         if retcode:
             return retcode
 
+    key = os.getenv('SSH_PRIVATE_KEY')
+    if key:
+        with open('.ssh_private_key', 'w+') as f:
+            f.write(key)
+        parser.options += ['--private-key', '.ssh_private_key']
+
     if parser.makedeploy:
         retcode = ansible.role('project')
         if retcode:
@@ -395,5 +401,9 @@ def cli():  # noqa
             '-f',
             sys.argv[3]
         ])
+
+    # todo: wrap the whole thing in a try block to ensure cleaning
+    if os.path.exists('.ssh_private_key'):
+        os.unlink('.ssh_private_key')
 
     sys.exit(retcode)
