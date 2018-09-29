@@ -55,6 +55,8 @@ ubuntu-ssh:
   services:
   - name: rastasheep/ubuntu-sshd
     alias: target
+    /usr/sbin/sshd -e -o LogLevel=DEBUG -D
+
   stage: test
   image: yourlabs/playlabs:master
   before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
