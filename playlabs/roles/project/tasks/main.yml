@@ -62,18 +62,38 @@
   include: plugins/{{ item }}/deploy.post.yml
   tags: postdeploy
 
+- name: Set test id
+  set_fact: test_id={{ ansible_date_time|to_uuid }}
+
+- name: Set URL
+  set_fact: url='{{ "https" if project_letsencrypt_email else "http" }}://{{ project_dns }}/?test={{ test_id }}'
+
 - block:
   - name: Verify URL
     register: url_verify
-    retries: 60
+    retries: 30
     delay: 1
-    tags: check
+    until: url_verify.status_code < 400
+    tags: check,update
     get_url:
-      url: '{{ "https" if project_letsencrypt_email else "http" }}://{{ project_dns }}'
+      url: '{{ url }}'
       validate_certs: '{{ "yes" if project_letsencrypt_environment == "production" else "no" }}'
       dest: /dev/null
 
   always:
+  - shell: docker logs nginx-letsencrypt | tail -n 100 grep {{ project_dns }}
+    tags: check
+    changed_when: false
+    when: project_letsencrypt_email|default(false)
+
+  - shell: docker logs nginx-proxy | grep "{{ test_id }}"
+    tags: check
+    changed_when: false
+
+  - shell: docker logs nginx-proxy | tail -n 10
+    tags: check
+    changed_when: false
+
   - shell: docker logs {{ project_instance }} | tail -n 100
     tags: check
     changed_when: false
