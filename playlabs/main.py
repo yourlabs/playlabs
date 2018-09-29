@@ -332,7 +332,7 @@ def cli():  # noqa
         target = os.path.abspath(sys.argv[2])
         scaffold(target)
         sys.exit(0)
-    commands = ['deploy', 'scaffold']
+    commands = ['scaffold']
     parser = Parser()
     if sys.argv[1] in commands:
         parser.parse(sys.argv[2:])
