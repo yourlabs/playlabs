@@ -1,6 +1,9 @@
+import collections
 import os
+import re
 import shlex
 import shutil
+import subprocess
 import sys
 
 import pexpect
@@ -100,6 +103,24 @@ class Ansible(object):
             '--inventory',
             f'{target},',
         ]
+
+        ssh = f'{os.getenv("HOME")}/.ssh'
+        if not os.path.exists(ssh):
+            os.makedirs(ssh)
+            os.chmod(ssh, 700)
+
+        known_hosts = f'{ssh}/known_hosts'
+        skip = False
+        with open(known_hosts, 'r') as f:
+            for l in f.readlines():
+                if re.match('^' + target + ' ', l):
+                    skip = True
+
+        if not skip:
+            key = subprocess.check_output(['ssh-keyscan', target])
+            with open(known_hosts, 'ab+') as f:
+                f.write(key)
+            os.chmod(known_hosts, 600)
 
         options += self.parser.options
 
@@ -241,10 +262,12 @@ class Parser(object):
         return
 
     def parse(self, args):
+        ssh = collections.OrderedDict()
         while args:
             arg = args.pop(0)
             if arg == '--nostrict':
-                self.options = nostrict(self.options)
+                ssh['UserKnownHostsFile'] = '/dev/null'
+                ssh['StrictHostKeyChecking'] = 'no'
             elif '@' in arg and '=' not in arg:
                 self.handle_host(arg)
             elif arg in ['init', 'deploy']:
@@ -256,6 +279,14 @@ class Parser(object):
 
         if self.hosts == ['localhost']:
             self.options += ['-c', 'local']
+        else:
+            ssh['ControlMaster'] = 'auto'
+            ssh['ControlPersist'] = '60s'
+            ssh['ControlPath'] = '.ssh_control_path'
+            self.options += ['--ssh-extra-args', ' '.join([
+                f'-o {key}={value}' for key, value in ssh.items()
+            ])]
+
         self.print()
 
     def print(self):
@@ -285,14 +316,6 @@ def scaffold(target):
     )
     # ask to confirm init maybe?
     print(f'{target} ready ! run playlabs in there to execute')
-
-
-def nostrict(options):
-    options += [
-        '--ssh-extra-args',
-        '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no',
-    ]
-    return options
 
 
 def cli():  # noqa

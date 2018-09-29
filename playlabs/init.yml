@@ -20,40 +20,34 @@
   gather_facts: False
 
   tasks:
+  - name: Cancel now if /etc/playlabs/initialized exists unless force=true
+    when: force|default(false) == false
+    raw: ls /etc/playlabs/initialized
+    register: initialized
+    failed_when: initialized.rc == 0
+    changed_when: false
+
   - name: Raw bootstrap.sh
-    script: 'bootstrap.sh'
+    script: 'init.sh'
     register: out
     changed_when: "'+ exit 0' not in out.stdout_lines"
 
 - hosts: all
-  # Setup sudo without password and upload your ssh key.
   tasks:
-  - name: Install shadow package
-    package: name=shadow
-    when: ansible_os_family == 'Alpine'
-
-  - name: Fallback on passwd package
-    package: name=passwd
-    when: ansible_os_family == 'Debian'
-
-  - name: Install sudo
-    package: name=sudo state=present
+  - name: Install packages to add user
+    package: name={{ item }}
+    async: 45
+    poll: 0
+    with_items:
+    - '{{ "shadow" if ansible_os_family == "Alpine" else "passwd" }}'
+    - sudo
 
   - name: Create sudo group
     group:
       name: sudo
       state: present
 
-  - name: Passwordless sudo for sudo group
-    lineinfile:
-      path: /etc/sudoers.d/passwordless
-      line: '%sudo ALL=(ALL) NOPASSWD: ALL'
-      create: yes
-      owner: root
-      group: root
-      mode: 0600
-
-  - name: Install your admin account
+  - name: Install your user account
     with_items:
     - root
     - '{{ lookup("env", "USER") }}'
@@ -64,13 +58,30 @@
       groups: sudo
 
   - name: Install your ssh key
+    async: 45
+    poll: 0
     authorized_key:
       user: '{{ lookup("env", "USER") }}'
       state: present
       key: '{{ lookup("file", lookup("env", "HOME") + "/.ssh/id_rsa.pub") }}'
 
-- hosts: all
-  roles: [ssh]
-  become: yes
-  become_method: sudo
-  become_user: root
+  - name: Passwordless sudo for sudo group
+    lineinfile:
+      path: /etc/sudoers.d/passwordless
+      line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+      create: yes
+      owner: root
+      group: root
+      mode: 0600
+
+  - name: Create /etc/playlabs, let's store grains lol
+    file:
+      path: /etc/playlabs
+      owner: root
+      mode: 700
+      state: directory
+
+  - name: Write init file
+    copy:
+      content: Initialized by {{ lookup("env", "USER") }} lookup('pipe', 'date  +\"%Y%m%d\"')
+      dest: /etc/playlabs/initialized

@@ -1,4 +1,7 @@
 ---
+# This is the reason why you want CI on your inventory script: to auto-update
+# user accounts with `playlabs install ssh`, every time a change to this file
+# is pushed.
 
 users:
 - name: hacker
@@ -8,7 +11,7 @@ users:
     superuser: [sentry, project-staging]
     # To generate your own crypted password run this command:
     # $ echo -n your vault password > .vault
-    # $ ansible-vault --vault-id .vault encrypt_string --name password > group_vars/all/backup_password.yml
+    # $ ansible-vault --vault-id .vault encrypt_string 'mypassword'
   password: !vault |
     $ANSIBLE_VAULT;1.1;AES256
     36656363326438366530326161656232306538333136653237653233353939333330396430326161
