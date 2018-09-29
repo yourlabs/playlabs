@@ -64,9 +64,11 @@
 
 - name: Set test id
   set_fact: test_id={{ ansible_date_time|to_uuid }}
+  tags: check,update
 
 - name: Set URL
   set_fact: url='{{ "https" if project_letsencrypt_email else "http" }}://{{ project_dns }}/?test={{ test_id }}'
+  tags: check,update
 
 - block:
   - name: Verify URL
@@ -81,19 +83,18 @@
       dest: /dev/null
 
   always:
-  - shell: docker logs nginx-letsencrypt | tail -n 100 grep {{ project_dns }}
-    tags: check
+  - name: nginx-letsencrypt application logs relevant to DNS
+    shell: docker logs nginx-letsencrypt | tail -n 10 | grep {{ project_dns }}
+    tags: check,update
     changed_when: false
     when: project_letsencrypt_email|default(false)
 
-  - shell: docker logs nginx-proxy | grep "{{ test_id }}"
-    tags: check
+  - name: nginx-proxy application logs relevant to current deploy
+    shell: docker logs nginx-proxy | grep -C1 "{{ test_id }}"
+    tags: check,update
     changed_when: false
 
-  - shell: docker logs nginx-proxy | tail -n 10
-    tags: check
-    changed_when: false
-
-  - shell: docker logs {{ project_instance }} | tail -n 100
-    tags: check
+  - name: project application logs
+    shell: docker logs {{ project_instance }} | tail -n 100
+    tags: check,update
     changed_when: false
