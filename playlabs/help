@@ -8,7 +8,7 @@ Init your ssh user with your key and secure sshd and passwordless sudo:
 
 Now your user can install roles:
 
-    playlabs install docker,firewall,nginx @somehost
+    playlabs install ssh,docker,firewall,nginx @somehost
 
 And deploy a project, examples:
 
