@@ -19,16 +19,15 @@
     name: '{{ project_image }}'
   register: project_image_facts
 
-- set_fact: 
+- set_fact:
     project_image_env: "{{ project_image_facts['images'][0]['Config']['Env']|docker_env_dict }}"
- 
+
 - set_fact:
     project_plugins: "{{ project_image_env.get('PLAYLABS_PLUGINS', '').split(',') }}"
   when: project_plugins == []
 
 - include: vars.yml
   tags: update
-- include: deploy.yml
 - include: home.yml
 - include: http.yml
 - include: backup.yml

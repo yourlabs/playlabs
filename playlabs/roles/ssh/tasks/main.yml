@@ -24,13 +24,13 @@
     groups: '{% if item.get("roles", {}).get("ssh") %}{{ item["roles"].get("ssh") }},{% endif %}users'
     append: yes
 
-- name: Install ssh keys
+- name: Install ssh public keys
   with_items: '{{ users }}'
-  when: '{{ "key" in item.keys() }}'
+  when: item['name']|key_pub_exists
   authorized_key:
     user: '{{ item["name"] }}'
     state: present
-    key: '{{ item["key"] }}'
+    key: '{{ item["name"]|key_pub_read }}'
 
 - name: Find sshd configuration
   stat: path=/etc/ssh/sshd_config
