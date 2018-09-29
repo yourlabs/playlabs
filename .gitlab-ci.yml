@@ -95,7 +95,7 @@ docker-push:
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
-  before_script:
+  script:
   - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   - docker pull $IMAGE_TAG
   - docker tag $IMAGE_TAG $RELEASE_TAG
