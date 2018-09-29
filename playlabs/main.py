@@ -71,6 +71,8 @@ class Ansible(object):
         if 'ANSIBLE_VAULT_PASSWORD_FILE' in os.environ:
             if not os.path.exists(os.getenv('ANSIBLE_VAULT_PASSWORD_FILE')):
                 vault_pass_file = os.environ.pop('ANSIBLE_VAULT_PASSWORD_FILE')
+        elif os.path.exists('.vault'):
+            os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = '.vault'
         print(' '.join(cmd))
 
         res = self.spawn(cmd)
