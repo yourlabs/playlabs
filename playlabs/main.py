@@ -87,12 +87,21 @@ class Ansible(object):
                 self.vault_pass_file = os.environ.pop(
                     'ANSIBLE_VAULT_PASSWORD_FILE'
                 )
-        elif os.path.exists('.vault'):
+        elif 'ANSIBLE_VAULT_PASSWORD' in os.environ:
+            with open('.vault', 'w+') as f:
+                f.write(os.getenv('ANSIBLE_VAULT_PASSWORD'))
+            self.remove_vault = True
+
+        if os.path.exists('.vault'):
             os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = '.vault'
 
     def vault_restore(self):
         if self.vault_pass_file:
             os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = self.vault_pass_file
+
+        # todo: make this safer in a try block or context processor or something
+        if getattr(self, 'remove_vault', False):
+            os.unlink('.vault')
 
     def spawn(self, cmd):
         child = pexpect.spawn(' '.join(cmd), encoding='utf8', timeout=300)
