@@ -73,7 +73,7 @@
 - block:
   - name: Verify URL
     register: url_verify
-    retries: 30
+    retries: '{{ timeout|default(30) }}'
     delay: 1
     until: url_verify.status_code < 400
     tags: check,update
