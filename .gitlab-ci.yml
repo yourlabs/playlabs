@@ -44,22 +44,22 @@ py-test:
   image: $IMAGE_TAG
   script: py.test --cov playlabs
 
-alpine:
+alpine-local:
   stage: test
   image: $IMAGE_TAG
   before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
   script:
-  - playlabs @localhost
+  - playlabs init @localhost
 
-ubuntu:
-  services: 
+ubuntu-ssh:
+  services:
   - name: rastasheep/ubuntu-sshd
     alias: target
   stage: test
   image: $IMAGE_TAG
   before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
   script:
-  - playlabs --nostrict -e sshd_handler=reloaded root:root@target
+  - playlabs init root:root@target sshd_handler=reloaded
 
 pypi:
   stage: release
