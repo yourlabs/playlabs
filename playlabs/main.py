@@ -114,10 +114,11 @@ class Ansible(object):
 
         known_hosts = f'{ssh}/known_hosts'
         skip = False
-        with open(known_hosts, 'r') as f:
-            for l in f.readlines():
-                if re.match('^' + target + ' ', l):
-                    skip = True
+        if os.path.exists(known_hosts):
+            with open(known_hosts, 'r') as f:
+                for l in f.readlines():
+                    if re.match('^' + target + ' ', l):
+                        skip = True
 
         if not skip:
             key = subprocess.check_output(['ssh-keyscan', target])
