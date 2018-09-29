@@ -255,7 +255,7 @@ class Parser(object):
             return
 
         if '=' in arg and not arg.startswith('--'):
-            if '.' in arg:
+            if '.' in arg.split('=')[0]:
                 descriptor, value = arg.split('=')
                 variable, attribute = descriptor.split('.')
                 self.subvars[attribute] = value
