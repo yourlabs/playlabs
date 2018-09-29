@@ -4,7 +4,7 @@
     path: '{{ project_uwsgi_spooler_home }}'
     state: directory
     mode: 0700
-    owner: 1000
+    owner: '{{ project_image_uuid }}'
     group: 1000
 
 # https://github.com/unbit/uwsgi/issues/1858
@@ -15,5 +15,5 @@
     path: '{{ project_uwsgi_spooler_home }}/{{ item }}'
     state: directory
     mode: 0700
-    owner: 1000
+    owner: '{{ project_image_uuid }}'
     group: 1000

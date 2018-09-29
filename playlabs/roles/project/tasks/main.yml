@@ -6,6 +6,14 @@
     name: '{{ project_image }}'
     force: yes
 
+- name: Get image USER uuid
+  shell: docker run {{ project_image }} id -u
+  register: project_image_uuid_shell
+  changed_when: false
+
+- name: Set project_image_uuid
+  set_fact: project_image_uuid={{ project_image_uuid_shell.stdout }}
+
 - name: Docker inspect image
   docker_image_facts:
     name: '{{ project_image }}'

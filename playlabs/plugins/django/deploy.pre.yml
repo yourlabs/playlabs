@@ -5,7 +5,7 @@
     path: '{{ project_django_media_home }}'
     state: directory
     mode: 0700
-    owner: 1000
+    owner: '{{ project_image_uuid }}'
     group: 1000
 
 - name: Migrate project database
@@ -18,4 +18,4 @@
     -e {{ key }}='{{ value | regex_replace("\'", "\\\'") }}' \
     {% endfor %}
     --network {{ project_instance }} \
-    {{ project_image }} su uwsgi -c "django-admin migrate --noinput"
+    {{ project_image }} django-admin migrate --noinput

@@ -8,5 +8,5 @@
     path: '{{ project_log_home }}'
     state: directory
     mode: 0700
-    owner: 1000
+    owner: '{{ project_image_uuid }}'
     group: 1000
