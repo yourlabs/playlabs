@@ -1,18 +1,4 @@
 ---
-# Use this playbook first to install python (for ansible) and setup your user
-# (username: $USER) and RSA key ($HOME/.ssh/id_rsa.pub) when you have already a
-# user + sudo ssh access.
-#
-# Once this playbook executed with success, check that you can connect with
-# $USER@host and do `sudo -s` without being prompted by a password.
-#
-# Then you can use other playbooks such as ssh.yml to clean the SSH
-# configuration and create other users.
-#
-# Example to bootstrap an arch linux server from Online.net:
-#
-#   ansible-playbook --ask-sudo-pass --become --become-user=root --become-method=sudo -i inventories/yourlabs/inventory -v playbooks/bootstrap/arch-sudo.yml
-#
 
 - hosts: all
 

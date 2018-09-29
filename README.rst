@@ -50,9 +50,9 @@ and then installing all your friends
 
 Run::
 
-    playlabs bootstrap user:pass@somehost
-    playlabs bootstrap user@somehost
-    playlabs bootstrap @somehost          # will use sudo as your user
+    playlabs init user:pass@somehost
+    playlabs init user@somehost
+    playlabs init @somehost          # will use sudo as your user
 
 You might need to pass extra options to ansible in some cases, for example if
 your install provides a passworded sudo, add ``--ask-sudo-pass``.
@@ -164,7 +164,7 @@ Plugins contain the following:
 Most roles require an inventory to be really fun. Initiate an empty repository
 where you will store your data that the roles should use::
 
-    playlabs init your-inventory
+    playlabs scaffold your-inventory
 
 In inventory.yml you can define your machines as well as the roles they should
 be included by default in when playing a role without a specific target::
@@ -211,7 +211,7 @@ Be carefull that roles for a user are a 2d matrix: each key or value may
 correspond to an ansible role name, the other is the level of user within that
 role, that's why roles is a key value pair.
 
-Every time you bootstrap a machine from a directory that is an inventory, it
+Every time you init a machine from a directory that is an inventory, it
 will install all users.
 
 Options
