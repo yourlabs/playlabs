@@ -69,6 +69,17 @@ class Ansible(object):
                 f.write(key)
             os.chmod(known_hosts, 0o600)
 
+    def inventory(self):
+        find = [
+            'inventory.yaml',
+            'inventory.yml',
+            'inventory/inventory.yaml',
+            'inventory/inventory.yml',
+        ]
+        for i in find:
+            if os.path.exists(i):
+                return ['--inventory', i]
+
     def playbook(self, name, args, sudo=True):
         for host in self.parser.hosts:
             self.known_host(host)
@@ -79,31 +90,31 @@ class Ansible(object):
         cmd = ['ansible-playbook']
         cmd.append('-v')
 
-        find = [
-            'inventory.yaml',
-            'inventory.yml',
-            'inventory/inventory.yaml',
-            'inventory/inventory.yml',
-        ]
-        for i in find:
-            if os.path.exists(i):
-                cmd += ['--inventory', i]
+        cmd += self.inventory()
         cmd += args
         cmd.append(os.path.join(PLAYBOOKS, name))
         cmd = [shlex.quote(i) for i in cmd]
 
-        vault_pass_file = None
+        self.vault_prepare()
+        print(' '.join(cmd))
+        res = self.spawn(cmd)
+        self.vault_restore()
+
+        return res
+
+    def vault_prepare(self):
+        self.vault_pass_file = None
         if 'ANSIBLE_VAULT_PASSWORD_FILE' in os.environ:
             if not os.path.exists(os.getenv('ANSIBLE_VAULT_PASSWORD_FILE')):
-                vault_pass_file = os.environ.pop('ANSIBLE_VAULT_PASSWORD_FILE')
+                self.vault_pass_file = os.environ.pop(
+                    'ANSIBLE_VAULT_PASSWORD_FILE'
+                )
         elif os.path.exists('.vault'):
             os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = '.vault'
-        print(' '.join(cmd))
 
-        res = self.spawn(cmd)
-        if vault_pass_file:
-            os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
-        return res
+    def vault_restore(self):
+        if self.vault_pass_file:
+            os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = self.vault_pass_file
 
     def spawn(self, cmd):
         child = pexpect.spawn(' '.join(cmd), encoding='utf8', timeout=300)
