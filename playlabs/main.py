@@ -102,7 +102,7 @@ class Ansible(object):
     def init(self, target):
         options = [
             '--limit',
-            f'{target},',
+            f'{target}',
             '--inventory',
             f'{target},',
         ]
