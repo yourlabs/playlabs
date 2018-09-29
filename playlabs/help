@@ -1,23 +1,32 @@
 Playlabs: the obscene ansible distribution.
 
-Create your ssh user with your key and secure sshd (bootstrap):
+Init your ssh user with your key and secure sshd and passwordless sudo:
 
-    playlabs root@1.2.3.4
+    playlabs init root@1.2.3.4
     # all options are ansible options are proxied
-    playlabs @somehost --ask-become-pass 
+    playlabs init @somehost --ask-become-pass
 
-Deploy roles that project depends on on the server:
+Now your user can install roles:
 
-    playlabs @somehost docker,firewall,nginx
+    playlabs install docker,firewall,nginx @somehost
 
-Deploy a project:
+And deploy a project, examples:
 
-    playlabs @somehost project \
-        -e image=betagouv/mrs:master \
-        -e plugins=postgres,django,uwsgi \
-        -e backup_password=foo \
-        -e '{"env":{"SECRET_KEY" :"itsnotasecret"}}
+    playlabs @somehost deploy image=betagouv/mrs:master
+    playlabs @somehost deploy
+        image=betagouv/mrs:master
+        plugins=postgres,django,uwsgi
+        backup_password=foo
+        prefix=ybs
+        instance=hack
+        '{"env":{"SECRET_KEY" :"itsnotasecret"}}
+    playlabs @somehost deploy
+        prefix=testenv
+        instance=$CI_BRANCH
+        image=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
-Initiate an inventory, for your users and projects configurations:
+If you have that work, creating an inventory is the way to move on, wether you
+want to version configuration, add a deploy user for your CI, configure a
+secret backup password, add ssh-keys ...:
 
-    playlabs init your-inventory
+    playlabs scaffold ./your-inventory

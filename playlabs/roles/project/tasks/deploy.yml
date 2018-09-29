@@ -23,4 +23,3 @@
     path: /etc/sudoers
     line: 'deploy ALL=(ALL) NOPASSWD: /home/*/backup.sh'
     backup: yes
-

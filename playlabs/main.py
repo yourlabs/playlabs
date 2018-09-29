@@ -93,17 +93,17 @@ class Ansible(object):
                 for i in child.read(1):
                     print(i, end='', flush=True)
 
-    def bootstrap(self, target):
+    def init(self, target):
         options = [
             '--limit',
-            f'{self.parser.hosts},',
+            f'{target},',
             '--inventory',
-            f'{self.parser.hosts},',
+            f'{target},',
         ]
 
         options += self.parser.options
 
-        return self.playbook('bootstrap.yml', options, sudo=False)
+        return self.playbook('init.yml', options, sudo=False)
 
     def role(self, name):
         options = self.parser.options
@@ -154,14 +154,14 @@ class Parser(object):
         self.handles = {
             'install': self.handle_install,
             'deploy': self.handle_deploy,
-            'bootstrap': self.handle_bootstrap,
+            'init': self.handle_init,
             '-i': self.handle_inventory,
             '-p': self.handle_plugins,
         }
         self.primary_tokens = self.handles.keys()
         self.makeinstall = False
         self.makedeploy = False
-        self.makebootstrap = False
+        self.makeinit = False
         self.roles = []
         self.hosts = []
         self.options = []
@@ -177,8 +177,8 @@ class Parser(object):
     def handle_deploy(self, arg):
         self.makedeploy = True
 
-    def handle_bootstrap(self, arg):
-        self.makebootstrap = True
+    def handle_init(self, arg):
+        self.makeinit = True
 
     def handle_host(self, arg):
         user = None
@@ -194,8 +194,14 @@ class Parser(object):
                 user = left
         else:
             user = os.getenv("USER")
+
         if user:
             self.options.append(f'--user={user}')
+            if os.path.exists(f'keys/{user}'):
+                import ssh_agent_setup
+                ssh_agent_setup.setup()
+                ssh_agent_setup.addKey(f'keys/{user}')
+                # self.options(f'--key-file=keys/{user}')
 
     def handle_inventory(self, arg):
         for i in arg.split(','):
@@ -241,7 +247,7 @@ class Parser(object):
                 self.options = nostrict(self.options)
             elif '@' in arg and '=' not in arg:
                 self.handle_host(arg)
-            elif arg in ['bootstrap', 'deploy']:
+            elif arg in ['init', 'deploy']:
                 self.handles[arg](None)
             elif arg in self.primary_tokens:
                 self.handles[arg](args.pop(0) if args else None)
@@ -261,7 +267,7 @@ class Parser(object):
             print(f'Options: {self.options}')
 
 
-def init(target):
+def scaffold(target):
     if os.path.exists(target):
         print(f'Drop existing {target}?')
         if input().lower() in ['y', 'yes']:
@@ -277,7 +283,7 @@ def init(target):
         ),
         target,
     )
-    # ask to confirm bootstrap maybe?
+    # ask to confirm init maybe?
     print(f'{target} ready ! run playlabs in there to execute')
 
 
@@ -293,11 +299,11 @@ def cli():  # noqa
     if len(sys.argv) == 1:
         print(HELP)
         sys.exit(0)
-    elif sys.argv[1] == 'init':
+    elif sys.argv[1] == 'scaffold':
         target = os.path.abspath(sys.argv[2])
-        init(target)
+        scaffold(target)
         sys.exit(0)
-    commands = ['deploy', 'bootstrap']
+    commands = ['deploy', 'scaffold']
     parser = Parser()
     if sys.argv[1] in commands:
         parser.parse(sys.argv[2:])
@@ -306,7 +312,7 @@ def cli():  # noqa
 
     # todo: check if connection works with provided credentials if any
     # otherwise try without credentials, and strip them from now on
-    # because that would mean that the host is already bootstrapped
+    # because that would mean that the host is already initped
     # meanwhile, it fails with root@ ... Permission denied because
     # we disable root login in ssh role
 
@@ -322,15 +328,15 @@ def cli():  # noqa
         if retcode:
             return retcode
 
-    elif parser.makebootstrap:
-        print('Bootstrapping (no role argument found)')
+    elif parser.makeinit:
+        print('Initializing user (no role argument found)')
         for host in parser.hosts:
-            retcode = ansible.bootstrap(host)
+            retcode = ansible.init(host)
             if retcode:
                 sys.exit(retcode)
 
     elif parser.makeinstall:
-        print(f'Applying {",".join(parser.roles)}')
+        print(f'Installing roles {",".join(parser.roles)}')
         for role in parser.roles:
             retcode = ansible.role(role)
             if retcode:

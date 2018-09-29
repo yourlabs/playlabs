@@ -1,18 +1,8 @@
 all:
   hosts:
-    yourhost0:
-      fqdn: yourdomain.tld
-      ansible_ssh_port: 22
-      ansible_ssh_host: 123.12.12.23
-    yourhost1:
-      ansible_ssh_host: 123.12.12.24
+    ci:
+      fqdn: ci.yourlabs.io
 
 children:
-  paas:
-    hosts:
-      - yourhost0
-      - yourhost1
-
-  # apply 2 roles on 2 servers that would be defined above
-  sentry-mailcatcher:
-    hosts: [yourhost0, yourhost1]
+  docker-firewall-nginx:
+    hosts: [ci]
