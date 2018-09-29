@@ -1,6 +1,6 @@
 ---
 project_uwsgi_spooler_home: '{{ project_home }}/spooler'
-project_uwsgi_spooler_mount: '/spooler'
+project_uwsgi_spooler_mount: '{{ (project_image_env|default({})).get("UWSGI_SPOOLER_MOUNT", "/app/spooler") }}'
 
 project_uwsgi_docker_options: "-v {{ project_uwsgi_spooler_home }}:{{ project_uwsgi_spooler_mount }}"
 
