@@ -22,22 +22,7 @@ Run the ansible-playbook wrapper command::
 `playlabs` CLI overview
 =======================
 
-Overview of CLI commands:
-
-- Bootstrap deploys your user, prepares for role deployment
-- Role deployment for project is: docker,firewall,nginx
-- Project deployment includes plugins is settable by `prefix_instance_` variables
-- Initiate a repository from the example repository folder
-
-Clumsily converts `you@host` to `--user=you --limit=host --inventory host,`,
-
-Adds `--inventory inventory.yml` if it finds an inventory yaml in the current
-working directory,
-
-Proxies other variables to ansible, and does a little magic to generate the
-ansible CLI call, in our opinion :)
-
-Has a lot of bugs.
+.. include:: playlabs/help
 
 0. Bootstrap
 ============
