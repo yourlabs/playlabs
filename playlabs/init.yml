@@ -69,7 +69,7 @@
 
   - name: Write init file
     copy:
-      content: Initialized by {{ lookup("env", "USER") }} lookup('pipe', 'date  +\"%Y%m%d\"')
+      content: Initialized by {{ ansible_ssh_user }} {{ lookup('pipe', 'date  +\"%Y%m%d\"') }}
       dest: /etc/playlabs/initialized
 
 - hosts: '*'
