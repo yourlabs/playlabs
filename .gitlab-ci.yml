@@ -44,7 +44,7 @@ py-test:
   image: $IMAGE_TAG
   script: py.test --cov playlabs
 
-ubuntu-ssh:
+ubuntu-init:
   services:
   - name: rastasheep/ubuntu-sshd
     alias: target
@@ -60,6 +60,12 @@ ubuntu-ssh:
   before_script: [ssh-keygen -f $HOME/.ssh/id_rsa]
   script:
   - playlabs init root:root@target sshd_handler=reloaded
+
+ubuntu-deploy:
+  stage: test
+  image: yourlabs/playlabs:master
+  script:
+  - playlabs deploy @ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME
 
 pypi:
   stage: release
