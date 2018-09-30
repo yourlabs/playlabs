@@ -89,8 +89,8 @@
     get_url:
       url: '{{ url }}'
       validate_certs: '{{ "yes" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "no" }}'
-      dest: '/tmp/.{{ project_dns }}_index.html'
-      tmp_dest: '/tmp/'
+      dest: /dev/null
+      tmp_dest: /dev/null
 
   always:
   - name: nginx-letsencrypt application logs relevant to DNS
