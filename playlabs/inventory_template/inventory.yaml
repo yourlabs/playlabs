@@ -3,6 +3,6 @@ all:
     ci:
       fqdn: ci.yourlabs.io
 
-children:
-  docker-firewall-nginx:
-    hosts: [ci]
+docker-firewall-nginx:
+  hosts:
+    ci:
