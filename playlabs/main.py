@@ -221,12 +221,12 @@ class Parser(object):
                     self.options.append('--ask-become-pass')
                     self.options.append('--ask-pass')
             else:
-                user = left
+                self.user = left
         else:
-            user = os.getenv("USER")
+            self.user = os.getenv("USER")
 
         if user:
-            self.options.append(f'--user={user}')
+            self.options.append(f'--user={self.user}')
 
     def handle_inventory(self, arg):
         for i in arg.split(','):
@@ -383,6 +383,23 @@ def cli():  # noqa
         with open('.ssh_private_key', 'w+') as f:
             f.write(key)
         parser.options += ['--private-key', '.ssh_private_key']
+    elif os.path.exists(f'keys/{parser.user}'):
+        key = f'keys/{parser.user}'
+        decrypt = False
+        with open(key, 'r') as f:
+            for line in f.readlines():
+                if 'ANSIBLE_VAULT' in line:
+                    decrypt = True
+                    break
+        if decrypt:
+            out = subprocess.check_output([
+                'ansible-vault', 'view', key
+            ])
+            with open('.ssh_private_key', 'wb+') as f:
+                f.write(out)
+            parser.options += ['--private-key', '.ssh_private_key']
+        else:
+            parser.options += ['--private-key', key]
 
     for host in parser.hosts:
         known_host(host)

@@ -66,9 +66,7 @@ ubuntu-deploy:
   stage: test
   image: $IMAGE_TAG
   script:
-  - echo testing install as sudoer
   - playlabs deploy hacker@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME
-  - echo testing deploy as deploy user
   - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME
 
 pypi:
