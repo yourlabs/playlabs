@@ -396,7 +396,7 @@ def cli():  # noqa
 
     vault_pass_file, temporary_vault = vault_prepare()
     key = os.getenv('SSH_PRIVATE_KEY')
-    if INVENTORY_DIR:
+    if INVENTORY_DIR is not None:
         inventory_key = os.path.join(INVENTORY_DIR, 'keys', parser.user)
         if key:
             print('Using SSH_PRIVATE_KEY env var')
