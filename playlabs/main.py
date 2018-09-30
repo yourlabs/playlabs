@@ -275,7 +275,7 @@ class Parser(object):
         else:
             ssh['ControlMaster'] = 'auto'
             ssh['ControlPersist'] = '60s'
-            ssh['ControlPath'] = '.ssh_control_path'
+            ssh['ControlPath'] = f'.ssh_control_path_{self.user}'
             self.options += ['--ssh-extra-args', ' '.join([
                 f'-o {key}={value}' for key, value in ssh.items()
             ])]
