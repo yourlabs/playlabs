@@ -45,9 +45,8 @@
     name: '{{ project_instance }}'
 
 - name: Stop container if any
-  tags: update
   failed_when: false
-  tags: stop
+  tags: update,stop
   docker_container:
     name: '{{ project_instance }}'
     state: stopped
