@@ -37,7 +37,9 @@ for i in find:
     if os.path.exists(i):
         INVENTORY_FILE = i
         break
-INVENTORY_DIR = os.path.dirname(INVENTORY_FILE)
+
+if INVENTORY_FILE:
+    INVENTORY_DIR = os.path.dirname(INVENTORY_FILE)
 
 
 def patch():
@@ -136,11 +138,6 @@ class Ansible(object):
             playbook = 'role-all.yml'
         else:
             playbook = 'role.yml'
-
-        if os.path.exists('inventory.yml'):
-            options += ['-i', 'inventory.yml']
-        elif os.path.exists('group_vars') or os.path.exists('host_vars'):
-            options += ['-i', '.']
 
         return self.playbook(playbook, options)
 
