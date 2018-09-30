@@ -213,7 +213,6 @@ class Parser(object):
         self.makeinit = True
 
     def handle_host(self, arg):
-        user = None
         self.hosts.append(arg.split('@')[-1])
         if not arg.startswith('@'):
             left = arg.split('@')[0]
@@ -227,7 +226,7 @@ class Parser(object):
         else:
             self.user = os.getenv("USER")
 
-        if user:
+        if getattr(self, 'user', False):
             self.options.append(f'--user={self.user}')
 
     def handle_inventory(self, arg):
