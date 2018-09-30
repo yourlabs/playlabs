@@ -4,25 +4,43 @@
 # is pushed.
 
 users:
+# Your user, all permissions, generate password for htaccess and all http
+# services with:
+#
+#     echo -n your password | ansible-vault encrypt --vault-id .vault > passwords/hacker
+#
+# The reason we don't keep passwords in the users variable is to avoid
+# unintended leaking.
 - name: hacker
   email: hacker1337@example.pcom
   roles:
     netdata: [sysadmin, domainadmin, dba, webmaster, proxyadmin]
     superuser: [sentry, project-staging]
     ssh: [sudo]
-    # To generate your own crypted password run this command:
-    # $ echo -n your vault password > .vault
-    # $ ansible-vault --vault-id .vault encrypt_string 'mypassword'
 
 # The example inventory provides one deploy user, than has no sudo
-# access, but can call the backup script in all services. His ssh
-# key is automatically picked up in keys/deploy because playlabs looks
-# for keys/$USER. For deploy user, we have a key without password, that
-# is supposed to be crypted with ansible-vault before commit:
+# access, except for the backup scripts that it cannot write.
+# He has an ssh account because playlabs found a key in keys/deploy.pub.
+# For deploy user, we have a key without password, that is supposed to be
+# crypted with ansible-vault before commit:
 #
-# $ ssh-keygen -t ed25519 -a 100
-# $ echo -n your vault password > .vault
-# $ ansible-vault encrypt --vault-id .vault keys/deploy
+#     $ ssh-keygen -t ed25519 -a 100 -f keys/deploy
+#     $ echo -n your vault password > .vault
+#     $ ansible-vault encrypt --vault-id .vault keys/deploy
 - name: deploy
   sudo:
   - /home/*/backup.sh
+
+# The productowner user does not have ssh access because it does not have a
+# public key in keys/productowner.pub.
+#
+# However, productowner have a password to pass through htaccess security, for
+# roles and projects that have it enabled.
+#
+# To generate your own crypted password run this command:
+#
+#     $ echo -n your vault password > .vault
+#     $ echo -n password | ansible-vault encrypt --vault-id .vault > passwords/yourproductowner
+- name: productowner
+  superuser:
+  - project-staging
