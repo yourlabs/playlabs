@@ -15,13 +15,15 @@ users:
   email: hacker1337@example.pcom
   roles:
     netdata: [sysadmin, domainadmin, dba, webmaster, proxyadmin]
-    superuser: [sentry, project-staging]
     ssh: [sudo]
     # superuser on all project instances
     project: [superuser]
     # superuser on all project instances with the ci prefix, showing off how it
     # works in two ways
-    superuser: [ci]
+    superuser:
+    - ci
+    - sentry
+    - project-staging
 
 # The example inventory provides one deploy user, than has no sudo
 # access, except for the backup scripts that it cannot write.
