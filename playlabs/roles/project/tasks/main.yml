@@ -81,28 +81,32 @@
 - block:
   - name: Verify URL
     register: url_verify
+    delegate_to: localhost
     retries: '{{ timeout|default(30) }}'
     delay: 1
-    until: url_verify.status_code < 400
+    until: '"status_code" in url_verify and url_verify.status_code < 400'
     tags: check,update
     get_url:
       url: '{{ url }}'
-      validate_certs: '{{ "yes" if project_letsencrypt_environment == "production" else "no" }}'
-      dest: /dev/null
+      validate_certs: '{{ "yes" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "no" }}'
+      dest: './{{ project_dns }}_index.html'
 
   always:
   - name: nginx-letsencrypt application logs relevant to DNS
-    shell: docker logs nginx-letsencrypt | tail -n 10 | grep {{ project_dns }}
+    shell: docker logs --since=2m nginx-letsencrypt 2>&1 | grep {{ project_dns }} | tail -n 10
     tags: check,update
     changed_when: false
+    failed_when: false
     when: project_letsencrypt_email|default(false)
 
   - name: nginx-proxy application logs relevant to current deploy
-    shell: docker logs nginx-proxy | grep -C1 "{{ test_id }}"
+    shell: docker logs --since=2m nginx-proxy 2>&1 | grep -C1 "{{ test_id }}"
     tags: check,update
+    failed_when: false
     changed_when: false
 
   - name: project application logs
-    shell: docker logs {{ project_instance }} | tail -n 100
+    shell: docker logs --since=2m {{ project_instance }}
     tags: check,update
+    failed_when: false
     changed_when: false
