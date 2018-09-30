@@ -67,8 +67,8 @@ ubuntu-deploy:
   image: $IMAGE_TAG
   script:
   - playlabs scaffold inventory
-  - playlabs deploy hacker@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME image=$IMAGE_TAG
-  - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME --tags=update
+  - playlabs deploy hacker@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME image=yourlabs/crudlfap:master
+  - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME image=yourlabs/crudlfap:master --tags=update
 
 pypi:
   stage: release
