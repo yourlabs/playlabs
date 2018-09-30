@@ -428,7 +428,7 @@ def cli():  # noqa
     if os.path.exists('.ssh_private_key'):
         os.chmod('.ssh_private_key', 0o700)
 
-    if INVENTORY_DIR:
+    if INVENTORY_DIR is not None:
         users_file = os.path.join(INVENTORY_DIR, 'group_vars/all/users.yml')
         if os.path.exists(users_file):
             with open(users_file, 'r') as f:
