@@ -21,7 +21,7 @@
     name: '{{ item["name"] }}'
     state: present
     shell: /bin/bash
-    groups: '{% if item.get("roles", {}).get("ssh") %}{{ item["roles"].get("ssh") }},{% endif %}users'
+    groups: '{% if "ssh" in item.get("roles", {}) %}{{ ",".join(item["roles"]["ssh"]) }},{% endif %}users'
     append: yes
 
 - name: Install ssh public keys
