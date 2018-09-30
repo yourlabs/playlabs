@@ -81,7 +81,7 @@ ubuntu-update:
   image: $IMAGE_TAG
   script:
   - playlabs scaffold inventory
-  - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME image=yourlabs/crudlfap:master dns=${CI_COMMIT_REF_NAME}.playlabs.ci.yourlabs.io --tags=update --nosudo
+  - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME image=yourlabs/crudlfap:master dns=${CI_COMMIT_REF_NAME}.playlabs.ci.yourlabs.io --tags=update
 
 pypi:
   stage: release
