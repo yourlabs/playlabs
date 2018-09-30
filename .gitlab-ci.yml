@@ -67,7 +67,7 @@ ubuntu-deploy:
   image: $IMAGE_TAG
   script:
   - playlabs scaffold inventory
-  - playlabs deploy hacker@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME
+  - playlabs deploy hacker@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME image=$IMAGE_TAG
   - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME --tags=update
 
 pypi:
