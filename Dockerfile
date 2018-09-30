@@ -5,7 +5,7 @@ ENV PATH="${PATH}:/app/.local/bin" HOME="/app"
 
 RUN apk update && apk --no-cache upgrade && apk add --no-cache bash openssh-client py3-setuptools ansible sshpass && rm -rf /var/cache/apk/* && pip3 install --no-cache-dir -U pip
 
-RUN adduser -h /app -D app
+RUN adduser -u 1000 -h /app -D app
 WORKDIR /app
 USER app
 CMD playlabs
