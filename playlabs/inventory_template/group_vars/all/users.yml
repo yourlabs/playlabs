@@ -44,3 +44,7 @@ users:
 - name: productowner
   superuser:
   - project-staging
+
+# Playlabs will remove users in this list
+users_remove:
+- name: olduser
