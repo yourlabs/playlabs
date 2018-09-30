@@ -428,27 +428,28 @@ def cli():  # noqa
     if os.path.exists('.ssh_private_key'):
         os.chmod('.ssh_private_key', 0o700)
 
-    users_file = os.path.join(INVENTORY_DIR, 'group_vars/all/users.yml')
-    if os.path.exists(users_file):
-        with open(users_file, 'r') as f:
-            result = yaml.load(f.read())
+    if INVENTORY_DIR:
+        users_file = os.path.join(INVENTORY_DIR, 'group_vars/all/users.yml')
+        if os.path.exists(users_file):
+            with open(users_file, 'r') as f:
+                result = yaml.load(f.read())
 
-        for user in result.get('users'):
-            if user['name'] != parser.user:
-                continue
+            for user in result.get('users'):
+                if user['name'] != parser.user:
+                    continue
 
-            roles = user.get('roles', {})
-            sudo = True
-            if 'ssh' in roles:
-                if 'sudo' not in roles.get('ssh', []):
+                roles = user.get('roles', {})
+                sudo = True
+                if 'ssh' in roles:
+                    if 'sudo' not in roles.get('ssh', []):
+                        sudo = False
+                        break
+                else:
                     sudo = False
-                    break
-            else:
-                sudo = False
 
-            if not sudo:
-                # detect that deploy user has no sudo
-                parser.options.append('--nosudo')
+                if not sudo:
+                    # detect that deploy user has no sudo
+                    parser.options.append('--nosudo')
 
     for host in parser.hosts:
         print(f'Adding {host} to ~/.ssh/known_hosts')
