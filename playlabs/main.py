@@ -26,7 +26,7 @@ with open(os.path.join(os.path.dirname(__file__), 'help')) as f:
     HELP = f.read()
 
 
-INVENTORY = None
+INVENTORY_FILE = None
 find = [
     'inventory.yaml',
     'inventory.yml',
@@ -35,8 +35,9 @@ find = [
 ]
 for i in find:
     if os.path.exists(i):
-        INVENTORY = i
+        INVENTORY_FILE = i
         break
+INVENTORY_DIR = os.path.dirname(INVENTORY_FILE)
 
 
 def patch():
@@ -69,8 +70,8 @@ class Ansible(object):
         return options
 
     def inventory(self):
-        if INVENTORY:
-            return ['--inventory', INVENTORY]
+        if INVENTORY_FILE:
+            return ['--inventory', INVENTORY_FILE]
 
     def playbook(self, name, args, sudo=True):
         if sudo and '--nosudo' not in args:
@@ -84,37 +85,10 @@ class Ansible(object):
         cmd.append(os.path.join(PLAYBOOKS, name))
         cmd = [shlex.quote(i) for i in cmd]
 
-        self.vault_prepare()
         print(' '.join(cmd))
         res = self.spawn(cmd)
-        self.vault_restore()
 
         return res
-
-    def vault_prepare(self):
-        self.vault_pass_file = None
-        if 'ANSIBLE_VAULT_PASSWORD_FILE' in os.environ:
-            if not os.path.exists(os.getenv('ANSIBLE_VAULT_PASSWORD_FILE')):
-                self.vault_pass_file = os.environ.pop(
-                    'ANSIBLE_VAULT_PASSWORD_FILE'
-                )
-
-        elif 'ANSIBLE_VAULT_PASSWORD' in os.environ:
-            with open('.vault', 'w+') as f:
-                f.write(os.getenv('ANSIBLE_VAULT_PASSWORD'))
-            self.remove_vault = True
-
-        if os.path.exists('.vault'):
-            os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = '.vault'
-
-    def vault_restore(self):
-        if self.vault_pass_file:
-            os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = self.vault_pass_file
-
-        # todo: make this safer in a try block or context processor or
-        # something
-        if getattr(self, 'remove_vault', False):
-            os.unlink('.vault')
 
     def spawn(self, cmd):
         child = pexpect.spawn(' '.join(cmd), encoding='utf8', timeout=300)
@@ -362,6 +336,37 @@ def known_host(target):
         os.chmod(known_hosts, 0o600)
 
 
+def vault_prepare():
+    vault_pass_file = '.vault'
+    temporary_vault = False
+
+    if 'ANSIBLE_VAULT_PASSWORD_FILE' in os.environ:
+        if not os.path.exists(os.getenv('ANSIBLE_VAULT_PASSWORD_FILE')):
+            vault_pass_file = os.environ.pop(
+                'ANSIBLE_VAULT_PASSWORD_FILE'
+            )
+
+    elif 'ANSIBLE_VAULT_PASSWORD' in os.environ:
+        with open(vault_pass_file, 'w+') as f:
+            f.write(os.getenv('ANSIBLE_VAULT_PASSWORD'))
+        temporary_vault = True
+
+    if os.path.exists(vault_pass_file):
+        os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
+
+    return vault_pass_file, temporary_vault
+
+
+def vault_clean(vault_pass_file, remove_vault):
+    if vault_pass_file:
+        os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = vault_pass_file
+
+    # todo: make this safer in a try block or context processor or
+    # something
+    if remove_vault:
+        os.unlink('.vault')
+
+
 def cli():  # noqa
     if len(sys.argv) == 1:
         print(HELP)
@@ -390,8 +395,9 @@ def cli():  # noqa
         if retcode:
             return retcode
 
+    vault_pass_file, temporary_vault = vault_prepare()
     key = os.getenv('SSH_PRIVATE_KEY')
-    inventory_key = os.path.join(INVENTORY, 'keys', parser.user)
+    inventory_key = os.path.join(INVENTORY_DIR, 'keys', parser.user)
     if key:
         print('Using SSH_PRIVATE_KEY env var')
         with open('.ssh_private_key', 'w+') as f:
@@ -400,7 +406,7 @@ def cli():  # noqa
     elif os.path.exists(inventory_key):
         print(f'Using {inventory_key}')
         decrypt = False
-        with open(key, 'r') as f:
+        with open(inventory_key, 'r') as f:
             for line in f.readlines():
                 if 'ANSIBLE_VAULT' in line:
                     decrypt = True
@@ -416,6 +422,8 @@ def cli():  # noqa
         else:
             print(f'Using {key}')
             parser.options += ['--private-key', key]
+    if os.path.exists('.ssh_private_key'):
+        os.chmod('.ssh_private_key', 0o700)
 
     for host in parser.hosts:
         print(f'Adding {host} to ~/.ssh/known_hosts')
@@ -468,5 +476,6 @@ def cli():  # noqa
     # todo: wrap the whole thing in a try block to ensure cleaning
     if os.path.exists('.ssh_private_key'):
         os.unlink('.ssh_private_key')
+    vault_clean(vault_pass_file, temporary_vault)
 
     sys.exit(retcode)
