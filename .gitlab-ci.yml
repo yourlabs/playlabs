@@ -67,7 +67,7 @@ ubuntu-deploy:
   image: $IMAGE_TAG
   script:
   - playlabs deploy hacker@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME
-  - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME
+  - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME --tags=update
 
 pypi:
   stage: release

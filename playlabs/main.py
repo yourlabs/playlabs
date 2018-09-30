@@ -382,10 +382,12 @@ def cli():  # noqa
 
     key = os.getenv('SSH_PRIVATE_KEY')
     if key:
+        print('Using SSH_PRIVATE_KEY env var')
         with open('.ssh_private_key', 'w+') as f:
             f.write(key)
         parser.options += ['--private-key', '.ssh_private_key']
     elif os.path.exists(f'keys/{parser.user}'):
+        print(f'Using keys/{parser.user}')
         key = f'keys/{parser.user}'
         decrypt = False
         with open(key, 'r') as f:
@@ -394,6 +396,7 @@ def cli():  # noqa
                     decrypt = True
                     break
         if decrypt:
+            print('Decrypting with vault')
             out = subprocess.check_output([
                 'ansible-vault', 'view', key
             ])
@@ -401,12 +404,15 @@ def cli():  # noqa
                 f.write(out)
             parser.options += ['--private-key', '.ssh_private_key']
         else:
+            print(f'Using {key}')
             parser.options += ['--private-key', key]
 
     for host in parser.hosts:
+        print(f'Adding {host} to ~/.ssh/known_hosts')
         known_host(host)
 
     if parser.makedeploy:
+        print(f'Deploying with project role')
         retcode = ansible.role('project')
         if retcode:
             return retcode
