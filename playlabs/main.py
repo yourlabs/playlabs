@@ -71,6 +71,7 @@ class Ansible(object):
     def inventory(self):
         if INVENTORY_FILE:
             return ['--inventory', INVENTORY_FILE]
+        return []
 
     def playbook(self, name, args, sudo=True):
         if '--nosudo' in args:
