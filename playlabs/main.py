@@ -6,11 +6,12 @@ import shlex
 import shutil
 import subprocess
 import sys
-import yaml
 
 import pexpect
 
 import sh
+
+import yaml
 
 LOCAL_BIN = f'{os.getenv("HOME")}/.local/bin'
 LOCAL_BIN_PLAYLABS = f'{LOCAL_BIN}/playlabs'
