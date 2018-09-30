@@ -434,12 +434,12 @@ def cli():  # noqa
             with open(users_file, 'r') as f:
                 result = yaml.load(f.read())
 
+            sudo = True
             for user in result.get('users'):
                 if user['name'] != parser.user:
                     continue
 
                 roles = user.get('roles', {})
-                sudo = True
                 if 'ssh' in roles:
                     if 'sudo' not in roles.get('ssh', []):
                         sudo = False
@@ -447,9 +447,9 @@ def cli():  # noqa
                 else:
                     sudo = False
 
-                if not sudo:
-                    # detect that deploy user has no sudo
-                    parser.options.append('--nosudo')
+            if not sudo:
+                # detect that deploy user has no sudo
+                parser.options.append('--nosudo')
 
     for host in parser.hosts:
         print(f'Adding {host} to ~/.ssh/known_hosts')
