@@ -218,7 +218,7 @@ class Parser(object):
         if not arg.startswith('@'):
             left = arg.split('@')[0]
             if ':' in left:
-                user, self.password = arg.split('@')[0].split(':')
+                self.user, self.password = arg.split('@')[0].split(':')
                 if '--ask-become-pass' not in self.options:
                     self.options.append('--ask-become-pass')
                     self.options.append('--ask-pass')
