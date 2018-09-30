@@ -8,26 +8,33 @@
 
 - name: Get image USER uuid
   shell: docker run {{ project_image }} id -u
+  tags: update
   register: project_image_uuid_shell
   changed_when: false
 
 - name: Set project_image_uuid
+  tags: update
   set_fact: project_image_uuid={{ project_image_uuid_shell.stdout }}
 
 - name: Docker inspect image
+  tags: update
   docker_image_facts:
     name: '{{ project_image }}'
   register: project_image_facts
 
-- set_fact:
+- name: Merge environment variables
+  set_fact:
     project_image_env: "{{ project_image_facts['images'][0]['Config']['Env']|docker_env_dict }}"
+  tags: update
 
 - set_fact:
     project_plugins: "{{ project_image_env.get('PLAYLABS_PLUGINS', '').split(',') }}"
+  tags: update
   when: project_plugins == []
 
 - include: vars.yml
   tags: update
+
 - include: home.yml
 - include: http.yml
 - include: backup.yml
@@ -38,6 +45,7 @@
     name: '{{ project_instance }}'
 
 - name: Stop container if any
+  tags: update
   failed_when: false
   tags: stop
   docker_container:
@@ -52,7 +60,7 @@
 - name: Running deploy.pre.yml for plugins
   with_items: '{{ project_plugins }}'
   include: plugins/{{ item }}/deploy.pre.yml
-  tags: predeploy
+  tags: update,predeploy
 
 - include: docker.yml
   tags: deploy
@@ -60,7 +68,7 @@
 - name: Running deploy.post.yml for plugins
   with_items: '{{ project_plugins }}'
   include: plugins/{{ item }}/deploy.post.yml
-  tags: postdeploy
+  tags: update,postdeploy
 
 - name: Set test id
   set_fact: test_id={{ ansible_date_time|to_uuid }}

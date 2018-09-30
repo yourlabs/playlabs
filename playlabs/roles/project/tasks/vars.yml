@@ -1,20 +1,23 @@
 ---
-
 - name: Load vars from plugins if any plugin/vars.yml
   with_items: '{{ project_plugins }}'
   include_vars: plugins/{{ item }}/vars.yml
+  tags: update,check
 
 - name: Combine plugins env vars project_plugin_env
   with_items: '{{ project_plugins }}'
+  tags: update,check
   set_fact:
     project_env: '{{ lookup("vars", "project_" + item + "_env")|combine(project_env) }}'
 
 - name: Configure letsencrypt variable if email is provided
   when: project_letsencrypt_email != ''
+  tags: update,check
   set_fact:
     project_env: '{{ project_env|combine({"LETSENCRYPT_EMAIL": letsencrypt_email, "LETSENCRYPT_HOST": project_dns}) }}'
 
 - name: Configure extra letsencrypt hostnames if project_dns_redirect
   when: project_dns_redirect
+  tags: update,check
   set_fact:
     project_env: '{{ project_env|combine({"LETSENCRYPT_HOST": project_env["LETSENCRYPT_HOST"] + "," + project_dns_redirect|join(",")}) }}'
