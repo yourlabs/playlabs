@@ -87,6 +87,7 @@ class Ansible(object):
                 self.vault_pass_file = os.environ.pop(
                     'ANSIBLE_VAULT_PASSWORD_FILE'
                 )
+
         elif 'ANSIBLE_VAULT_PASSWORD' in os.environ:
             with open('.vault', 'w+') as f:
                 f.write(os.getenv('ANSIBLE_VAULT_PASSWORD'))
@@ -99,7 +100,8 @@ class Ansible(object):
         if self.vault_pass_file:
             os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = self.vault_pass_file
 
-        # todo: make this safer in a try block or context processor or something
+        # todo: make this safer in a try block or context processor or
+        # something
         if getattr(self, 'remove_vault', False):
             os.unlink('.vault')
 
