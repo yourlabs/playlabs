@@ -80,12 +80,15 @@
 - block:
   - name: Verify URL
     register: url_verify
-    delegate_to: localhost
     retries: '{{ timeout|default(30) }}'
     delay: 1
     until: url_verify.rc == 0
     tags: check,update
-    shell: curl -I {{ "" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "-k" }} {{ url }}
+    get_url:
+      url: '{{ url }}'
+      verify_certs: '{{ "yes" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "no" }}
+      dest: /dev/null
+    #shell: curl -I {{ "" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "-k" }} {{ url }}
     changed_when: false
 
   always:
