@@ -17,6 +17,11 @@ users:
     netdata: [sysadmin, domainadmin, dba, webmaster, proxyadmin]
     superuser: [sentry, project-staging]
     ssh: [sudo]
+    # superuser on all project instances
+    project: [superuser]
+    # superuser on all project instances with the ci prefix, showing off how it
+    # works in two ways
+    superuser: [ci]
 
 # The example inventory provides one deploy user, than has no sudo
 # access, except for the backup scripts that it cannot write.
