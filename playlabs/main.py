@@ -40,6 +40,8 @@ for i in find:
 
 if INVENTORY_FILE:
     INVENTORY_DIR = os.path.dirname(INVENTORY_FILE)
+else:
+    INVENTORY_DIR = '.'
 
 
 def patch():
