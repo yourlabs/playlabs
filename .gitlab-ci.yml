@@ -26,7 +26,7 @@ build:
   - docker build --cache-from $CI_REGISTRY_IMAGE:master -t $IMAGE_TAG .
   - docker push $IMAGE_TAG
   - docker logout $CI_REGISTRY
-  - echo $DOCKER_PASS | docker login --username $DOCKER_USER --password-stdin
+  - echo -n $DOCKER_PASS | docker login --username "$DOCKER_USER" --password-stdin
   - docker tag $IMAGE_TAG $PUBLIC_IMAGE_TAG
   - docker push $PUBLIC_IMAGE_TAG
   after_script:
