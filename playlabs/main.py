@@ -20,6 +20,19 @@ with open(os.path.join(os.path.dirname(__file__), 'help')) as f:
     HELP = f.read()
 
 
+INVENTORY = None
+find = [
+    'inventory.yaml',
+    'inventory.yml',
+    'inventory/inventory.yaml',
+    'inventory/inventory.yml',
+]
+for i in find:
+    if os.path.exists(i):
+        INVENTORY = i
+        break
+
+
 def patch():
     with open(BASH_PROFILE, 'a+') as f:
         f.write(
@@ -50,16 +63,8 @@ class Ansible(object):
         return options
 
     def inventory(self):
-        find = [
-            'inventory.yaml',
-            'inventory.yml',
-            'inventory/inventory.yaml',
-            'inventory/inventory.yml',
-        ]
-        for i in find:
-            if os.path.exists(i):
-                return ['--inventory', i]
-        return []
+        if INVENTORY:
+            return ['--inventory', INVENTORY]
 
     def playbook(self, name, args, sudo=True):
         if sudo and '--nosudo' not in args:
@@ -380,14 +385,14 @@ def cli():  # noqa
             return retcode
 
     key = os.getenv('SSH_PRIVATE_KEY')
+    inventory_key = os.path.join(INVENTORY, 'keys', parser.user)
     if key:
         print('Using SSH_PRIVATE_KEY env var')
         with open('.ssh_private_key', 'w+') as f:
             f.write(key)
         parser.options += ['--private-key', '.ssh_private_key']
-    elif os.path.exists(f'keys/{parser.user}'):
-        print(f'Using keys/{parser.user}')
-        key = f'keys/{parser.user}'
+    elif os.path.exists(inventory_key):
+        print(f'Using {inventory_key}')
         decrypt = False
         with open(key, 'r') as f:
             for line in f.readlines():
@@ -397,7 +402,7 @@ def cli():  # noqa
         if decrypt:
             print('Decrypting with vault')
             out = subprocess.check_output([
-                'ansible-vault', 'view', key
+                'ansible-vault', 'view', inventory_key
             ])
             with open('.ssh_private_key', 'wb+') as f:
                 f.write(out)
