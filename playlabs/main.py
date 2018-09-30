@@ -27,6 +27,7 @@ with open(os.path.join(os.path.dirname(__file__), 'help')) as f:
 
 
 INVENTORY_FILE = None
+INVENTORY_DIR = None
 find = [
     'inventory.yaml',
     'inventory.yml',
@@ -40,8 +41,6 @@ for i in find:
 
 if INVENTORY_FILE:
     INVENTORY_DIR = os.path.dirname(INVENTORY_FILE)
-else:
-    INVENTORY_DIR = '.'
 
 
 def patch():
@@ -396,31 +395,32 @@ def cli():  # noqa
 
     vault_pass_file, temporary_vault = vault_prepare()
     key = os.getenv('SSH_PRIVATE_KEY')
-    inventory_key = os.path.join(INVENTORY_DIR, 'keys', parser.user)
-    if key:
-        print('Using SSH_PRIVATE_KEY env var')
-        with open('.ssh_private_key', 'w+') as f:
-            f.write(key)
-        parser.options += ['--private-key', '.ssh_private_key']
-    elif os.path.exists(inventory_key):
-        print(f'Using {inventory_key}')
-        decrypt = False
-        with open(inventory_key, 'r') as f:
-            for line in f.readlines():
-                if 'ANSIBLE_VAULT' in line:
-                    decrypt = True
-                    break
-        if decrypt:
-            print('Decrypting with vault')
-            out = subprocess.check_output([
-                'ansible-vault', 'view', inventory_key
-            ])
-            with open('.ssh_private_key', 'wb+') as f:
-                f.write(out)
+    if INVENTORY_DIR:
+        inventory_key = os.path.join(INVENTORY_DIR, 'keys', parser.user)
+        if key:
+            print('Using SSH_PRIVATE_KEY env var')
+            with open('.ssh_private_key', 'w+') as f:
+                f.write(key)
             parser.options += ['--private-key', '.ssh_private_key']
-        else:
-            print(f'Using {key}')
-            parser.options += ['--private-key', key]
+        elif os.path.exists(inventory_key):
+            print(f'Using {inventory_key}')
+            decrypt = False
+            with open(inventory_key, 'r') as f:
+                for line in f.readlines():
+                    if 'ANSIBLE_VAULT' in line:
+                        decrypt = True
+                        break
+            if decrypt:
+                print('Decrypting with vault')
+                out = subprocess.check_output([
+                    'ansible-vault', 'view', inventory_key
+                ])
+                with open('.ssh_private_key', 'wb+') as f:
+                    f.write(out)
+                parser.options += ['--private-key', '.ssh_private_key']
+            else:
+                print(f'Using {key}')
+                parser.options += ['--private-key', key]
     if os.path.exists('.ssh_private_key'):
         os.chmod('.ssh_private_key', 0o700)
 
