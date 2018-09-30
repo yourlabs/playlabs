@@ -83,13 +83,10 @@
     delegate_to: localhost
     retries: '{{ timeout|default(30) }}'
     delay: 1
-    until: '"status_code" in url_verify and url_verify.status_code < 400'
+    until: url_verify.rc == 0
     tags: check,update
-    get_url:
-      url: '{{ url }}'
-      validate_certs: '{{ "yes" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "no" }}'
-      dest: /dev/null
-      tmp_dest: /dev/null
+    shell: curl -I {{ "" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "-k" }} {{ url }}
+    changed_when: false
 
   always:
   - name: nginx-letsencrypt application logs relevant to DNS
