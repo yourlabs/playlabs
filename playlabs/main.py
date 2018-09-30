@@ -16,6 +16,12 @@ LOCAL_BIN_PLAYLABS = f'{LOCAL_BIN}/playlabs'
 BASH_PROFILE = f'{os.getenv("HOME")}/.bash_profile'
 PLAYBOOKS = os.path.dirname(__file__)
 
+if '/' in sys.argv[0]:
+    os.environ['PATH'] = ':'.join([
+        os.path.dirname(sys.argv[0]),
+        os.getenv('PATH')
+    ])
+
 with open(os.path.join(os.path.dirname(__file__), 'help')) as f:
     HELP = f.read()
 
