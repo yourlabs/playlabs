@@ -53,20 +53,16 @@ class Ansible(object):
         self.parser = parser
 
     def sudo(self, options):
-
         if '--become' not in options:
             options.append('--become')
-
         if '--become-method' not in options:
             options += [
                 '--become-method', 'sudo',
             ]
-
         if '--become-user' not in options:
             options += [
                 '--become-user', 'root'
             ]
-
         return options
 
     def inventory(self):
@@ -74,7 +70,11 @@ class Ansible(object):
             return ['--inventory', INVENTORY_FILE]
 
     def playbook(self, name, args, sudo=True):
-        if sudo and '--nosudo' not in args:
+        if '--nosudo' in args:
+            args.pop(args.index('--nosudo'))
+            sudo = False
+
+        if sudo:
             args = self.sudo(args)
 
         cmd = ['ansible-playbook']

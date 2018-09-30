@@ -32,6 +32,18 @@
     state: present
     key: '{{ item["name"]|key_pub_read }}'
 
+- name: Install user specific sudos if any
+  with_items: '{{ users }}'
+  when: "'sudo' in item"
+  blockinfile:
+    path: /etc/sudoers
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.name }}"
+    block: |
+      {% for line in item.get("sudo", []) %}
+      {{ item["name"] }} ALL=(ALL) NOPASSWD: {{ line }}
+      {% endfor %}
+    backup: yes
+
 - name: Find sshd configuration
   stat: path=/etc/ssh/sshd_config
   register: sshd_config

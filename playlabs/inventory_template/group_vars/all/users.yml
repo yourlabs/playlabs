@@ -24,4 +24,5 @@ users:
 # $ echo -n your vault password > .vault
 # $ ansible-vault encrypt --vault-id .vault keys/deploy
 - name: deploy
-  sudo: 'ALL=(ALL) NOPASSWD: /home/*/backup.sh'
+  sudo:
+  - /home/*/backup.sh
