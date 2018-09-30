@@ -8,6 +8,7 @@ variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   RELEASE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   PUBLIC_RELEASE_TAG: yourlabs/playlabs:$CI_COMMIT_REF_NAME
+  PUBLIC_IMAGE_TAG: yourlabs/playlabs:$CI_COMMIT_SHA
   ANSIBLE_FORCE_COLOR: 'true'
   USER: gitlab
 
@@ -24,8 +25,13 @@ build:
   - docker pull $CI_REGISTRY_IMAGE:master || true
   - docker build --cache-from $CI_REGISTRY_IMAGE:master -t $IMAGE_TAG .
   - docker push $IMAGE_TAG
+  - docker logout
+  - echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+  - docker tag $IMAGE_TAG $PUBLIC_IMAGE_TAG
+  - docker push $PUBLIC_IMAGE_TAG
   after_script:
   - docker logout
+
 #buildah version, better because ci is not privileged, but where is caching
 #support ? Not to mention the random failures ...
 #  image: tomkukral/buildah
