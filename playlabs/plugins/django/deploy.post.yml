@@ -10,14 +10,14 @@
   register: django_createsuperuser
   failed_when: false
   with_items: '{{ users|default([]) }}'
-  when: item['name'] in passwords|default({}) and ('superuser' in item.get('roles', {}).get(django_instance, []) or django_instance in item.get('roles', {}).get('superuser', {}))
+  when: item['name']|vaulted_password and ('superuser' in item.get('roles', {}).get(django_instance, []) or django_instance in item.get('roles', {}).get('superuser', {}))
   expect:
     timeout: 30
     command: docker exec -it {{ django_instance }} su uwsgi -c bash -c "django-admin createsuperuser"
     responses:
       'Username': ["{{ item['name'] }}"]
       'Email': ["{{ item['email'] }}"]
-      'Password': ["{{ passwords[item['name']] }}", "{{ passwords[item['name']] }}"]
+      'Password': ["{{ item['name']|vaulted_password }}", "{{ item['name']|vaulted_password }}"]
 
 - name: How many users are in the database ?
   shell: docker exec {{ project_instance }} su uwsgi -c bash -c "echo 'from django.conf import settings; from django.apps import apps; print(apps.get_model(settings.AUTH_USER_MODEL).objects.count())' | django-admin shell"

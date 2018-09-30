@@ -1,5 +1,8 @@
 #!/usr/bin/python
 import os
+import subprocess
+
+from ansible import errors
 
 
 class FilterModule(object):
@@ -9,6 +12,8 @@ class FilterModule(object):
             'exists': self.exists,
             'key_pub_exists': self.key_pub_exists,
             'key_pub_read': self.key_pub_read,
+            'vaulted_password': self.vaulted_password,
+            'vaulted_read': self.vaulted_read,
         }
 
     def key_pub_exists(self, name):
@@ -26,3 +31,20 @@ class FilterModule(object):
             i.split('=')[0]: i.split('=')[1]
             for i in env
         }
+
+    def vaulted_read(self, path, default=None):
+        if not os.path.exists(path):
+            if default is not None:
+                return default
+            raise errors.AnsibleFilterError(
+                f'{path} not found and no default provided')
+        out = subprocess.check_output([
+            'ansible-vault',
+            'view',
+            path,
+        ])
+        return out.strip()
+
+    def vaulted_password(self, name, default=None):
+        path = os.path.join('passwords/', name)
+        return self.vaulted_read(path, default)

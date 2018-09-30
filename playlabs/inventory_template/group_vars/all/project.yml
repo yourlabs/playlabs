@@ -1,0 +1,7 @@
+---
+project_staging_env:
+  # yes, we use ansible-vault on files to create a file-backed secrets db,
+  # regenerate the secret key used here with:
+  #
+  #     echo -n your secret | ansible-vault  encrypt --vault-id .vault > secrets/project_staging_secret_key
+  SECRET_KEY: '{{ "secrets/project_staging_secret_key"|vaulted_read }}'
