@@ -68,7 +68,7 @@ ubuntu-deploy:
   script:
   - playlabs scaffold inventory
   - playlabs deploy hacker@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME image=yourlabs/crudlfap:master dns=${CI_COMMIT_REF_NAME}.playlabs.ci.yourlabs.io
-  - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME image=yourlabs/crudlfap:master dns=${CI_COMMIT_REF_NAME}.playlabs.ci.yourlabs.io --tags=update
+  - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME image=yourlabs/crudlfap:master dns=${CI_COMMIT_REF_NAME}.playlabs.ci.yourlabs.io --tags=update --nosudo
 
 pypi:
   stage: release
