@@ -30,8 +30,8 @@
       {% for plugin in project_plugins %}
       # playlabs/plugins/{{ plugin }}/backup.pre.sh: start
       {{ lookup('template', 'plugins/' + plugin + '/backup.pre.sh') }}
-      {% if loop.last %}# last plugin end: {{ plugin }}{% endif -%}
-      {% endfor -%}
+      {%- if loop.last %}# last plugin end: {{ plugin }}{% endif %}
+      {%- endfor %}
 
     script_content_post: |
       {%- if project_backup_lftp_dsn|default(False) %}
@@ -40,24 +40,24 @@
       {% for plugin in project_plugins %}
       # playlabs/plugins/{{ plugin }}/backup.post.sh: start
       {{ lookup('template', 'plugins/' + plugin + '/backup.post.sh') }}
-      {% if loop.last %}# last plugin end: {{ plugin }}{% endif -%}
-      {% endfor -%}
+      {%- if loop.last %}# last plugin end: {{ plugin }}{% endif %}
+      {%- endfor %}
 
     restore_path: '{{ project_home }}/restore.sh'
     restore_content_pre: |
       {%- for plugin in project_plugins %}
       # playlabs/plugins/{{ plugin }}/restore.pre.sh: end
       {{ lookup('template', 'plugins/' + plugin + '/restore.pre.sh') }}
-      {%- if loop.last %}# last plugin end: {{ plugin }}{% endif -%}
-      {% endfor -%}
+      {%- if loop.last %}# last plugin end: {{ plugin }}{% endif %}
+      {%- endfor %}
 
     restore_content_post: |
       docker rm -f {{ project_instance }} || echo could not rm container {{ project_instance }}
       {% for plugin in project_plugins %}
       # playlabs/plugins/{{ plugin }}/restore.post.sh: start
       {{ lookup('template', 'plugins/' + plugin + '/restore.post.sh') }}
-      {% if loop.last %}# last plugin end: {{ plugin }}{% endif -%}
-      {% endfor -%}
+      {%- if loop.last %}# last plugin end: {{ plugin }}{% endif %}
+      {%- endfor %}
 
       mv $restore/docker-run.sh .
       bash -eux {{ project_home }}/docker-run.sh
