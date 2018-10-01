@@ -1,7 +1,12 @@
-playlabs_path=`pip show playlabs | grep "^Location" | awk '{print $2}'`
+# playlabs complete script
 
 _playlabs_autocomplete()
 {
+	if [ "$playlabs_path" == '' ]
+	then
+		export playlabs_path=`pip show playlabs | grep "^Location" | awk '{print $2}'`
+	fi
+
 	local cur prev action=""
 	COMPREPLY=()
 	cur="${COMP_WORDS[COMP_CWORD]}"
@@ -59,12 +64,12 @@ _playlabs_autocomplete()
 
 	local LASTCHAR=' '
 	if [ ${#COMPREPLY[@]} = 1 ]; then
-			[ -d "$COMPREPLY" ] && LASTCHAR='/'
-			COMPREPLY=$(printf %q%s "$COMPREPLY" "$LASTCHAR")
+		[ -d "$COMPREPLY" ] && LASTCHAR='/'
+		COMPREPLY=$(printf %q%s "$COMPREPLY" "$LASTCHAR")
 	else
-			for ((i=0; i < ${#COMPREPLY[@]}; i++)); do
-					[ -d "${COMPREPLY[$i]}" ] && COMPREPLY[$i]="${COMPREPLY[$i]}/"
-			done
+		for ((i=0; i < ${#COMPREPLY[@]}; i++)); do
+				[ -d "${COMPREPLY[$i]}" ] && COMPREPLY[$i]="${COMPREPLY[$i]}/"
+		done
 	fi
 	return 0
 }

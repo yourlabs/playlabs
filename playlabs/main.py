@@ -214,6 +214,7 @@ class Parser(object):
         self.makeinstall = False
         self.makedeploy = False
         self.makeinit = False
+        self.user = None
         self.roles = []
         self.hosts = []
         self.options = []
@@ -304,10 +305,10 @@ class Parser(object):
         while args:
             arg = args.pop(0)
 
-            if previous in ('-u', '--user'):
-                self.user = arg
+            if arg in ('-u', '--user'):
+                self.user = args.pop(0)
             elif arg.startswith('-u=') or arg.startswith('--user='):
-                self.user = arg.split('=')[0]
+                self.user = arg.split('=')[-1]
             else:
                 if '@' in arg and '=' not in arg:
                     self.handle_host(arg)
@@ -319,13 +320,17 @@ class Parser(object):
                     self.handle_vars(arg)
 
             previous = arg
+            
+
+        if not self.user:
+            self.user = os.getenv("USER")
 
         if self.hosts == ['localhost']:
             self.options += ['-c', 'local']
         else:
             ssh['ControlMaster'] = 'auto'
             ssh['ControlPersist'] = '60s'
-            if getattr(self, 'user', None):
+            if self.user:
                 ssh['ControlPath'] = f'.ssh_control_path_{self.user}'
             self.options += ['--ssh-extra-args', ' '.join([
                 f'-o {key}={value}' for key, value in ssh.items()
@@ -336,7 +341,10 @@ class Parser(object):
 
         self.print()
 
+
     def print(self):
+        if self.user:
+            print(f'Play user: {self.user}')
         if self.hosts:
             print(f'Play hosts: {self.hosts}')
         if self.roles:

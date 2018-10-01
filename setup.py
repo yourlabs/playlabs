@@ -1,10 +1,18 @@
 import pip
 from setuptools import setup, find_packages, Command
 import os, sys
+from subprocess import Popen, PIPE
+import shutil
 
 with open('requirements.txt') as reqs_file:
     install_reqs = reqs_file.readlines()
 
+process = subprocess.Popen(["pkg-config", "--variable=completionsdir", "bash-completion"], stdout=PIPE)
+(output, err) = process.communicate()
+exit_code = process.wait()
+
+if not exit_code:
+    shutil.copyfile('bash-completion.sh', f'{output}/playlabs.sh')
 
 setup(
     name='playlabs',
