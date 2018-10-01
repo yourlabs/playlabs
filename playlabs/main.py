@@ -251,8 +251,8 @@ class Parser(object):
         else:
             self.user = os.getenv("USER")
 
-        if getattr(self, 'user', False):
-            self.options.append(f'--user={self.user}')
+        if self.user:
+            self.options += ['--user', self.user]
 
     def handle_inventory(self, arg):
         for i in arg.split(','):
