@@ -333,7 +333,7 @@ class Parser(object):
         if self.hosts == ['localhost']:
             self.options += ['-c', 'local']
         else:
-            ssh_config()
+            self.ssh_config()
 
         if self.subvars:
             self.options += ['-e', json.dumps(self.subvars)]
