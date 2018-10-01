@@ -8,14 +8,11 @@ with open('requirements.txt') as reqs_file:
     install_reqs = reqs_file.readlines()
 
 home_path = os.getenv('HOME')
-bashcompletion_dir = os.path.join(home_path, '.local/share/bash-completion')
-
-if not os.path.exists(bashcompletion_dir):
-    os.mkdir(bashcompletion_dir)
-
-bashcompletion_dir = os.path.join(bashcompletion_dir, 'completions')
-if not os.path.exists(bashcompletion_dir):
-    os.mkdir(bashcompletion_dir)
+bashcompletion_dir = home_path
+for d in ['.local', 'share', 'bash-completion', 'completions']:
+    bashcompletion_dir = os.path.join(bashcompletion_dir, d)
+    if not os.path.exists(bashcompletion_dir):
+        os.mkdir(bashcompletion_dir)
 
 bashcompletion_path = os.path.join(bashcompletion_dir, 'playlabs')
 shutil.copyfile('bash-completion.sh', bashcompletion_path)
