@@ -235,7 +235,9 @@ class Parser(object):
         self.makeinit = True
 
     def handle_host(self, arg):
-        self.hosts.append(arg.split('@')[-1])
+        host = arg.split('@')[-1]
+        if host:
+            self.hosts.append(host)
         if not arg.startswith('@'):
             left = arg.split('@')[0]
             if ':' in left:
@@ -249,7 +251,7 @@ class Parser(object):
             self.user = os.getenv("USER")
 
         if getattr(self, 'user', False):
-            self.options.append(f'--user={self.user}')
+            self.options.append(f'--user {self.user}')
 
     def handle_inventory(self, arg):
         for i in arg.split(','):
@@ -304,20 +306,17 @@ class Parser(object):
 
             if previous in ('-u', '--user'):
                 self.user = arg
-            elif (
-                    (arg.startswith('-u') or arg.startswith('--user')) and
-                    '=' in arg
-            ):
+            elif arg.startswith('-u=') or arg.startswith('--user='):
                 self.user = arg.split('=')[0]
-
-            if '@' in arg and '=' not in arg:
-                self.handle_host(arg)
-            elif arg in ['init', 'deploy']:
-                self.handles[arg](None)
-            elif arg in self.primary_tokens and not self.options:
-                self.handles[arg](args.pop(0) if args else None)
             else:
-                self.handle_vars(arg)
+                if '@' in arg and '=' not in arg:
+                    self.handle_host(arg)
+                elif arg in ['init', 'deploy']:
+                    self.handles[arg](None)
+                elif arg in self.primary_tokens and not self.options:
+                    self.handles[arg](args.pop(0) if args else None)
+                else:
+                    self.handle_vars(arg)
 
             previous = arg
 
