@@ -113,6 +113,6 @@ docker-push:
   - docker push $RELEASE_TAG
   - docker logout
   - echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-  - docker tag $IMAGE_TAG $RELEASE_TAG
-  - docker push $RELEASE_TAG
+  - docker tag $IMAGE_TAG $PUBLIC_RELEASE_TAG
+  - docker push $PUBLIC_RELEASE_TAG
   - docker logout
