@@ -7,12 +7,18 @@ import shutil
 with open('requirements.txt') as reqs_file:
     install_reqs = reqs_file.readlines()
 
-process = subprocess.Popen(["pkg-config", "--variable=completionsdir", "bash-completion"], stdout=PIPE)
-(output, err) = process.communicate()
-exit_code = process.wait()
+home_path = os.getenv('HOME')
+bashcompletion_dir = os.path.join(home_path, '.local/share/bash-completion')
 
-if not exit_code:
-    shutil.copyfile('bash-completion.sh', f'{output}/playlabs.sh')
+if not os.path.exists(bashcompletion_dir):
+    os.mkdir(bashcompletion_dir)
+
+bashcompletion_dir = os.path.join(bashcompletion_dir, 'completions')
+if not os.path.exists(bashcompletion_dir):
+    os.mkdir(bashcompletion_dir)
+
+bashcompletion_path = os.path.join(bashcompletion_dir, 'playlabs')
+shutil.copyfile('bash-completion.sh', bashcompletion_path)
 
 setup(
     name='playlabs',
