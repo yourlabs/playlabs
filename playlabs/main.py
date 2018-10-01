@@ -165,6 +165,24 @@ class Ansible(object):
             print('Passing passwords requires sshpass command')
         return res
 
+    def deploy(self):
+        options = self.parser.options
+        hosts = self.parser.hosts
+
+        if hosts:
+            options += [
+                '--inventory',
+                ','.join(hosts) + ',',
+                '--limit',
+                ','.join(hosts) + ',',
+            ]
+            options += ['-e', f'role=project']
+            playbook = 'role-all.yml'
+        else:
+            playbook = 'project.yml'
+
+        return self.playbook(playbook, options)
+
 
 class Parser(object):
     def __init__(self):
@@ -493,8 +511,8 @@ def cli():  # noqa
         known_host(host)
 
     if parser.makedeploy:
-        print(f'Deploying with project role')
-        retcode = ansible.role('project')
+        print(f'Deploying project')
+        retcode = ansible.deploy()
         if retcode:
             return retcode
 
