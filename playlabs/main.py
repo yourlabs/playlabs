@@ -277,7 +277,7 @@ class Parser(object):
                 self.handle_host(arg)
             elif arg in ['init', 'deploy']:
                 self.handles[arg](None)
-            elif arg in self.primary_tokens:
+            elif arg in self.primary_tokens and not self.options:
                 self.handles[arg](args.pop(0) if args else None)
             else:
                 self.handle_vars(arg)
