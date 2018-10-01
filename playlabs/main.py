@@ -187,8 +187,15 @@ class Ansible(object):
                 loader=data_loader,
                 sources=[inventory_file_name]
             )
-            import ipdb; ipdb.set_trace()
-            print(inventory.get_groups_dict()['spark-workers'])
+            project_instance = '-'.join([
+                self.parser.options_dict['prefix'],
+                self.parser.options_dict['instance'],
+            ])
+            for group, hosts in inventory.get_groups_dict().items():
+                if project_instance in group:
+                    for host in hosts:
+                        hostvars = inventory.get_host(host).vars
+                        known_host(hostvars.get('ansible_ssh_ip', host))
             playbook = 'project.yml'
 
         return self.playbook(playbook, options)
@@ -212,6 +219,7 @@ class Parser(object):
         self.options = []
         self.password = None
         self.subvars = dict()
+        self.options_dict = dict()
 
     def handle_install(self, arg):
         if arg:
@@ -280,6 +288,7 @@ class Parser(object):
                 self.subvars[attribute] = value
             else:
                 self.options += ['-e', arg]
+                self.options_dict[arg.split('=')[0]] = arg.split('=')[1]
         else:
             self.options.append(arg)
 

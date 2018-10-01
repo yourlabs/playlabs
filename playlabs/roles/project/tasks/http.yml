@@ -3,7 +3,6 @@
 - name: Install htaccess
   when: project_htaccess and users_passwords
   tags: users
-  async: 300
   vars:
     dns: '{{ project_dns }}'
     service: '{{ project_instance }}'

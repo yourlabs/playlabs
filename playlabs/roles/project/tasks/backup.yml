@@ -4,7 +4,6 @@
   package: name=restic
 
 - name: Install backup scripts
-  async: 300
   when: project_backup_password != False
   vars:
     repo: '{{ project_backup_repo }}'
