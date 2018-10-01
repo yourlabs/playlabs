@@ -268,8 +268,8 @@ class Parser(object):
             if previous in ('-u', '--user'):
                 self.user = arg
             elif (
-                    (arg.startswith('-u') or arg.startswith('--user'))
-                    and '=' in arg
+                    (arg.startswith('-u') or arg.startswith('--user')) and
+                    '=' in arg
             ):
                 self.user = arg.split('=')[0]
 
