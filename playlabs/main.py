@@ -179,6 +179,16 @@ class Ansible(object):
             options += ['-e', f'role=project']
             playbook = 'role-all.yml'
         else:
+            from ansible.parsing.dataloader import DataLoader
+            from ansible.inventory.manager import InventoryManager
+            inventory_file_name = INVENTORY_FILE
+            data_loader = DataLoader()
+            inventory = InventoryManager(
+                loader=data_loader,
+                sources=[inventory_file_name]
+            )
+            import ipdb; ipdb.set_trace()
+            print(inventory.get_groups_dict()['spark-workers'])
             playbook = 'project.yml'
 
         return self.playbook(playbook, options)
