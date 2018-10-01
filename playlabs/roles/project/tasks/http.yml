@@ -1,11 +1,11 @@
 ---
 
 - name: Install htaccess
-  when: project_htaccess and users_passwords
+  when: project_htaccess
   tags: users
   vars:
-    dns: '{{ project_dns }}'
-    service: '{{ project_instance }}'
+    htaccess_dns: '{{ project_dns }}'
+    htaccess_service: '{{ project_instance }}'
   include_role:
     name: nginx_htpasswd
 
@@ -19,5 +19,5 @@
 - name: Configure nginx for redirects
   with_items: '{{ project_dns_redirect }}'
   copy:
-    dest: '{{ nginx_home }}vhosts.d/{{ item }}_location'
+    dest: '{{ nginx_home|default("/home/nginx/") }}vhosts.d/{{ item }}_location'
     content: rewrite ^/(.*) https://{{ project_dns }}/$1 permanent;
