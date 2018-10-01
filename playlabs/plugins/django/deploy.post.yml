@@ -14,14 +14,14 @@
   when: item['name']|vaulted_password(false) and ('superuser' in item.get('roles', {}).get(project_instance, []) or project_instance in item.get('roles', {}).get('superuser', {}))
   expect:
     timeout: 30
-    command: docker exec -it {{ project_instance }} su uwsgi -c bash -c "django-admin createsuperuser"
+    command: docker exec -it {{ project_instance }} django-admin createsuperuser
     responses:
       'Username': ["{{ item['name'] }}"]
       'Email': ["{{ item['email'] }}"]
       'Password': ["{{ item['name']|vaulted_password }}", "{{ item['name']|vaulted_password }}"]
 
 - name: How many users are in the database ?
-  shell: docker exec {{ project_instance }} su uwsgi -c bash -c "echo 'from django.conf import settings; from django.apps import apps; print(apps.get_model(settings.AUTH_USER_MODEL).objects.count())' | django-admin shell"
+  shell: docker exec {{ project_instance }} bash -c "echo 'from django.conf import settings; from django.apps import apps; print(apps.get_model(settings.AUTH_USER_MODEL).objects.count())' | django-admin shell"
   register: django_user_count
   changed_when: false
   when: users is not defined or not users
@@ -36,7 +36,7 @@
   when: not users|default([]) and django_user_count.rc == 0 and django_user_count.stdout == "0"
   expect:
     timeout: 30
-    command: docker exec -it {{ project_instance }} su uwsgi -c bash -c "django-admin createsuperuser --username {{ lookup('env', 'USER') }} --email {{ lookup('env', 'USER') }}@{{ project_dns }}"
+    command: docker exec -it {{ project_instance }} bash -c "django-admin createsuperuser --username {{ lookup('env', 'USER') }} --email {{ lookup('env', 'USER') }}@{{ project_dns }}"
     responses:
       'Password': ["{{ lookup('env', 'USER') }}", "{{ lookup('env', 'USER') }}"]
       'Bypass': ["y"]
