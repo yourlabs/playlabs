@@ -298,9 +298,18 @@ class Parser(object):
     def skip(self, arg):
         return
 
-    def parse(self, args):
+    def ssh_config(self):
         ssh = collections.OrderedDict()
 
+        ssh['ControlMaster'] = 'auto'
+        ssh['ControlPersist'] = '60s'
+        if self.user:
+            ssh['ControlPath'] = f'.ssh_control_path_{self.user}'
+        self.options += ['--ssh-extra-args', ' '.join([
+            f'-o {key}={value}' for key, value in ssh.items()
+        ])]
+
+    def parse(self, args):
         while args:
             arg = args.pop(0)
 
@@ -324,13 +333,7 @@ class Parser(object):
         if self.hosts == ['localhost']:
             self.options += ['-c', 'local']
         else:
-            ssh['ControlMaster'] = 'auto'
-            ssh['ControlPersist'] = '60s'
-            if self.user:
-                ssh['ControlPath'] = f'.ssh_control_path_{self.user}'
-            self.options += ['--ssh-extra-args', ' '.join([
-                f'-o {key}={value}' for key, value in ssh.items()
-            ])]
+            ssh_config()
 
         if self.subvars:
             self.options += ['-e', json.dumps(self.subvars)]
