@@ -195,7 +195,7 @@ class Ansible(object):
                 if project_instance in group:
                     for host in hosts:
                         hostvars = inventory.get_host(host).vars
-                        known_host(hostvars.get('ansible_ssh_ip', host))
+                        known_host(hostvars.get('ansible_ssh_host', host))
             playbook = 'project.yml'
 
         return self.playbook(playbook, options)
