@@ -301,7 +301,6 @@ class Parser(object):
     def parse(self, args):
         ssh = collections.OrderedDict()
 
-        previous = None
         while args:
             arg = args.pop(0)
 
@@ -318,9 +317,6 @@ class Parser(object):
                     self.handles[arg](args.pop(0) if args else None)
                 else:
                     self.handle_vars(arg)
-
-            previous = arg
-            
 
         if not self.user:
             self.user = os.getenv("USER")
@@ -340,7 +336,6 @@ class Parser(object):
             self.options += ['-e', json.dumps(self.subvars)]
 
         self.print()
-
 
     def print(self):
         if self.user:
