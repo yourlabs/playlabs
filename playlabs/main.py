@@ -296,7 +296,7 @@ class Parser(object):
             print(f'Options: {self.options}')
 
 
-def scaffold(target):
+def scaffold(target, source):
     if os.path.exists(target):
         print(f'Drop existing {target}?')
         if input().lower() in ['y', 'yes']:
@@ -304,16 +304,36 @@ def scaffold(target):
         else:
             print('Aborting')
             sys.exit(1)
+
     print(f'Provisioning {target}')
-    shutil.copytree(
-        os.path.join(
-            os.path.dirname(__file__),
-            'inventory_template',
-        ),
-        target,
-    )
-    # ask to confirm init maybe?
-    print(f'{target} ready ! run playlabs in there to execute')
+    if not source:
+        print(f'From inventory template')
+        shutil.copytree(
+            os.path.join(
+                os.path.dirname(__file__),
+                'inventory_template',
+            ),
+            target,
+        )
+    else:
+        print(f'From {source}')
+        key = os.getenv('SSH_PRIVATE_KEY')
+        if key:
+            print('Using SSH_PRIVATE_KEY env var')
+            with open('.ssh_private_key', 'w+') as f:
+                f.write(key)
+            os.chmod('.ssh_private_key', 0o600)
+
+            os.environ['GIT_SSH_COMMAND'] = 'ssh -i .ssh_private_key'
+
+        subprocess.check_output([
+            'git',
+            'clone',
+            source,
+            target,
+        ])
+        if os.path.exists('.ssh_private_key'):
+            os.unlink('.ssh_private_key')
 
 
 def known_host(target):
@@ -374,7 +394,7 @@ def cli():  # noqa
         sys.exit(0)
     elif sys.argv[1] == 'scaffold':
         target = os.path.abspath(sys.argv[2])
-        scaffold(target)
+        scaffold(target, sys.argv[3] if len(sys.argv) > 3 else None)
         sys.exit(0)
     commands = ['scaffold']
     parser = Parser()
