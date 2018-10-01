@@ -327,6 +327,10 @@ def scaffold(target, source):
 
             os.environ['GIT_SSH_COMMAND'] = 'ssh -i .ssh_private_key'
 
+        m = re.match('.*@([^:]*):.*', source)
+        if m:
+            known_host(m.group(1))
+
         subprocess.check_output([
             'git',
             'clone',
