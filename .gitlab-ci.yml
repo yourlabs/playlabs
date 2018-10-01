@@ -46,7 +46,7 @@ build:
 py-qa:
   stage: build
   image: yourlabs/python
-  script: flake8 --show-source --max-complexity=8 --ignore=E305 playlabs
+  script: flake8 --show-source --max-complexity=10 --ignore=E305 playlabs
 
 py-test:
   stage: test

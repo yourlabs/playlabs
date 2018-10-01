@@ -261,8 +261,18 @@ class Parser(object):
     def parse(self, args):
         ssh = collections.OrderedDict()
 
+        previous = None
         while args:
             arg = args.pop(0)
+
+            if previous in ('-u', '--user'):
+                self.user = arg
+            elif (
+                    (arg.startswith('-u') or arg.startswith('--user'))
+                    and '=' in arg
+            ):
+                self.user = arg.split('=')[0]
+
             if '@' in arg and '=' not in arg:
                 self.handle_host(arg)
             elif arg in ['init', 'deploy']:
@@ -271,6 +281,8 @@ class Parser(object):
                 self.handles[arg](args.pop(0) if args else None)
             else:
                 self.handle_vars(arg)
+
+            previous = arg
 
         if self.hosts == ['localhost']:
             self.options += ['-c', 'local']
