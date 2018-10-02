@@ -34,9 +34,6 @@
       {%- endfor %}
 
     script_content_post: |
-      {%- if project_backup_lftp_dsn|default(False) %}
-      lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}; mirror -R {{ project_home }}/restic'
-      {% endif -%}
       {% for plugin in project_plugins %}
       # playlabs/plugins/{{ plugin }}/backup.post.sh: start
       {{ lookup('template', 'plugins/' + plugin + '/backup.post.sh') }}
