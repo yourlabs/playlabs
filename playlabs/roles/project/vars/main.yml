@@ -30,7 +30,7 @@ project_home: >-
     )
   }}
 project_log_home: '{{ project_home }}/log'
-project_log_mount: '/log'
+project_log_mount: '/app/log'
 
 project_backup_home: '{{ project_home }}/backup'
 project_backup_repo: '{{ project_home }}/restic'
@@ -141,7 +141,7 @@ project_env_base:
   DEFAULT_FROM_EMAIL: '{{ hostvars[inventory_hostname].get(project_instance + "_email_from", prefix + "@" + project_dns) }}'
   ALLOWED_HOSTS: '{{ project_dns }}'
   VIRTUAL_HOST: '{{ project_dns }}{% if project_dns_redirect %},{{ project_dns_redirect|join(",") }}{% endif %}'
-  LOG: '/log'
+  LOG: '{{ project_log_mount }}'
 
 project_env: >-
   {{

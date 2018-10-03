@@ -248,8 +248,6 @@ class Parser(object):
                     self.options.append('--ask-pass')
             else:
                 self.user = left
-        else:
-            self.user = os.getenv("USER")
 
         if self.user:
             self.options += ['--user', self.user]
@@ -337,6 +335,9 @@ class Parser(object):
 
         if self.subvars:
             self.options += ['-e', json.dumps(self.subvars)]
+
+        if not getattr(self, 'user', None):
+            self.user = os.getenv('USER')
 
         self.print()
 
