@@ -15,9 +15,9 @@
 import os
 import json
 
-import pytest
-
 from playlabs.main import Parser
+
+import pytest
 
 
 @pytest.fixture
