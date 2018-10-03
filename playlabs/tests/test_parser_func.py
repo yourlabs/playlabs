@@ -13,8 +13,9 @@
 """
 
 import os
-import pytest
 import json
+
+import pytest
 
 from playlabs.main import Parser
 

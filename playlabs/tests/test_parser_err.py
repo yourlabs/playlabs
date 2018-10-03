@@ -12,9 +12,9 @@
 [LATER] host must be found either in CLI or in inventories
 """
 
-import pytest
-
 from playlabs.main import Parser
+
+import pytest
 
 
 @pytest.fixture
