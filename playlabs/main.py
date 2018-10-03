@@ -389,6 +389,25 @@ variable name cannot start neither end with "."')
         if self.options:
             print(f'Options: {self.options}')
 
+    def checksudo(self, data):
+        for user in data.get('users'):
+            if user['name'] != self.user:
+                continue
+
+            roles = user.get('roles', {})
+            if 'ssh' in roles:
+                if 'sudo' not in roles.get('ssh', []):
+                    return False
+            else:
+                return False
+        return True
+
+    def set_ssh_key(self, key):
+        with open('.ssh_private_key', 'wb+') as f:
+            f.write(key)
+        os.chmod('.ssh_private_key', 0o700)
+        self.options += ['--private-key', '.ssh_private_key']
+
 
 def scaffold(target, source):
     if os.path.exists(target):
@@ -486,6 +505,13 @@ def vault_clean(vault_pass_file, remove_vault):
         os.unlink('.vault')
 
 
+def vault_decrypt(key):
+    print('Decrypting with vault')
+    return subprocess.check_output([
+        'ansible-vault', 'view', key
+    ])
+
+
 def cli():  # noqa
     if len(sys.argv) == 1:
         print(HELP)
@@ -522,57 +548,27 @@ def cli():  # noqa
             return retcode
 
     vault_pass_file, temporary_vault = vault_prepare()
-    key = os.getenv('SSH_PRIVATE_KEY')
     if INVENTORY_DIR is not None:
+        key = os.getenv('SSH_PRIVATE_KEY')
         inventory_key = os.path.join(INVENTORY_DIR, 'keys', parser.user)
         if key:
             print('Using SSH_PRIVATE_KEY env var')
-            with open('.ssh_private_key', 'w+') as f:
-                f.write(key)
-            parser.options += ['--private-key', '.ssh_private_key']
+            parser.set_ssh_key(key)
         elif os.path.exists(inventory_key):
             print(f'Using {inventory_key}')
-            decrypt = False
             with open(inventory_key, 'r') as f:
                 for line in f.readlines():
                     if 'ANSIBLE_VAULT' in line:
-                        decrypt = True
+                        decrypted_vault = vault_decrypt(inventory_key)
+                        parser.set_ssh_key(decrypted_vault)
                         break
-            if decrypt:
-                print('Decrypting with vault')
-                out = subprocess.check_output([
-                    'ansible-vault', 'view', inventory_key
-                ])
-                with open('.ssh_private_key', 'wb+') as f:
-                    f.write(out)
-                parser.options += ['--private-key', '.ssh_private_key']
-            else:
-                print(f'Using {key}')
-                parser.options += ['--private-key', key]
 
-    if os.path.exists('.ssh_private_key'):
-        os.chmod('.ssh_private_key', 0o700)
-
-    if INVENTORY_DIR is not None:
         users_file = os.path.join(INVENTORY_DIR, 'group_vars/all/users.yml')
         if os.path.exists(users_file):
             with open(users_file, 'r') as f:
-                result = yaml.load(f.read())
+                users_data = yaml.load(f.read())
 
-            sudo = True
-            for user in result.get('users'):
-                if user['name'] != parser.user:
-                    continue
-
-                roles = user.get('roles', {})
-                if 'ssh' in roles:
-                    if 'sudo' not in roles.get('ssh', []):
-                        sudo = False
-                        break
-                else:
-                    sudo = False
-
-            if not sudo:
+            if not parser.checksudo(users_data):
                 # detect that deploy user has no sudo
                 parser.options.append('--nosudo')
 
