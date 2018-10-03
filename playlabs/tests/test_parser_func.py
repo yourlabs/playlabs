@@ -12,8 +12,8 @@
  test plugins
 """
 
-import os
 import json
+import os
 
 from playlabs.main import Parser
 
