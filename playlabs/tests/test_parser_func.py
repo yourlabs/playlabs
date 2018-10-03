@@ -148,15 +148,15 @@ def test_plugin_multi(p):
 
 
 def test_inventory_uniq(p):
-    invpath = 'test_parser_func.py'
+    invpath = '../inventory_template/inventory.yaml'
     p.parse(['-i', invpath])
     assert invpath in p.options
     assert p.options[p.options.index(invpath) - 1] == '-i'
 
 
 def test_inventory_multi(p):
-    invpath1 = 'test_parser_func.py'
-    invpath2 = 'test_parser_err.py'
+    invpath1 = '../inventory_template/inventory.yaml'
+    invpath2 = '../init.yml'
     p.parse(['-i', ','.join([invpath1, invpath2])])
     assert invpath1 in p.options
     assert p.options[p.options.index(invpath1) - 1] == '-i'
