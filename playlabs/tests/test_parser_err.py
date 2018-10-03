@@ -12,12 +12,9 @@
 [LATER] host must be found either in CLI or in inventories
 """
 
-import sys
 import pytest
 
-sys.path.append('../')
-
-from main import Parser
+from playlabs.main import Parser
 
 
 @pytest.fixture

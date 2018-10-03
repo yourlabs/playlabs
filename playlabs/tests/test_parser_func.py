@@ -13,13 +13,10 @@
 """
 
 import os
-import sys
 import pytest
 import json
 
-sys.path.append('../')
-
-from main import Parser
+from playlabs.main import Parser
 
 
 @pytest.fixture
@@ -122,7 +119,8 @@ def test_merge_vars(p):
         'test': {
             'sub': 'value1',
             'sub2': 'value2'
-            }}) in p.options
+        }
+    }) in p.options
 
 
 def test_role_uniq(p):
@@ -145,7 +143,7 @@ def test_plugin_multi(p):
     plugins = 'django,postgres,sentry'
     p.parse(['-p', plugins])
     assert f'plugins={plugins}' in p.options
-    assert p.options[p.options.index(f'plugins={plugins}')-1] == '-e'
+    assert p.options[p.options.index(f'plugins={plugins}') - 1] == '-e'
 
 
 def test_inventory_uniq(p):
