@@ -43,7 +43,7 @@ class FilterModule(object):
             'view',
             path,
         ])
-        return out.strip()
+        return out.decode('utf8').strip()
 
     def vaulted_password(self, name, default=None):
         path = os.path.join('passwords/', name)

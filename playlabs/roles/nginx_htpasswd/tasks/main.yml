@@ -9,7 +9,7 @@
         or htaccess_service in item.get('roles', {}).get('superuser', {})
     )
   htpasswd:
-    path: '{{ nginx_data }}htpasswd/{{ htaccess_dns }}'
+    path: '{{ nginx_home }}/htpasswd/{{ htaccess_dns }}'
     name: '{{ item.name }}'
     password: '{{ item.name|vaulted_password() }}'
     owner: 101
