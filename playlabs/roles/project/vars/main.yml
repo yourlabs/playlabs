@@ -134,7 +134,7 @@ project_plugins: >-
   }}
 
 project_env_base:
-  ACME_CA_URI: '{{ letsencrypt_uri }}'
+  ACME_CA_URI: '{{ project_letsencrypt_uri }}'
   PLAYLABS_PLUGINS: '{{ ",".join(project_plugins) }}'
   PLAYLABS_PREFIX: '{{ prefix }}'
   PLAYLABS_INSTANCE: '{{ instance }}'
