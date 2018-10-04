@@ -6,7 +6,7 @@
     ssh_service_name: sshd
 
 - name: Set ssh service name for Debian
-  when: ansible_os_family == 'Debian'
+  when: ansible_os_family in ('Alpine', 'Debian')
   set_fact:
     ssh_service_name: ssh
 
