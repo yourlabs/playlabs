@@ -1,6 +1,6 @@
 ---
 - name: Make home directory
-  file: path={{ project_home }} state=directory owner=root group=deploy mode=0771
+  file: path={{ project_home }} state=directory owner=root group=root mode=0771
   tags: home
 
 - name: Create log dir
