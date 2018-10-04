@@ -102,11 +102,11 @@ class Ansible(object):
         init_options_array = []
         for host in self.parser.hosts:
             options = self.parser.options + [
-                    '--inventory',
-                    f'{host},',
-                    '--limit',
-                    f'{host}',
-                ]
+                '--inventory',
+                f'{host},',
+                '--limit',
+                f'{host}',
+            ]
             init_options_array.append(['init.yml', options, False])
         return init_options_array
 
