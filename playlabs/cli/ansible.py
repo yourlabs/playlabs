@@ -5,9 +5,9 @@ import sys
 
 import sh
 
-import yaml
-
 import pexpect
+
+import yaml
 
 from .tools import known_host
 
@@ -209,10 +209,10 @@ class Ansible(object):
     def set_sudo(self):
         if INVENTORY_DIR is not None:
             users = os.path.join(
-                        INVENTORY_DIR,
-                        os.pardir,
-                        'group_vars/all/users.yml'
-                    )
+                INVENTORY_DIR,
+                os.pardir,
+                'group_vars/all/users.yml'
+            )
             if os.path.exists(users):
                 with open(users, 'r') as f:
                     users_data = yaml.load(f.read())

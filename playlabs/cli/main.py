@@ -6,8 +6,8 @@ import sys
 
 import sh
 
-from .parser import Parser
 from .ansible import Ansible
+from .parser import Parser
 from .tools import known_host
 
 LOCAL_BIN = f'{os.getenv("HOME")}/.local/bin'
