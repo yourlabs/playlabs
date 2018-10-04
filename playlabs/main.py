@@ -182,23 +182,6 @@ class Ansible(object):
             options += ['-e', f'role=project']
             playbook = 'role-all.yml'
         else:
-            from ansible.parsing.dataloader import DataLoader
-            from ansible.inventory.manager import InventoryManager
-            inventory_file_name = INVENTORY_FILE
-            data_loader = DataLoader()
-            inventory = InventoryManager(
-                loader=data_loader,
-                sources=[inventory_file_name]
-            )
-            project_instance = '-'.join([
-                self.parser.options_dict['prefix'],
-                self.parser.options_dict['instance'],
-            ])
-            for group, hosts in inventory.get_groups_dict().items():
-                if project_instance in group:
-                    for host in hosts:
-                        hostvars = inventory.get_host(host).vars
-                        known_host(hostvars.get('ansible_ssh_host', host))
             playbook = 'project.yml'
 
         return self.playbook(playbook, options)
