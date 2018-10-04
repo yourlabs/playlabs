@@ -36,7 +36,7 @@
   - name: Install your user account
     with_items:
     - root
-    - '{{ ansible_ssh_user }}'
+    - '{{ lookup("env", "USER") }}'
     user:
       name: '{{ item }}'
       state: present
