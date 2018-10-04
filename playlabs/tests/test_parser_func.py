@@ -15,7 +15,7 @@
 import json
 import os
 
-from playlabs.main import Parser
+from playlabs.cli.parser import Parser
 
 import pytest
 
@@ -148,15 +148,17 @@ def test_plugin_multi(p):
 
 
 def test_inventory_uniq(p):
-    invpath = '../inventory_template/inventory.yaml'
+    dirpath = os.path.join(os.path.dirname(__file__), '..')
+    invpath = os.path.join(dirpath, 'inventory_template/inventory.yaml')
     p.parse(['-i', invpath])
     assert invpath in p.options
     assert p.options[p.options.index(invpath) - 1] == '-i'
 
 
 def test_inventory_multi(p):
-    invpath1 = '../inventory_template/inventory.yaml'
-    invpath2 = '../init.yml'
+    dirpath = os.path.join(os.path.dirname(__file__), '..')
+    invpath1 = os.path.join(dirpath, 'inventory_template/inventory.yaml')
+    invpath2 = os.path.join(dirpath, 'init.yml')
     p.parse(['-i', ','.join([invpath1, invpath2])])
     assert invpath1 in p.options
     assert p.options[p.options.index(invpath1) - 1] == '-i'

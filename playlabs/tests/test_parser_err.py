@@ -12,7 +12,7 @@
 [LATER] host must be found either in CLI or in inventories
 """
 
-from playlabs.main import Parser
+from playlabs.cli.parser import Parser
 
 import pytest
 

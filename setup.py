@@ -30,7 +30,7 @@ setup(
     install_requires=install_reqs,
     entry_points={
         'console_scripts': [
-            'playlabs = playlabs.main:cli',
+            'playlabs = playlabs.cli.main:cli',
         ],
     },
     classifiers=[
