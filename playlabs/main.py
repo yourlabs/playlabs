@@ -76,8 +76,11 @@ class Ansible(object):
         return []
 
     def playbook(self, name, args, sudo=True):
-        if '--nosudo' in args or not getattr(self.parser, 'sudo', True):
+        if '--nosudo' in args:
             args.pop(args.index('--nosudo'))
+            sudo = False
+
+        if not getattr(self.parser, 'sudo', True):
             sudo = False
 
         if sudo:
