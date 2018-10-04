@@ -15,4 +15,7 @@ if which apt; then
 elif which pacman; then
     $sudo pacman -Sy --noconfirm
     $sudo pacman -S --noconfirm python
+elif which apk; then
+    $sudo apk update
+    $sudo apk add python
 fi

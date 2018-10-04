@@ -20,10 +20,17 @@
 
 - hosts: all
   tasks:
+  - name: Activate Alpine community and edge repositories
+    when: ansible_os_family == 'Alpine'
+    with_items:
+    - '@testing http://nl.alpinelinux.org/alpine/edge/testing'
+    - http://nl.alpinelinux.org/alpine/edge/community
+    lineinfile:
+      path: /etc/apk/repositories
+      line: '{{ item }}'
+
   - name: Install packages to add user
     package: name={{ item }}
-    async: 45
-    poll: 0
     with_items:
     - '{{ "shadow" if ansible_os_family == "Alpine" else "passwd" }}'
     - sudo
