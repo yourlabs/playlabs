@@ -1,0 +1,13 @@
+---
+
+- name: Generate random password
+  set_fact:
+    random_password: '{{ lookup("password", "/dev/null length=15 chars=ascii_letters) }}'
+
+- name: Create your superuser
+  expect:
+    timeout: 30
+    command: docker exec -it {{ project_instance }} bash -c "django-admin createsuperuser --username {{ lookup('env', 'USER') }} --email {{ lookup('env', 'USER') }}@{{ project_dns }}"
+    responses:
+      'Password': ["{{ random_password }}", "{{ random_password }}"]
+      'Bypass': ["y"]
