@@ -76,7 +76,7 @@ class Ansible(object):
         return []
 
     def playbook(self, name, args, sudo=True):
-        if '--nosudo' in args:
+        if '--nosudo' in args or not getattr(self.parser, 'sudo', True):
             args.pop(args.index('--nosudo'))
             sudo = False
 
@@ -306,7 +306,7 @@ class Parser(object):
                     (arg.startswith('-u') or arg.startswith('--user')) and
                     '=' in arg
             ):
-                self.user = arg.split('=')[0]
+                self.user = arg.split('=')[1]
 
             if '@' in arg and '=' not in arg:
                 self.handle_host(arg)
@@ -522,9 +522,7 @@ def cli():  # noqa
                 else:
                     sudo = False
 
-            if not sudo:
-                # detect that deploy user has no sudo
-                parser.options.append('--nosudo')
+            parser.sudo = sudo
 
     for host in parser.hosts:
         print(f'Adding {host} to ~/.ssh/known_hosts')
