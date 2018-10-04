@@ -54,8 +54,10 @@
 
   - name: Try to add local key local agent if any
     delegate_to: localhost
-    command: ssh-add || true
     changed_when: false
+    shell: ssh-add || /bin/true
+    args:
+      executable: /bin/bash
 
   - name: Install your ssh key
     authorized_key:
