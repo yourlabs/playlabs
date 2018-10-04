@@ -138,8 +138,8 @@ variable name cannot start neither end with "."')
 
         ssh['ControlMaster'] = 'auto'
         ssh['ControlPersist'] = '60s'
-        if self.user:
-            ssh['ControlPath'] = f'.ssh_control_path_{self.user}'
+        ssh['ControlPath'] = f'.ssh_control_path_{self.user}'
+        ssh['StrictHostKeyChecking'] = 'no'
         self.options += ['--ssh-extra-args', ' '.join([
             f'-o {key}={value}' for key, value in ssh.items()
         ])]
