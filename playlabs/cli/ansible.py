@@ -3,9 +3,9 @@ import shlex
 import subprocess
 import sys
 
-import sh
-
 import pexpect
+
+import sh
 
 import yaml
 
