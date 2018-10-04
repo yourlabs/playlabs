@@ -19,21 +19,25 @@
       'Username': ["{{ item['name'] }}"]
       'Email': ["{{ item['email'] }}"]
       'Password': ["{{ item['name']|vaulted_password }}", "{{ item['name']|vaulted_password }}"]
+- pause:
 
 - name: How many users are in the database ?
+  tags: users
   shell: docker exec {{ project_instance }} bash -c "echo 'from django.conf import settings; from django.apps import apps; print(apps.get_model(settings.AUTH_USER_MODEL).objects.count())' | django-admin shell"
   register: django_user_count
   changed_when: false
   when: users is not defined or not users
 
+- pause:
 - name: We have found no user in the database, nor in your inventory, proposing basic superuseruser creation
+  tags: users
   when: not users|default([]) and django_user_count.rc == 0 and django_user_count.stdout == "0"
   pause:
     minutes: 1
     prompt: Create a superuser with username and password of {{ lookup('env', 'USER') }} unless you abort NOW
 
 - name: Createsuperuser with your current username as username and password
-  when: not users|default([]) and django_user_count.rc == 0 and django_user_count.stdout == "0"
+  when: false and not users|default([]) and django_user_count.rc == 0 and django_user_count.stdout == "0"
   expect:
     timeout: 30
     command: docker exec -it {{ project_instance }} bash -c "django-admin createsuperuser --username {{ lookup('env', 'USER') }} --email {{ lookup('env', 'USER') }}@{{ project_dns }}"
