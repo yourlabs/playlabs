@@ -210,9 +210,9 @@ class Ansible(object):
         if INVENTORY_DIR is not None:
             users = os.path.join(
                 INVENTORY_DIR,
-                os.pardir,
                 'group_vars/all/users.yml'
             )
+            print(f'Looking for users file: {users}')
             if os.path.exists(users):
                 with open(users, 'r') as f:
                     users_data = yaml.load(f.read())
