@@ -66,7 +66,7 @@ def test_user_at_host(p):
 
 
 def test_user_pass_at_host(p):
-    p.parse(['testname4:password@testhost3'])
+    p.parse(['init', 'testname4:password@testhost3'])
     assert p.user == 'testname4'
     assert p.hosts == ['testhost3']
     assert p.password == 'password'

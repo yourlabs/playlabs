@@ -9,31 +9,36 @@ import sh
 
 import yaml
 
-
-PLAYBOOKS = os.path.join(os.path.dirname(__file__), os.pardir)
-INVENTORY_FILE = None
-INVENTORY_DIR = None
 find = [
     'inventory.yaml',
     'inventory.yml',
     'inventory/inventory.yaml',
     'inventory/inventory.yml',
 ]
-for i in find:
-    print(f'Looking for inventory file {i}')
-    if os.path.exists(i):
-        INVENTORY_FILE = i
-        break
-
-if INVENTORY_FILE:
-    INVENTORY_DIR = os.path.dirname(INVENTORY_FILE)
 
 
 class Ansible(object):
     def __init__(self, parser):
         os.environ.setdefault('ANSIBLE_STDOUT_CALLBACK', 'yaml')
+        self.commands = {
+            'init': self.init,
+            'deploy': self.deploy,
+            'install': self.install
+        }
         self.parser = parser
         self.vault = Vault()
+        self.PLAYBOOKS = os.path.join(
+            os.path.dirname(__file__),
+            os.pardir
+        )
+
+        self.INVENTORY_FILE = None
+        self.INVENTORY_DIR = None
+        for i in find:
+            if os.path.exists(i):
+                self.INVENTORY_FILE = i
+                self.INVENTORY_DIR = os.path.dirname(self.INVENTORY_FILE)
+                break
 
     def sudo(self, options):
         if '--become' not in options:
@@ -49,8 +54,8 @@ class Ansible(object):
         return options
 
     def inventory(self):
-        if INVENTORY_FILE:
-            return ['--inventory', INVENTORY_FILE]
+        if self.INVENTORY_FILE:
+            return ['--inventory', self.INVENTORY_FILE]
         return []
 
     def playbook(self, name, args, sudo=True):
@@ -66,7 +71,7 @@ class Ansible(object):
 
         cmd += self.inventory()
         cmd += args
-        cmd.append(os.path.join(PLAYBOOKS, name))
+        cmd.append(os.path.join(self.PLAYBOOKS, name))
         cmd = [shlex.quote(i) for i in cmd]
 
         print(' '.join(cmd))
@@ -93,23 +98,40 @@ class Ansible(object):
                 for i in child.read(1):
                     print(i, end='', flush=True)
 
-    def init(self, target):
-        options = [
-            '--limit',
-            f'{target}',
-            '--inventory',
-            f'{target},',
-        ]
+    def prepare_init(self):
+        init_options_array = []
+        for host in self.parser.hosts:
+            options = self.parser.options + [
+                    '--inventory',
+                    f'{host},',
+                    '--limit',
+                    f'{host}',
+                ]
+            init_options_array.append(['init.yml', options, False])
+        return init_options_array
 
-        options += self.parser.options
+    def prepare_install(self):
+        install_options_array = []
+        for role in self.parser.roles:
+            options = self.parser.options + ['-e', f'role={role}']
 
-        return self.playbook('init.yml', options, sudo=False)
+            if self.parser.hosts:
+                options += [
+                    '--inventory',
+                    ','.join(self.parser.hosts) + ',',
+                    '--limit',
+                    ','.join(self.parser.hosts) + ',',
+                ]
+                playbook = 'role-all.yml'
+            else:
+                playbook = 'role.yml'
 
-    def role(self, name):
+            install_options_array.append([playbook, options, True])
+        return install_options_array
+
+    def prepare_deploy(self):
         options = self.parser.options
         hosts = self.parser.hosts
-        options += ['-e', f'role={name}']
-
         if hosts:
             options += [
                 '--inventory',
@@ -117,11 +139,30 @@ class Ansible(object):
                 '--limit',
                 ','.join(hosts) + ',',
             ]
+            options += ['-e', f'role=project']
             playbook = 'role-all.yml'
         else:
-            playbook = 'role.yml'
+            playbook = 'project.yml'
+        return [[playbook, options, True]]
 
-        return self.playbook(playbook, options)
+    def init(self):
+        print('Initializing user (no role argument found)')
+        return self.compute(self.prepare_init)
+
+    def install(self):
+        print(f'Installing roles {",".join(self.parser.roles)}')
+        return self.compute(self.prepare_install)
+
+    def deploy(self):
+        print(f'Deploying project')
+        return self.compute(self.prepare_deploy)
+
+    def compute(self, prepare_func):
+        options_array = prepare_func()
+        for playbook, options, sudo in options_array:
+            retcode = self.playbook(playbook, options, sudo)
+            if retcode:
+                return retcode
 
     def package(self, package):
         if sh.which(package):
@@ -143,28 +184,14 @@ class Ansible(object):
             print('Passing passwords requires sshpass command')
         return res
 
-    def deploy(self):
-        options = self.parser.options
-        hosts = self.parser.hosts
-
-        if hosts:
-            options += [
-                '--inventory',
-                ','.join(hosts) + ',',
-                '--limit',
-                ','.join(hosts) + ',',
-            ]
-            options += ['-e', f'role=project']
-            playbook = 'role-all.yml'
-        else:
-            playbook = 'project.yml'
-
-        return self.playbook(playbook, options)
-
     def get_ssh_key(self):
-        if INVENTORY_DIR is not None:
+        if self.INVENTORY_DIR is not None:
             key = os.getenv('SSH_PRIVATE_KEY')
-            inv_key = os.path.join(INVENTORY_DIR, 'keys', self.parser.user)
+            inv_key = os.path.join(
+                self.INVENTORY_DIR,
+                'keys',
+                self.parser.user
+            )
             if key:
                 print('Using SSH_PRIVATE_KEY env var')
                 self.set_ssh_key(key)
@@ -188,9 +215,9 @@ class Ansible(object):
             os.unlink('.ssh_private_key')
 
     def set_sudo(self):
-        if INVENTORY_DIR is not None:
+        if self.INVENTORY_DIR is not None:
             users = os.path.join(
-                INVENTORY_DIR,
+                self.INVENTORY_DIR,
                 'group_vars/all/users.yml'
             )
             print(f'Looking for users file: {users}')

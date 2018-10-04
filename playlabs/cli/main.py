@@ -113,25 +113,10 @@ def cli():  # noqa
         print(f'Adding {host} to ~/.ssh/known_hosts')
         known_host(host)
 
-    if parser.makedeploy:
-        print(f'Deploying project')
-        retcode = ansible.deploy()
-        if retcode:
-            return retcode
+    retcode = ansible.commands[parser.action]()
+    if retcode:
+        sys.exit(retcode)
 
-    elif parser.makeinit:
-        print('Initializing user (no role argument found)')
-        for host in parser.hosts:
-            retcode = ansible.init(host)
-            if retcode:
-                sys.exit(retcode)
-
-    elif parser.makeinstall:
-        print(f'Installing roles {",".join(parser.roles)}')
-        for role in parser.roles:
-            retcode = ansible.role(role)
-            if retcode:
-                sys.exit(retcode)
     elif sys.argv[1] == 'backup':
         subprocess.call([
             'ssh',

@@ -16,14 +16,32 @@ class Parser(object):
         self.makeinstall = False
         self.makedeploy = False
         self.makeinit = False
+        self._action = None
         self._user = None
+        self._password = None
         self.roles = []
         self.hosts = []
         self.options = []
-        self.password = None
         self.subvars = dict()
         self.options_dict = dict()
         self.argcount = 0
+
+    @property
+    def action(self):
+        return self._action
+
+    @action.setter
+    def action(self, name):
+        if self._action:
+            raise Exception(
+                'Only one action can be set:\n' +
+                f'Action defined: "{self._action}"\n' +
+                f'Current action: "{name}"'
+            )
+        elif self.password and name != 'init':
+            raise Exception('Password only needed for initialization')
+        else:
+            self._action = name
 
     @property
     def user(self):
@@ -36,18 +54,28 @@ class Parser(object):
         else:
             self._user = name
 
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, value):
+        if self.action != 'init':
+            raise Exception('Password only needed for initialization')
+        else:
+            self._password = value
+
     def handle_install(self, arg):
         if arg:
-            self.makeinstall = True
             self.roles = arg.split(',')
         else:
             print('no role to install')
 
     def handle_deploy(self, arg):
-        self.makedeploy = True
+        self.action = 'deploy'
 
     def handle_init(self, arg):
-        self.makeinit = True
+        self.action = 'init'
 
     def handle_host(self, arg):
         host = arg.split('@')[-1]
@@ -175,9 +203,6 @@ variable name cannot start neither end with "."')
 
         if self.subvars:
             self.options += ['-e', json.dumps(self.subvars)]
-
-        if not self.user:
-            self.user = os.getenv('USER')
 
         self.print()
 
