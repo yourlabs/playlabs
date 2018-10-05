@@ -51,7 +51,7 @@ py-qa:
 py-test:
   stage: test
   image: $IMAGE_TAG
-  script: py.test --cov playlabs
+  script: cd playlabs/tests/ && py.test --cov playlabs
 
 ubuntu-init:
   stage: test

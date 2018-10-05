@@ -1,3 +1,5 @@
 __pycache__
 playlabs.egg-info
 *.retry
+.ssh*
+.coverage
