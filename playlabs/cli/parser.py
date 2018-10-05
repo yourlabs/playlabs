@@ -9,13 +9,15 @@ class Parser(object):
             'install': self.handle_install,
             'deploy': self.handle_deploy,
             'init': self.handle_init,
+            'scaffold': self.handle_scaffold,
+            'backup': self.handle_backup,
+            'restore': self.handle_restore,
+            'log': self.handle_log,
             '-i': self.handle_inventory,
             '-p': self.handle_plugins,
         }
+        self.argv = []
         self.primary_tokens = self.handles.keys()
-        self.makeinstall = False
-        self.makedeploy = False
-        self.makeinit = False
         self._action = None
         self._user = None
         self._password = None
@@ -65,17 +67,45 @@ class Parser(object):
         else:
             self._password = value
 
-    def handle_install(self, arg):
+    def handle_scaffold(self):
+        self.action = 'scaffold'
+        target = self.popargv()
+        if target:
+            self.options.append(target)
+        else:
+            raise Exception('No target was specified')
+
+        source = self.popargv()
+        if source:
+            self.option.append(source)
+
+    def handle_git(self):
+        self.action = 'git'
+        self.options = self.argv.copy()
+        self.argv.clear()
+
+    def handle_install(self):
+        self.action = 'install'
+        arg = self.popargv()
         if arg:
             self.roles = arg.split(',')
         else:
-            print('no role to install')
+            raise Exception('No role was specified to install')
 
-    def handle_deploy(self, arg):
+    def handle_deploy(self):
         self.action = 'deploy'
 
-    def handle_init(self, arg):
+    def handle_init(self):
         self.action = 'init'
+
+    def handle_backup(self):
+        self.action = 'backup'
+
+    def handle_restore(self):
+        self.action = 'restore'
+
+    def handle_log(self):
+        self.action = 'log'
 
     def handle_host(self, arg):
         host = arg.split('@')[-1]
@@ -94,7 +124,8 @@ class Parser(object):
         if self.user:
             self.options += ['--user', self.user]
 
-    def handle_inventory(self, arg):
+    def handle_inventory(self):
+        arg = self.popargv()
         if not arg:
             raise Exception('Inventory: missing parameter')
         for i in arg.split(','):
@@ -104,7 +135,8 @@ class Parser(object):
                 raise NameError(f'Inventory not found: {i}')
                 print(f'command line inventory {i} cannot be found')
 
-    def handle_plugins(self, arg):
+    def handle_plugins(self):
+        arg = self.popargv()
         if not arg:
             raise Exception('Plugins: missing parameter')
         plugins_path = os.path.join(os.path.dirname(__file__), '../plugins')
@@ -132,13 +164,17 @@ class Parser(object):
 
         if '=' in arg and not arg.startswith('--'):
             if arg[0] == '=' or arg[-1] == '=':
-                raise NameError(f'Wrong variable format {arg}, \
-variable definition cannot start neither end with "="')
+                raise NameError(
+                    f'Wrong variable format {arg}, ' +
+                    'variable definition cannot start neither end with "="'
+                )
             name = arg.split('=')[0]
             if '.' in name:
                 if name[0] == '.' or name[-1] == '.':
-                    raise NameError(f'Wrong variable format {name}, \
-variable name cannot start neither end with "."')
+                    raise NameError(
+                        f'Wrong variable format {name}, ' +
+                        'variable name cannot start neither end with "."'
+                    )
 
                 def setattribute(a, v):
                     if len(a) > 1:
@@ -172,37 +208,43 @@ variable name cannot start neither end with "."')
             f'-o {key}={value}' for key, value in ssh.items()
         ])]
 
-    def parse(self, args):
-        while args:
-            arg = args.pop(0)
+    def popargv(self):
+        if len(self.argv):
             self.argcount += 1
+            return self.argv.pop(0)
 
-            if arg in ('-u', '--user'):
-                self.user = args.pop(0)
-                self.argcount += 1
+    def parse(self, argv):
+        if not argv:
+            self.action = 'help'
+        else:
+            self.argv = argv
+
+        while self.argv:
+            arg = self.popargv()
+
+            if arg in self.primary_tokens:
+                self.handles[arg]()
+            elif arg in ('-u', '--user'):
+                self.user = self.popargv()
             elif arg.startswith('-u=') or arg.startswith('--user='):
                 self.user = arg.split('=')[-1]
             else:
                 if '@' in arg and '=' not in arg:
                     self.handle_host(arg)
-                elif arg in ['init', 'deploy']:
-                    self.handles[arg](None)
-                elif arg in self.primary_tokens:
-                    self.handles[arg](args.pop(0) if args else None)
-                    self.argcount += 1
                 else:
                     self.handle_vars(arg)
 
-        if not self.user:
-            self.user = os.getenv("USER")
+        if self.action in ['init', 'install', 'deploy']:
+            if not self.user:
+                self.user = os.getenv("USER")
 
-        if self.hosts == ['localhost']:
-            self.options += ['-c', 'local']
-        else:
-            self.ssh_config()
+            if self.hosts == ['localhost']:
+                self.options += ['-c', 'local']
+            else:
+                self.ssh_config()
 
-        if self.subvars:
-            self.options += ['-e', json.dumps(self.subvars)]
+            if self.subvars:
+                self.options += ['-e', json.dumps(self.subvars)]
 
         self.print()
 

@@ -14,7 +14,7 @@ _playlabs_autocomplete()
 	prevm="${COMP_WORDS[COMP_CWORD-2]}"
 
 	local opts
-	opts=('deploy' 'bootstrap' 'install' 'backup' 'restore' 'log')
+	opts=('deploy' 'init' 'scaffold' 'install' 'git' 'backup' 'restore' 'log')
 
 	for i in ${opts[*]}
 	do
@@ -26,9 +26,22 @@ _playlabs_autocomplete()
 		done
 	done
 
+
+	case "${cur:0:1}" in
+		@)
+			local hosts
+			[[ -f ${HOME}/.ssh/known_hosts ]] &&
+				hosts=`cat ${HOME}/.ssh/known_hosts | awk '{print "@"$1}'`
+			COMPREPLY=( $(compgen -W "${hosts}" -- ${cur} ) )
+			return 0
+		;;
+	esac
 	if [ "${action}" != "" ]
 	then
-		case "${prev}" in
+		case "${action}" in
+			scaffold)
+				COMPREPLY=( $(compgen -d -- ${cur}) )
+			;;
 			install)
 				local roles_path="${playlabs_path}/playlabs/roles"
 				local running="`ls -l ${roles_path} | grep "^d" | awk '{print $9}'`"
@@ -38,40 +51,19 @@ _playlabs_autocomplete()
 			deploy)
 				COMPREPLY=( $(compgen -P 'image=' -A file -- ${cur}) )
 			;;
-			image)
-				if [ $action == "deploy" ]
-				then
-					cur= $( sed -e 's/^=//' <<< $cur )
-					COMPREPLY=( $(compgen -o plusdirs -f -- ${cur}) )
-				fi
+			git)
+				((COMP_CWORD -=1))
+				COMP_WORDS=(${COMP_WORDS[@]:1})
+				__git_func_wrap __git_main ;
+				return 0
 			;;
 			*)
-				case "${prevm}" in
-					image)
-						if [ "${prev}" == "=" ]
-						then
-							COMPREPLY=( $(compgen -o plusdirs -f -- ${cur}) )
-						fi
-					;;
-					*)
-					;;
-				esac
 			;;
 		esac
 	else
 		COMPREPLY=($(compgen -W "${opts[*]}" -- ${cur}))  
 	fi
 
-	local LASTCHAR=' '
-	if [ ${#COMPREPLY[@]} = 1 ]; then
-		[ -d "$COMPREPLY" ] && LASTCHAR='/'
-		COMPREPLY=$(printf %q%s "$COMPREPLY" "$LASTCHAR")
-	else
-		for ((i=0; i < ${#COMPREPLY[@]}; i++)); do
-				[ -d "${COMPREPLY[$i]}" ] && COMPREPLY[$i]="${COMPREPLY[$i]}/"
-		done
-	fi
-	return 0
 }
 
 complete -o nospace -F _playlabs_autocomplete playlabs

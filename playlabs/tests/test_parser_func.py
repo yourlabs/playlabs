@@ -30,37 +30,37 @@ def test_parser_class_exists(p):
 
 
 def test_user_name_shortopt(p):
-    p.parse(['-u', 'testname'])
+    p.parse(['init', '-u', 'testname'])
     assert p.user == 'testname'
 
 
 def test_user_name_longopt(p):
-    p.parse(['--user', 'testname2'])
+    p.parse(['init', '--user', 'testname2'])
     assert p.user == 'testname2'
 
 
 def test_user_name_shortvar(p):
-    p.parse(['-u=testname1'])
+    p.parse(['init', '-u=testname1'])
     assert p.user == 'testname1'
 
 
 def test_user_name_longvar(p):
-    p.parse(['--user=testname2'])
+    p.parse(['init', '--user=testname2'])
     assert p.user == 'testname2'
 
 
 def test_user_default(p):
-    p.parse([])
+    p.parse(['init'])
     assert p.user == os.getenv('USER')
 
 
 def test_at_host_only(p):
-    p.parse(['@testhost'])
+    p.parse(['init', '@testhost'])
     assert p.hosts == ['testhost']
 
 
 def test_user_at_host(p):
-    p.parse(['testname3@testhost2'])
+    p.parse(['init', 'testname3@testhost2'])
     assert p.user == 'testname3'
     assert p.hosts == ['testhost2']
 
@@ -75,20 +75,20 @@ def test_user_pass_at_host(p):
 
 
 def test_localhost(p):
-    p.parse(['@localhost'])
+    p.parse(['init', '@localhost'])
     assert '-c' in p.options
     assert 'local' in p.options
     assert p.options.index('local') == p.options.index('-c') + 1
 
 
 def test_ssh_config(p):
-    p.parse(['@host'])
+    p.parse(['init', '@host'])
     assert '--ssh-extra-args' in p.options
 
 
 def test_vars(p):
     p.parse([
-        '--extra=opt',
+        'init', '--extra=opt',
         'extra-opt2',
         'extra=var'
     ])
@@ -100,13 +100,13 @@ def test_vars(p):
 
 
 def test_subvars(p):
-    p.parse(['env.testsub=value'])
+    p.parse(['init', 'env.testsub=value'])
     assert '-e' in p.options
     assert json.dumps({'env': {'testsub': 'value'}}) in p.options
 
 
 def test_deep_vars(p):
-    p.parse(['test.very.deep.var=deep'])
+    p.parse(['init', 'test.very.deep.var=deep'])
     assert json.dumps({
         'test': {
             'very': {
@@ -115,7 +115,7 @@ def test_deep_vars(p):
 
 
 def test_merge_vars(p):
-    p.parse(['test.sub=value1', 'test.sub2=value2'])
+    p.parse(['init', 'test.sub=value1', 'test.sub2=value2'])
     assert json.dumps({
         'test': {
             'sub': 'value1',
@@ -136,13 +136,13 @@ def test_role_multi(p):
 
 
 def test_plugin_uniq(p):
-    p.parse(['-p', 'django'])
+    p.parse(['init', '-p', 'django'])
     assert 'plugins=django' in p.options
 
 
 def test_plugin_multi(p):
     plugins = 'django,postgres,sentry'
-    p.parse(['-p', plugins])
+    p.parse(['init', '-p', plugins])
     assert f'plugins={plugins}' in p.options
     assert p.options[p.options.index(f'plugins={plugins}') - 1] == '-e'
 
@@ -150,7 +150,7 @@ def test_plugin_multi(p):
 def test_inventory_uniq(p):
     dirpath = os.path.join(os.path.dirname(__file__), '..')
     invpath = os.path.join(dirpath, 'inventory_template/inventory.yaml')
-    p.parse(['-i', invpath])
+    p.parse(['init', '-i', invpath])
     assert invpath in p.options
     assert p.options[p.options.index(invpath) - 1] == '-i'
 
@@ -159,7 +159,7 @@ def test_inventory_multi(p):
     dirpath = os.path.join(os.path.dirname(__file__), '..')
     invpath1 = os.path.join(dirpath, 'inventory_template/inventory.yaml')
     invpath2 = os.path.join(dirpath, 'init.yml')
-    p.parse(['-i', ','.join([invpath1, invpath2])])
+    p.parse(['init', '-i', ','.join([invpath1, invpath2])])
     assert invpath1 in p.options
     assert p.options[p.options.index(invpath1) - 1] == '-i'
     assert invpath2 in p.options
