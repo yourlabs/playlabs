@@ -81,17 +81,15 @@
       mode: 700
       state: directory
 
-  - name: Set remote_ansible_ssh_host
+  - name: Set facts for ssh connection test
     set_fact:
       remote_ansible_ssh_host: '{{ ansible_ssh_host }}'
 
-  - name: Test default ssh connection
-    delegate_to: localhost
-    shell: ssh {{ remote_ansible_ssh_host }} true
-    changed_when: false
-
 - hosts: '*'
-  roles: [ssh]
+  become: false
+  user: '{{ lookup("env", "USER") }}'
+  tasks:
+  - setup:
 
 - hosts: '*'
   tasks:
@@ -99,3 +97,6 @@
     copy:
       content: Initialized by {{ ansible_ssh_user }} {{ lookup('pipe', 'date  +\"%Y%m%d\"') }}
       dest: /etc/playlabs/initialized
+
+- hosts: '*'
+  roles: [ssh]
