@@ -7,10 +7,11 @@ RUN apk update && apk --no-cache upgrade && apk add --no-cache git bash openssh-
 
 RUN adduser -u 1000 -h /app -D app
 WORKDIR /app
+
+ADD requirements.txt /app/requirements.txt
+RUN pip3 install --no-cache -r /app/requirements.txt
+ADD . /app
+RUN pip3 install --no-cache --no-deps --editable /app
+
 USER app
 CMD playlabs
-
-ADD --chown=app:app requirements.txt /app/requirements.txt
-RUN pip3 install --no-cache --user -r /app/requirements.txt
-ADD --chown=app:app . /app
-RUN pip3 install --no-cache --user --no-deps -e /app
