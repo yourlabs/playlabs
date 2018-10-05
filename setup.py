@@ -14,7 +14,6 @@ for d in ['.local', 'share', 'bash-completion', 'completions']:
     if not os.path.exists(bashcompletion_dir):
         os.mkdir(bashcompletion_dir)
 
-
 bashcompletion_path = os.path.join(bashcompletion_dir, 'playlabs')
 shutil.copyfile('bash-completion.sh', bashcompletion_path)
 
@@ -31,7 +30,7 @@ setup(
     install_requires=install_reqs,
     entry_points={
         'console_scripts': [
-            'playlabs = playlabs.main:cli',
+            'playlabs = playlabs.cli.main:cli',
         ],
     },
     classifiers=[
