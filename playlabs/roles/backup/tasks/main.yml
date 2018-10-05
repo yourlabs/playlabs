@@ -67,8 +67,7 @@
       Description={{ unit_description }} timer
 
       [Timer]
-      OnBootSec=20m
-      OnUnitActiveSec=1d
+      OnCalendar=*-*-* 1:00:00 Europe/Paris
 
       [Install]
       WantedBy=timers.target
@@ -99,9 +98,7 @@
       Description=Prune {{ unit_description }} timer
 
       [Timer]
-      OnBootSec=20m
-      OnUnitActiveSec=1d
+      OnCalendar=*-*-* 6:00:00 Europe/Paris
 
       [Install]
       WantedBy=timers.target
-
