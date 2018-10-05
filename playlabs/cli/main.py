@@ -5,6 +5,7 @@ import sh
 
 from .ansible import Ansible
 from .clicmd import Clicmd
+from .exception import PlaylabsCliException
 from .parser import Parser
 from .ssh import Ssh
 from .tools import known_host
@@ -24,7 +25,7 @@ def cli():  # noqa
     parser = Parser()
     try:
         parser.parse(sys.argv[1:])
-    except Exception as e:
+    except PlaylabsCliException as e:
         sys.argv[parser.argcount] += '<---'
         print(f'\nError parsing command line input: {e}\n')
         print(' '.join(sys.argv) + '\n\n')
@@ -56,10 +57,10 @@ def cli():  # noqa
             for module in [clicmd, ansible, ssh]:
                 if parser.action in module.commands.keys():
                     if module.commands[parser.action]():
-                        raise Exception('Error executing command')
+                        raise PlaylabsCliException('Error executing command')
                     else:
                         break
-        except Exception as e:
+        except PlaylabsCliException as e:
             print(e)
         finally:
             ansible.unset_ssh_key()

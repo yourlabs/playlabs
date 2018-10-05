@@ -2,6 +2,8 @@ import collections
 import json
 import os
 
+from .exception import PlaylabsCliException
+
 
 class Parser(object):
     def __init__(self):
@@ -35,13 +37,15 @@ class Parser(object):
     @action.setter
     def action(self, name):
         if self._action:
-            raise Exception(
+            raise PlaylabsCliException(
                 'Only one action can be set:\n' +
                 f'Action defined: "{self._action}"\n' +
                 f'Current action: "{name}"'
             )
         elif self.password and name != 'init':
-            raise Exception('Password only needed for initialization')
+            raise PlaylabsCliException(
+                'Password only needed for initialization'
+            )
         else:
             self._action = name
 
@@ -52,7 +56,7 @@ class Parser(object):
     @user.setter
     def user(self, name):
         if self._user:
-            raise NameError('User should only be defined once')
+            raise PlaylabsCliException('User should only be defined once')
         else:
             self._user = name
 
@@ -63,7 +67,9 @@ class Parser(object):
     @password.setter
     def password(self, value):
         if self.action != 'init':
-            raise Exception('Password only needed for initialization')
+            raise PlaylabsCliException(
+                'Password only needed for initialization'
+            )
         else:
             self._password = value
 
@@ -71,13 +77,11 @@ class Parser(object):
         self.action = 'scaffold'
         target = self.popargv()
         if target:
-            self.options.append(target)
+            self.options = [target]
         else:
-            raise Exception('No target was specified')
-
-        source = self.popargv()
-        if source:
-            self.option.append(source)
+            raise PlaylabsCliException('No target was specified')
+        if len(self.argv):
+            raise PlaylabsCliException('Too many parameters')
 
     def handle_git(self):
         self.action = 'git'
@@ -90,7 +94,7 @@ class Parser(object):
         if arg:
             self.roles = arg.split(',')
         else:
-            raise Exception('No role was specified to install')
+            raise PlaylabsCliException('No role was specified to install')
 
     def handle_deploy(self):
         self.action = 'deploy'
@@ -127,18 +131,18 @@ class Parser(object):
     def handle_inventory(self):
         arg = self.popargv()
         if not arg:
-            raise Exception('Inventory: missing parameter')
+            raise PlaylabsCliException('Inventory: missing parameter')
         for i in arg.split(','):
             if os.path.exists(i):
                 self.options += ['-i', i]
             else:
-                raise NameError(f'Inventory not found: {i}')
+                raise PlaylabsCliException(f'Inventory not found: {i}')
                 print(f'command line inventory {i} cannot be found')
 
     def handle_plugins(self):
         arg = self.popargv()
         if not arg:
-            raise Exception('Plugins: missing parameter')
+            raise PlaylabsCliException('Plugins: missing parameter')
         plugins_path = os.path.join(os.path.dirname(__file__), '../plugins')
         if os.path.exists(plugins_path):
             plugins_list = os.listdir(plugins_path)
@@ -148,7 +152,7 @@ class Parser(object):
                     plugins.append(p)
                 else:
                     self.argcount += 1
-                    raise NameError(f'Plugin not found: {p}')
+                    raise PlaylabsCliException(f'Plugin not found: {p}')
             if plugins:
                 self.options.append('-e')
                 if len(plugins) > 1:
@@ -156,7 +160,9 @@ class Parser(object):
                 else:
                     self.options.append(f'plugins={plugins[0]}')
             else:  # should be useless
-                raise NameError('Plugin: "-p" found but no plugins specified')
+                raise PlaylabsCliException(
+                    'Plugin: "-p" found but no plugins specified'
+                )
 
     def handle_vars(self, arg):
         if arg == '-e':
@@ -164,14 +170,14 @@ class Parser(object):
 
         if '=' in arg and not arg.startswith('--'):
             if arg[0] == '=' or arg[-1] == '=':
-                raise NameError(
+                raise PlaylabsCliException(
                     f'Wrong variable format {arg}, ' +
                     'variable definition cannot start neither end with "="'
                 )
             name = arg.split('=')[0]
             if '.' in name:
                 if name[0] == '.' or name[-1] == '.':
-                    raise NameError(
+                    raise PlaylabsCliException(
                         f'Wrong variable format {name}, ' +
                         'variable name cannot start neither end with "."'
                     )

@@ -1,5 +1,7 @@
 import subprocess
 
+from .exception import PlaylabsCliException
+
 
 class Ssh(object):
     def __init__(self, parser):
@@ -12,9 +14,9 @@ class Ssh(object):
 
     def backup(self):
         if not self.parser.options:
-            raise Exception('Backup: Missing container')
+            raise PlaylabsCliException('Backup: Missing container')
         elif len(self.parser.options) > 1:
-            raise Exception('Backup: Too many parameters')
+            raise PlaylabsCliException('Backup: Too many parameters')
         else:
             container = self.parser.options[0]
             subproc_p = [
@@ -25,17 +27,17 @@ class Ssh(object):
             ]
             retcode = subprocess.call(subproc_p)
             if retcode == 1:
-                raise Exception(
+                raise PlaylabsCliException(
                     f'Backup: container {container} not found'
                 )
             elif retcode == 2:
-                raise Exception(
+                raise PlaylabsCliException(
                     f'Backup: restore.sh not found'
                 )
 
     def restore(self):
         if not self.parser.options:
-            raise Exception('Restore: Missing container')
+            raise PlaylabsCliException('Restore: Missing container')
         else:
             container = self.parser.options[0]
             subproc_p = [
@@ -46,19 +48,19 @@ class Ssh(object):
             ] + self.parser.options[1:]
             retcode = subprocess.call(subproc_p)
             if retcode == 1:
-                raise Exception(
+                raise PlaylabsCliException(
                     f'Restore: container {container} not found'
                 )
             elif retcode == 2:
-                raise Exception(
+                raise PlaylabsCliException(
                     f'Restore: restore.sh not found'
                 )
 
     def log(self):
         if not self.parser.options:
-            raise Exception('Log: Missing container')
+            raise PlaylabsCliException('Log: Missing container')
         elif len(self.parser.options) > 1:
-            raise Exception('Log: Too many parameters')
+            raise PlaylabsCliException('Log: Too many parameters')
         else:
             container = self.parser.options[0]
             subproc_p = [
@@ -68,6 +70,6 @@ class Ssh(object):
             ]
             retcode = subprocess.call(subproc_p)
             if retcode:
-                raise Exception(
+                raise PlaylabsCliException(
                     f'Log: container {container} not found'
                 )
