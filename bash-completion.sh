@@ -4,7 +4,7 @@ _playlabs_autocomplete()
 {
 	if [ "$playlabs_path" == '' ]
 	then
-		export playlabs_path=`pip show playlabs | grep "^Location" | awk '{print $2}'`
+		export playlabs_path=`pip3 show playlabs | grep "^Location" | awk '{print $2}'`
 	fi
 
 	local cur prev action=""
