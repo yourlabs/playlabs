@@ -1,5 +1,7 @@
 # playlabs complete script
 
+. /usr/share/bash-completion/completions/git
+
 _playlabs_autocomplete()
 {
 	if [ "$playlabs_path" == '' ]
@@ -14,7 +16,7 @@ _playlabs_autocomplete()
 	prevm="${COMP_WORDS[COMP_CWORD-2]}"
 
 	local opts
-	opts=('deploy' 'init' 'scaffold' 'install' 'git' 'backup' 'restore' 'log')
+	opts=('deploy' 'init' 'scaffold' 'install' 'git ' 'backup' 'restore' 'log')
 
 	for i in ${opts[*]}
 	do
@@ -66,4 +68,4 @@ _playlabs_autocomplete()
 
 }
 
-complete -o nospace -F _playlabs_autocomplete playlabs
+complete -F _playlabs_autocomplete playlabs
