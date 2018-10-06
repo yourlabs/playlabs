@@ -86,18 +86,14 @@ ubuntu-update:
 pypi:
   stage: release
   image: yourlabs/python
-  only: [tags]
-  script: |
-    set -eux
-    export PLAYLABS_VERSION="$CI_COMMIT_REF_NAME"
-    pip3 install twine
-    python3 setup.py sdist
-    cat <<EOF > ~/.pypirc
-    [pypi]
-    username=yourlabs
-    password=$PYPI_PASSWORD
-    EOF
-    twine upload dist/*
+  only:
+  - /^\d+\./
+  script:
+  - echo -e "[pypi]" >> ~/.pypirc
+  - echo -e "username = $PYPI_USER" >> ~/.pypirc
+  - echo -e "password = $PYPI_PASS" >> ~/.pypirc
+  - python3 setup.py sdist
+  - twine upload dist/*
 
 docker-push:
   stage: release

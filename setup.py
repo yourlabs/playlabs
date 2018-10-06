@@ -19,7 +19,7 @@ shutil.copyfile('bash-completion.sh', bashcompletion_path)
 
 setup(
     name='playlabs',
-    version=os.getenv('PLAYLABS_VERSION', 'dev'),
+    version=os.getenv('CI_COMMIT_REF_NAME', 'dev'),
     description='The obscene ansible paas distribution',
     author='James Pic',
     author_email='jamespic@gmail.com',
