@@ -74,6 +74,15 @@ def test_user_pass_at_host(p):
     assert '--ask-pass' in p.options
 
 
+def test_root_pass_at_host(p):
+    p.parse(['init', 'root:password@testhost3'])
+    assert p.user == 'root'
+    assert p.hosts == ['testhost3']
+    assert p.password == 'password'
+    assert '--ask-become-pass' not in p.options
+    assert '--ask-pass' in p.options
+
+
 def test_localhost(p):
     p.parse(['init', '@localhost'])
     assert '-c' in p.options

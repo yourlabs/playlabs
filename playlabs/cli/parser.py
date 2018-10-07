@@ -119,9 +119,12 @@ class Parser(object):
             left = arg.split('@')[0]
             if ':' in left:
                 self.user, self.password = arg.split('@')[0].split(':')
-                if '--ask-become-pass' not in self.options:
-                    self.options.append('--ask-become-pass')
+                if '--ask-pass' not in self.options:
                     self.options.append('--ask-pass')
+
+                become = '--ask-become-pass' not in self.options
+                if self.user != 'root' and become:
+                    self.options.append('--ask-become-pass')
             else:
                 self.user = left
 
