@@ -86,7 +86,7 @@ class Ansible(object):
             child.sendline(self.parser.password)
 
             if self.parser.user != 'root':
-                child.expect('SUDO password.*')
+                child.expect('BECOME password.*')
                 child.sendline(self.parser.password)
         self.interact(child)
         return child.exitstatus
