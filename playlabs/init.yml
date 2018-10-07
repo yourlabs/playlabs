@@ -52,13 +52,6 @@
       groups: sudo
       password: '*'  # disable password by setting it to "not the hash of anything"
 
-  - name: Try to add local key local agent if any
-    delegate_to: localhost
-    changed_when: false
-    shell: ssh-add || /bin/true
-    args:
-      executable: /bin/bash
-
   - name: Install your ssh key
     authorized_key:
       user: '{{ lookup("env", "USER") }}'
