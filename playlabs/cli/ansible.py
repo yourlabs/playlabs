@@ -109,7 +109,13 @@ class Ansible(object):
                 '--limit',
                 f'{host}',
             ]
-            init_options_array.append(['init.yml', options, False])
+            init_options_array.append(
+                [
+                    'init.yml',
+                    options,
+                    self.parser.user != 'root'
+                ]
+            )
         return init_options_array
 
     def prepare_install(self):
