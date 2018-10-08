@@ -8,6 +8,7 @@
     - name: '{{ project_instance }}'
     image: postgres:10
     restart_policy: always
+    log_driver: journald
     volumes:
     - '{{ project_postgres_data_home }}:{{ project_postgres_data_mount }}'
     - '{{ project_postgres_run_home }}:{{ project_postgres_run_mount }}'

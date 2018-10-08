@@ -1,6 +1,7 @@
 #!/bin/bash -eux
 docker rm -f {{ project_instance }} || echo could not rm container
 docker run -d --name {{ project_instance }} --restart unless-stopped \
+    --log-driver journald \
     {% for plugin in project_plugins %}
     {%- if 'project_' + plugin + '_docker_options' in hostvars[inventory_hostname] %}
     {{ lookup('vars', 'project_' + plugin + '_docker_options') }} \

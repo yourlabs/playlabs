@@ -12,6 +12,7 @@
     hostname: nginx-proxy
     published_ports: ['80:80', '443:443']
     restart_policy: always
+    log_driver: journald
     volumes:
     - '{{ nginx_home }}conf.d:/etc/nginx/conf.d'
     - '{{ nginx_home }}vhosts.d:/etc/nginx/vhost.d'
@@ -27,6 +28,7 @@
     image: jrcs/letsencrypt-nginx-proxy-companion
     volumes_from: [nginx-proxy]
     restart_policy: always
+    log_driver: journald
     env:
       ACME_CA_URI: '{{ letsencrypt_uri }}'
     volumes:
