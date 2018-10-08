@@ -193,24 +193,29 @@ class Ansible(object):
         return res
 
     def get_ssh_key(self):
-        if self.INVENTORY_DIR is not None:
-            key = os.getenv('SSH_PRIVATE_KEY')
+        if self.INVENTORY_DIR:
             inv_key = os.path.join(
                 self.INVENTORY_DIR,
                 'keys',
                 self.parser.user
             )
+
+            if os.path.exists(inv_key):
+                print(f'Using {inv_key}')
+
+                with open(inv_key, 'r') as f:
+                    content = f.read()
+
+                if 'ANSIBLE_VAULT' in content:
+                    decrypted_vault = self.vault.decrypt(inv_key)
+                    self.set_ssh_key(decrypted_vault)
+                else:
+                    self.set_ssh_key(inv_key)
+        else:
+            key = os.getenv('SSH_PRIVATE_KEY')
             if key:
                 print('Using SSH_PRIVATE_KEY env var')
                 self.set_ssh_key(key)
-            elif os.path.exists(inv_key):
-                print(f'Using {inv_key}')
-                with open(inv_key, 'r') as f:
-                    for line in f.readlines():
-                        if 'ANSIBLE_VAULT' in line:
-                            decrypted_vault = self.vault.decrypt(inv_key)
-                            self.set_ssh_key(decrypted_vault)
-                            break
 
     def set_ssh_key(self, key):
         with open('.ssh_private_key', 'wb+') as f:
