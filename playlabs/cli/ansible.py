@@ -219,6 +219,9 @@ class Ansible(object):
 
     def set_ssh_key(self, key):
         with open('.ssh_private_key', 'wb+') as f:
+            if isinstance(key, str):
+                print('Encoding string key to bytes with unicode')
+                key = key.encode('utf8')
             f.write(key)
         os.chmod('.ssh_private_key', 0o700)
         self.parser.options += ['--private-key', '.ssh_private_key']
