@@ -43,29 +43,28 @@ def cli():  # noqa
     retcode = 0
     if parser.password and not sh.which('sshpass'):
         retcode = ansible.package('sshpass')
+        if retcode:
+            print('Error installing sshpass')
 
-    if not retcode:
-        ansible.vault.prepare()
-        ansible.get_ssh_key()
-        ansible.set_sudo()
+    ansible.vault.prepare()
+    ansible.get_ssh_key()
+    ansible.set_sudo()
 
-        for host in parser.hosts:
-            print(f'Adding {host} to ~/.ssh/known_hosts')
-            known_host(host)
+    for host in parser.hosts:
+        print(f'Adding {host} to ~/.ssh/known_hosts')
+        known_host(host)
 
-        try:
-            for module in [clicmd, ansible, ssh]:
-                if parser.action in module.commands.keys():
-                    if module.commands[parser.action]():
-                        raise PlaylabsCliException('Error executing command')
-                    else:
-                        break
-        except PlaylabsCliException as e:
-            print(e)
-        finally:
-            ansible.unset_ssh_key()
-            ansible.vault.clean()
-    else:
-        print('Error installing sshpass')
+    try:
+        for module in [clicmd, ansible, ssh]:
+            if parser.action in module.commands.keys():
+                if module.commands[parser.action]():
+                    raise PlaylabsCliException('Error executing command')
+                else:
+                    break
+    except PlaylabsCliException as e:
+        print(e)
+    finally:
+        ansible.unset_ssh_key()
+        ansible.vault.clean()
 
     sys.exit(retcode)
