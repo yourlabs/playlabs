@@ -7,6 +7,7 @@
   when: project_backup_password != False
   vars:
     repo: '{{ project_backup_repo }}'
+    backup_lftp_dsn: '{{ project_backup_lftp_dsn }}'
     restic_password: '{{ project_backup_password }}'
     unit_name: 'backup-{{ project_instance }}'
     unit_description: '{{ project_instance }} backup'

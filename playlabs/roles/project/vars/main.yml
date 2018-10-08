@@ -45,11 +45,9 @@ project_backup_password: >-
   }}
 project_backup_lftp_dsn: >-
   {{
-    backup_lftp_dsn|default(
-        hostvars[inventory_hostname].get(
-            project_variable + '_backup_lftp_dsn',
-            false,
-        )
+    hostvars[inventory_hostname].get(
+        project_variable + '_backup_lftp_dsn',
+        false,
     )
   }}
 
