@@ -32,7 +32,7 @@
   - name: Install packages to add user
     package: name={{ item }}
     with_items:
-    - '{{ "shadow" if ansible_os_family == "Alpine" else "passwd" }}'
+    - '{{ "shadow" if ansible_os_family in ("Alpine", "Archlinux") else "passwd" }}'
     - sudo
     - bash
 
