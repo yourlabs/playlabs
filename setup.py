@@ -17,9 +17,13 @@ for d in ['.local', 'share', 'bash-completion', 'completions']:
 bashcompletion_path = os.path.join(bashcompletion_dir, 'playlabs')
 shutil.copyfile('bash-completion.sh', bashcompletion_path)
 
+
+VERSION = '@VERSION'
+
+
 setup(
     name='playlabs',
-    version=os.getenv('CI_COMMIT_REF_NAME', '999'),
+    version=VERSION if VERSION != '@VERSION' else 'dev',
     description='The obscene ansible paas distribution',
     author='James Pic',
     author_email='jamespic@gmail.com',

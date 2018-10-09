@@ -93,7 +93,7 @@ pypi:
   only:
   - /^\d+\./
   script:
-  - release
+  - VERSION=$CI_COMMIT_SHA release
 
 docker-push:
   stage: release
