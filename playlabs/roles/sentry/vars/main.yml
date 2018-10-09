@@ -1,0 +1,20 @@
+---
+
+sentry_home: /home/sentry
+sentry_env:
+  LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+  LETSENCRYPT_HOST: '{{ sentry_dns }}'
+  VIRTUAL_HOST: '{{ sentry_dns }}'
+  VIRTUAL_PORT: 9000
+  SENTRY_DB_PASSWORD: '{{ sentry_postgresql_password }}'
+  SENTRY_DB_USER: sentry
+  SENTRY_POSTGRES_HOST: sentry-postgres
+  SENTRY_REDIS_HOST: sentry-redis
+  SENTRY_SECRET_KEY: '{{ sentry_secret_key }}'
+  SENTRY_EMAIL_HOST: '172.17.0.1'
+  SENTRY_EMAIL_USER: '{{ sentry_email }}'
+  SENTRY_EMAIL_PASSWORD: ''
+  SENTRY_SERVER_EMAIL: '{{ sentry_email }}'
+  SENTRY_USE_SSL: '1'
+  GITHUB_APP_ID: '{{ sentry_github_app_id }}'
+  GITHUB_API_SECRET: '{{ sentry_github_api_secret }}'
