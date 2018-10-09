@@ -67,7 +67,7 @@
       Description={{ unit_description }} timer
 
       [Timer]
-      OnCalendar=*-*-* 1:00:00 Europe/Paris
+      OnCalendar=*-*-* 23:00:00
 
       [Install]
       WantedBy=timers.target
@@ -98,7 +98,7 @@
       Description=Prune {{ unit_description }} timer
 
       [Timer]
-      OnCalendar=*-*-* 6:00:00 Europe/Paris
+      OnCalendar=*-*-* 6:00:00
 
       [Install]
       WantedBy=timers.target
