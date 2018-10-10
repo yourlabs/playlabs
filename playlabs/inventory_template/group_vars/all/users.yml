@@ -56,3 +56,6 @@ users:
 # Playlabs will remove users in this list
 users_remove:
 - name: olduser
+
+# Name of the user that will be able to write /home/service/docker-image
+deploy_user: deploy
