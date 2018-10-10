@@ -49,8 +49,10 @@ class Clicmd(object):
                 f.write(key)
             os.chmod(self.key_path, 0o600)
 
-            os.environ['GIT_SSH_COMMAND'] = f'ssh -i {self.key_path}'
-            os.environ['GIT_SSH_COMMAND'] += '-o StrictHostKeyChecking=no'
+            os.environ['GIT_SSH_COMMAND'] = ' '.join((
+                f'ssh -i {self.key_path}',
+                '-o StrictHostKeyChecking=no'
+            ))
 
         subprocess.check_output(['git'] + self.parser.options)
 
