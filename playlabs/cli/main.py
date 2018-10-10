@@ -55,8 +55,9 @@ def cli():  # noqa
     #    known_host(host)
 
     def clean():
-        ansible.unset_ssh_key()
-        ansible.vault.clean()
+        if not os.getenv('PLAYLABS_NOCLEAN'):
+            ansible.unset_ssh_key()
+            ansible.vault.clean()
 
     for module in [clicmd, ansible, ssh]:
         if parser.action in module.commands.keys():

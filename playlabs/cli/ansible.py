@@ -74,11 +74,10 @@ class Ansible(object):
 
         cmd += self.inventory()
         cmd += args
+        if os.path.exists(self.key_path):
+            cmd += ['--private-key', self.key_path]
         cmd.append(os.path.join(self.PLAYBOOKS, name))
         cmd = [shlex.quote(i) for i in cmd]
-
-        if os.path.exists(self.key_path):
-            self.parser.options += ['--private-key', self.key_path]
 
         print(' '.join(cmd))
         res = self.spawn(cmd)
