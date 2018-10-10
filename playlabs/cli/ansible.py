@@ -75,6 +75,9 @@ class Ansible(object):
         cmd.append(os.path.join(self.PLAYBOOKS, name))
         cmd = [shlex.quote(i) for i in cmd]
 
+        if os.path.exists(self.key_path):
+            self.parser.options += ['--private-key', self.key_path]
+
         print(' '.join(cmd))
         res = self.spawn(cmd)
 
@@ -225,7 +228,6 @@ class Ansible(object):
                 key = key.encode('utf8')
             f.write(key)
         os.chmod(self.key_path, 0o700)
-        self.parser.options += ['--private-key', self.key_path]
 
     def unset_ssh_key(self):
         if os.path.exists(self.key_path):
