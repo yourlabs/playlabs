@@ -50,9 +50,10 @@ def cli():  # noqa
     ansible.get_ssh_key()
     ansible.set_sudo()
 
-    for host in parser.hosts:
-        print(f'Adding {host} to ~/.ssh/known_hosts')
-        known_host(host)
+    # we have ssh options working for that no ?
+    #for host in parser.hosts:
+    #    print(f'Adding {host} to ~/.ssh/known_hosts')
+    #    known_host(host)
 
     try:
         for module in [clicmd, ansible, ssh]:
