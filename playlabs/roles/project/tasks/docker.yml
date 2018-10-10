@@ -1,7 +1,7 @@
 ---
 
 - name: Update docker-image
-  tags: update
+  tags: update,docker-run
   copy:
     content: '{{ project_image }}'
     dest: '{{ project_home }}/docker-image'
