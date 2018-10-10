@@ -9,13 +9,19 @@ class CallbackModule(CallbackBase):
     """
     CALLBACK_VERSION = 2.0
     CALLBACK_TYPE = 'aggregate'
-    CALLBACK_NAME = 'no_hosts_match_exit_non_zero'
+    CALLBACK_NAME = 'failer'
     CALLBACK_NEEDS_WHITELIST = False
 
     def __init__(self):
         super(CallbackModule, self).__init__()
 
-    def playbook_on_stats(self, stats):
+    def v2_runner_on_unreachable(self, result):
+        sys.exit(1)
+
+    def v2_playbook_on_no_hosts_matched(self):
+        sys.exit(1)
+
+    def v2_playbook_on_stats(self, stats):
         found_stats = False
 
         for key in ['ok', 'failures', 'dark', 'changed', 'skipped']:
@@ -24,4 +30,4 @@ class CallbackModule(CallbackBase):
                 break
 
         if not found_stats:
-            sys.exit(10)
+            sys.exit(1)
