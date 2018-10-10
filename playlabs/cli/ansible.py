@@ -193,7 +193,7 @@ class Ansible(object):
         return res
 
     def get_ssh_key(self):
-        if self.INVENTORY_DIR:
+        if self.INVENTORY_DIR and self.parser.user:
             inv_key = os.path.join(
                 self.INVENTORY_DIR,
                 'keys',
