@@ -1,11 +1,17 @@
 ---
-- name: Update docker-image
-  tags: update
+
+- name: Installing docker-image
   copy:
     content: '{{ project_image }}'
     dest: '{{ project_home }}/docker-image'
     mode: 0700
     owner: '{{ deploy_user|default("root") }}'
+
+- name: Update docker-image
+  tags: update
+  shell: echo {{ project_image }} > {{ project_home }}/docker-image
+  args:
+    executable: /bin/bash
 
 - name: Update docker-run.sh
   tags: docker-run
