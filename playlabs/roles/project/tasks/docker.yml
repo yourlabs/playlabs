@@ -4,8 +4,9 @@
   template:
     src: docker-run.sh
     dest: '{{ project_home }}/docker-run.sh'
-    mode: 0744
+    mode: 0700
+    user: '{{ deploy_user|default("root") }}'
 
 - name: Execute docker-run.sh
   tags: update, docker-run
-  shell: bash -eux {{ project_home }}/docker-run.sh
+  shell: sudo {{ project_home }}/docker-run.sh
