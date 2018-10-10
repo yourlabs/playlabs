@@ -1,11 +1,19 @@
 ---
+- name: Update docker-image
+  tags: update
+  copy:
+    content: '{{ project_image }}'
+    dest: '{{ project_home }}/docker-image'
+    mode: 0700
+    owner: '{{ deploy_user|default("root") }}'
+
 - name: Update docker-run.sh
-  tags: update, docker-run
+  tags: docker-run
   template:
     src: docker-run.sh
     dest: '{{ project_home }}/docker-run.sh'
     mode: 0700
-    user: '{{ deploy_user|default("root") }}'
+    owner: root
 
 - name: Execute docker-run.sh
   tags: update, docker-run

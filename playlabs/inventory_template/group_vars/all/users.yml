@@ -37,6 +37,7 @@ users:
 - name: deploy
   sudo:
   - /home/*/backup.sh
+  - /home/*/docker-run.sh
 
 # The productowner user does not have ssh access because it does not have a
 # public key in keys/productowner.pub.

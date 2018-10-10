@@ -27,7 +27,7 @@
       echo Backing-up container logs as docker will shoot them
       docker logs {{ project_instance }} &> {{ project_log_home }}/docker.log || echo "Couldn't get logs from instance"
 
-      backup="$backup log docker-run.sh image"
+      backup="$backup log docker-run.sh docker-image"
       {% for plugin in project_plugins %}
       # playlabs/plugins/{{ plugin }}/backup.pre.sh: start
       {{ lookup('template', 'plugins/' + plugin + '/backup.pre.sh') }}
