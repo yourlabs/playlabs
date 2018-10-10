@@ -215,11 +215,13 @@ class Ansible(object):
                     self.set_ssh_key(decrypted_vault)
                 else:
                     self.set_ssh_key(inv_key)
-        else:
-            key = os.getenv('SSH_PRIVATE_KEY')
-            if key:
-                print('Using SSH_PRIVATE_KEY env var')
-                self.set_ssh_key(key)
+
+                return
+
+        key = os.getenv('SSH_PRIVATE_KEY')
+        if key:
+            print('Using SSH_PRIVATE_KEY env var')
+            self.set_ssh_key(key)
 
     def set_ssh_key(self, key):
         with open(self.key_path, 'wb+') as f:
