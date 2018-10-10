@@ -12,6 +12,7 @@ class Clicmd(object):
             'scaffold': self.scaffold,
             'git': self.git
         }
+        self.key_path = '.ssh_private_key'
 
     def help(self):
         helptext = None
@@ -44,14 +45,14 @@ class Clicmd(object):
         key = os.getenv('SSH_PRIVATE_KEY')
         if key:
             print('Using SSH_PRIVATE_KEY env var')
-            with open('.ssh_private_key', 'w+') as f:
+            with open(self.key_path, 'w+') as f:
                 f.write(key)
-            os.chmod('.ssh_private_key', 0o600)
+            os.chmod(self.key_path, 0o600)
 
-            os.environ['GIT_SSH_COMMAND'] = 'ssh -i .ssh_private_key'
+            os.environ['GIT_SSH_COMMAND'] = f'ssh -i {self.key_path}'
             os.environ['GIT_SSH_COMMAND'] += '-o StrictHostKeyChecking=no'
 
         subprocess.check_output(['git'] + self.parser.options)
 
-        if os.path.exists('.ssh_private_key'):
-            os.unlink('.ssh_private_key')
+        if os.path.exists(self.key_path):
+            os.unlink(self.key_path)
