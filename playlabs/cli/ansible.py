@@ -37,8 +37,10 @@ class Ansible(object):
         self.INVENTORY_DIR = None
         for i in find:
             if os.path.exists(i):
-                self.INVENTORY_FILE = i
-                self.INVENTORY_DIR = os.path.dirname(self.INVENTORY_FILE)
+                self.INVENTORY_FILE = os.path.abspath(i)
+                self.INVENTORY_DIR = os.path.abspath(
+                    os.path.dirname(self.INVENTORY_FILE)
+                )
                 break
 
     def sudo(self, options):
