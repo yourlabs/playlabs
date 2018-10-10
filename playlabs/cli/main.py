@@ -8,7 +8,6 @@ from .clicmd import Clicmd
 from .exception import PlaylabsCliException
 from .parser import Parser
 from .ssh import Ssh
-from .tools import known_host
 
 LOCAL_BIN = f'{os.getenv("HOME")}/.local/bin'
 LOCAL_BIN_PLAYLABS = f'{LOCAL_BIN}/playlabs'
@@ -51,7 +50,7 @@ def cli():  # noqa
     ansible.set_sudo()
 
     # we have ssh options working for that no ?
-    #for host in parser.hosts:
+    # for host in parser.hosts:
     #    print(f'Adding {host} to ~/.ssh/known_hosts')
     #    known_host(host)
 
