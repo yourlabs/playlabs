@@ -11,6 +11,7 @@ class Parser(object):
             'install': self.handle_install,
             'deploy': self.handle_deploy,
             'init': self.handle_init,
+            'git': self.handle_git,
             'scaffold': self.handle_scaffold,
             'backup': self.handle_backup,
             'restore': self.handle_restore,
@@ -85,6 +86,9 @@ class Parser(object):
 
     def handle_git(self):
         self.action = 'git'
+        # would be super sweet to prepend git@ to host name in the case of
+        # git clone, because that's the username we use on all host git
+        # services from github to git.coop
         self.options = self.argv.copy()
         self.argv.clear()
 
