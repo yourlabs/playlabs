@@ -8,6 +8,42 @@ Playlabs does not deal with HA, for HA you will need to do the ansible plugins
 yourself, or use kubernetes ... but Playlabs will do everything else, even
 configure your own sentry or kubernetes servers !
 
+DISCLAMER: maybe it even works for you, but that's far from garanteed so far.
+
+Quick start
+===========
+
+Init your ssh user with your key and secure sshd and passwordless sudo:
+
+    playlabs init root@1.2.3.4
+    # all options are ansible options are proxied
+    playlabs init @somehost --ask-become-pass
+
+Now your user can install roles:
+
+    playlabs install ssh,docker,firewall,nginx @somehost
+
+And deploy a project, examples:
+
+    playlabs @somehost deploy image=betagouv/mrs:master
+    playlabs @somehost deploy
+        image=betagouv/mrs:master
+        plugins=postgres,django,uwsgi
+        backup_password=foo
+        prefix=ybs
+        instance=hack
+        env.SECRET_KEY=itsnotasecret
+    playlabs @somehost deploy
+        prefix=testenv
+        instance=$CI_BRANCH
+        image=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+If you have that work, creating an inventory is the way to move on, wether you
+want to version configuration, add a deploy user for your CI, configure a
+secret backup password, add ssh-keys ...:
+
+    playlabs scaffold ./your-inventory
+
 Install playlabs
 ================
 
