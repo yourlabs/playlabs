@@ -31,6 +31,7 @@ class Ansible(object):
             os.path.dirname(__file__),
             os.pardir
         )
+        self.key_path = '.ssh_private_key'
 
         self.INVENTORY_FILE = None
         self.INVENTORY_DIR = None
@@ -218,17 +219,17 @@ class Ansible(object):
                 self.set_ssh_key(key)
 
     def set_ssh_key(self, key):
-        with open('.ssh_private_key', 'wb+') as f:
+        with open(self.key_path, 'wb+') as f:
             if isinstance(key, str):
                 print('Encoding string key to bytes with unicode')
                 key = key.encode('utf8')
             f.write(key)
-        os.chmod('.ssh_private_key', 0o700)
-        self.parser.options += ['--private-key', '.ssh_private_key']
+        os.chmod(self.key_path, 0o700)
+        self.parser.options += ['--private-key', self.key_path]
 
     def unset_ssh_key(self):
-        if os.path.exists('.ssh_private_key'):
-            os.unlink('.ssh_private_key')
+        if os.path.exists(self.key_path):
+            os.unlink(self.key_path)
 
     def set_sudo(self):
         if self.INVENTORY_DIR is not None:
