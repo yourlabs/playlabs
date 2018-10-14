@@ -54,6 +54,7 @@
       ExecStart={{ script_path }}
       Type=oneshot
       StandardOutput=journal
+      Environment=BACKUP_FORCE=1
 
       [Install]
       WantedBy=basic.target

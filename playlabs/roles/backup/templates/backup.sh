@@ -1,4 +1,24 @@
 #!/bin/bash
+if [ -z "$BACKUP_FORCE" ]; then
+  cat <<EOF
+This script is not safe to run multiple instances at the same time.
+You need to set the BACKUP_FORCE env var for the script to continue.
+
+Or even better, use the systemd unit, that will garantee that the
+script is not executed multiple times at the same time:
+
+    systemctl start {{ unit_name }}
+    systemctl status {{ unit_name }}
+    journalctl -fu {{ unit_name }}
+
+Now, this script will execute the following for you:
+
+  systemctl start {{ unit_name }}
+EOF
+  systemctl start backup-mrs-staging
+  exit 0
+fi
+
 set -eu
 export RESTIC_PASSWORD_FILE={{ project_home }}/.backup_password
 export backup=""
