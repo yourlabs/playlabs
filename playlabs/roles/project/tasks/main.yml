@@ -80,7 +80,7 @@
 - block:
   - name: Verify URL
     register: url_verify
-    retries: '{{ timeout|default(30) }}'
+    retries: '{{ timeout|default(60) }}'
     delay: 1
     until: url_verify.failed == false
     tags: check,update
