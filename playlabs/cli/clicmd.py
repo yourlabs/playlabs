@@ -16,7 +16,7 @@ class Clicmd(object):
 
     def help(self):
         helptext = None
-        with open(os.path.join(os.path.dirname(__file__), 'help')) as f:
+        with open(os.path.join(os.path.dirname(__file__), 'help.txt')) as f:
             helptext = f.read()
         print(helptext)
 
