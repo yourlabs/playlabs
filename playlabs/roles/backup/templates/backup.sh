@@ -7,7 +7,7 @@ You need to set the BACKUP_FORCE env var for the script to continue.
 Or even better, use the systemd unit, that will garantee that the
 script is not executed multiple times at the same time:
 
-    systemctl start {{ unit_name }}
+    systemctl start --wait {{ unit_name }}
     systemctl status {{ unit_name }}
     journalctl -fu {{ unit_name }}
 
@@ -15,11 +15,12 @@ Please upgrade to the above. Meanwhile, the script will deal with systemd for
 you.
 EOF
   set -eux
-  systemctl start {{ unit_name }}
-  while systemctl status {{ unit_name }} | grep activating; do
-    sleep 1;
-  done
-  exit 0
+  journalctl -fu {{ unit_name }} &
+  journalpid="$!"
+  systemctl start --wait {{ unit_name }}
+  retcode="$?"
+  kill $journalpid
+  exit $retcode
 fi
 
 set -eu
