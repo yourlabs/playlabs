@@ -11,11 +11,14 @@ script is not executed multiple times at the same time:
     systemctl status {{ unit_name }}
     journalctl -fu {{ unit_name }}
 
-Now, this script will execute the following for you:
-
-  systemctl start {{ unit_name }}
+Please upgrade to the above. Meanwhile, the script will deal with systemd for
+you.
 EOF
-  systemctl start backup-mrs-staging
+  set -eux
+  systemctl start {{ unit_name }}
+  while systemctl status {{ unit_name }} | grep activating; do
+    sleep 1;
+  done
   exit 0
 fi
 
