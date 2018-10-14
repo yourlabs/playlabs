@@ -23,7 +23,7 @@ VERSION = '@VERSION'
 
 setup(
     name='playlabs',
-    version=VERSION if VERSION != '@VERSION' else 'dev',
+    version=VERSION if '@' not in VERSION else 'dev',
     description='The obscene ansible paas distribution',
     author='James Pic',
     author_email='jamespic@gmail.com',
