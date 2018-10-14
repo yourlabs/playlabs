@@ -1,2 +1,2 @@
-include *.rst LICENSE
+include requirements.txt *.rst LICENSE
 recursive-include playlabs *.yml *.yaml *.sh *.rst *.html *.css *.js *.py *.po *.mo *.conf *.j2
