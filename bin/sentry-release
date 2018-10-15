@@ -1,0 +1,22 @@
+#!/bin/bash -eux
+required="SENTRY_ORG SENTRY_URL SENTRY_PROJECT SENTRY_AUTH_TOKEN VERSION STATIC_ROOT STATIC_URL"
+for i in $required; do
+  if [ -z "${!i-}" ]; then
+    echo Missing: $i env var
+    echo Aborting
+    exit 1
+  fi
+done
+
+sentry-cli releases new -p $(echo $SENTRY_PROJECT | sed 's/ / -p /g') $VERSION
+sentry-cli releases set-commits $VERSION --commit $REPO@$VERSION
+
+for i in $(find $STATIC_ROOT -type f -name '*.js' ! -name '*.test.js'); do
+  sentry-cli releases files $VERSION upload $i $STATIC_URL/${i##$STATIC_ROOT}
+done
+
+for i in $(find $STATIC_ROOT -type f -name '*.js.map'); do
+  sentry-cli releases files $VERSION upload-sourcemaps --validate $i
+done
+
+sentry-cli releases finalize $VERSION
