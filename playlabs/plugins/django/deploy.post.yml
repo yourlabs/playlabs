@@ -1,11 +1,4 @@
 ---
-- name: Install pexpect
-  when: ansible_os_family != 'Alpine'
-  package: name=python3-pexpect
-
-- name: Install pexpect
-  when: ansible_os_family == 'Alpine'
-  package: name=py3-pexpect
 
 - name: Install clilabs
   shell: docker exec --user root -it {{ project_instance }} pip3 install clilabs
