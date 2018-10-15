@@ -2,3 +2,5 @@
 project_sentry_dsn: '{{ hostvars[inventory_hostname].get(project_variable + "_sentry_dsn", None) }}'
 project_sentry_env:
   SENTRY_DSN: '{{ project_sentry_dsn }}'
+  SENTRY_URL: '{{ project_sentry_dsn|url_only }}'
+  SENTRY_ORG: sentry

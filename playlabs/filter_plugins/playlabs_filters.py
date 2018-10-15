@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from urllib.parse import urlparse
 import os
 import subprocess
 
@@ -14,7 +15,13 @@ class FilterModule(object):
             'key_pub_read': self.key_pub_read,
             'vaulted_password': self.vaulted_password,
             'vaulted_read': self.vaulted_read,
+            'url_only': self.url_only,
         }
+
+
+    def url_only(self, url):
+        o = urlparse(url)
+        return f'{o.scheme}://{o.netloc}'
 
     def key_pub_exists(self, name):
         return os.path.exists(f'keys/{name}.pub')
