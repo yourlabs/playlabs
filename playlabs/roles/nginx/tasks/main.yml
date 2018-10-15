@@ -7,6 +7,7 @@
 
 - name: Create nginx-proxy container with jwilder/nginx-proxy
   docker_container:
+    pull: true
     name: nginx-proxy
     image: jwilder/nginx-proxy
     hostname: nginx-proxy
@@ -24,6 +25,7 @@
 
 - name: Create nginx-letsencrypt container with jrcs/letsencrypt-nginx-proxy-companion
   docker_container:
+    pull: true
     name: nginx-letsencrypt
     image: jrcs/letsencrypt-nginx-proxy-companion
     volumes_from: [nginx-proxy]
