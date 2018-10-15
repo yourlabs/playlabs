@@ -7,15 +7,3 @@
     mode: 0700
     owner: '{{ project_image_uuid }}'
     group: 1000
-
-- name: Migrate project database
-  tags: [update, migrate]
-  shell: |
-    docker run --name {{ project_instance }}-migrate --rm \
-    -v {{ project_django_media_home }}:{{ project_django_media_mount }} \
-    -v {{ project_log_home }}:{{ project_log_mount }} \
-    {% for key, value in project_env.items() %}
-    -e {{ key }}='{{ value | regex_replace("\'", "\\\'") }}' \
-    {% endfor %}
-    --network {{ project_instance }} \
-    {{ project_image }} django-admin migrate --noinput

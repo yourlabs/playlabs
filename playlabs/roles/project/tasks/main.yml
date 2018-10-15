@@ -61,6 +61,17 @@
   include: plugins/{{ item }}/deploy.pre.yml
   tags: update,predeploy
 
+- name: Run image pre-deploy script if any
+  tags: [update, migrate]
+  shell: |
+    docker run --name {{ project_instance }}-pre-deploy --rm \
+    -v {{ project_log_home }}:{{ project_log_mount }} \
+    {% for key, value in project_env.items() %}
+    -e {{ key }}='{{ value | regex_replace("\'", "\\\'") }}' \
+    {% endfor %}
+    --network {{ project_instance }} \
+    {{ project_image }} bash -c '[ ! -f /app/predeploy ] || /app/predeploy'
+
 - include: docker.yml
   tags: deploy
 
