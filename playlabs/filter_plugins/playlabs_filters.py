@@ -18,7 +18,6 @@ class FilterModule(object):
             'url_only': self.url_only,
         }
 
-
     def url_only(self, url):
         o = urlparse(url)
         return f'{o.scheme}://{o.netloc}'
