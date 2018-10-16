@@ -54,22 +54,15 @@ def cli():  # noqa
     #    print(f'Adding {host} to ~/.ssh/known_hosts')
     #    known_host(host)
 
-    def clean():
-        if not os.getenv('PLAYLABS_NOCLEAN'):
-            ansible.unset_ssh_key()
-            ansible.vault.clean()
-
     for module in [clicmd, ansible, ssh]:
         if parser.action in module.commands.keys():
             try:
                 retcode = module.commands[parser.action]()
             except PlaylabsCliException as e:
+                retcode = 1
                 print(e)
-                clean()
-                sys.exit(1)
 
-            if retcode:
-                break
-
-    clean()
+    if not os.getenv('PLAYLABS_NOCLEAN'):
+        ansible.unset_ssh_key()
+        ansible.vault.clean()
     sys.exit(retcode)
