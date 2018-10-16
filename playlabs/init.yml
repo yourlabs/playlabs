@@ -58,7 +58,9 @@
     authorized_key:
       user: '{{ item }}'
       state: present
-      key: '{{ lookup("file", lookup("env", "HOME") + "/.ssh/id_rsa.pub") }}'
+      key: '{{ lookup("file", item) }}'
+    with_fileglob:
+    - '{{ lookup("env", "HOME") + "/.ssh/id_*.pub" }}'
 
   - name: Passwordless sudo for sudo group
     lineinfile:
