@@ -43,6 +43,9 @@ class Ansible(object):
                 )
                 break
 
+    def __str__(self):
+        return 'Ansible'
+
     def sudo(self, options):
         if '--become' not in options:
             options.append('--become')
@@ -85,14 +88,13 @@ class Ansible(object):
         return res
 
     def spawn(self, cmd):
-        timeout = int(os.getenv('TIMEOUT', 300))
-        child = pexpect.spawn(' '.join(cmd), encoding='utf8', timeout=timeout)
-        if self.parser.password:
-            child.expect('SSH password.*')
-            child.sendline(self.parser.password)
+        # timeout of one hour to match default ci job timeouts
+        child = pexpect.spawn(
+            ' '.join(cmd), encoding='utf8', logfile=sys.stdout, timeout=3600)
 
-            if self.parser.user != 'root':
-                child.expect('BECOME password.*')
+        if self.parser.action == 'init':
+            child.setecho(False)
+            while child.expect([pexpect.EOF, '(SSH|BECOME) password.*']):
                 child.sendline(self.parser.password)
         self.interact(child)
         return child.exitstatus
@@ -103,7 +105,7 @@ class Ansible(object):
             child.wait()
         else:
             while child.isalive():
-                for i in child.read(1):
+                for i in child.readline():
                     print(i, end='', flush=True)
 
     def prepare_init(self):
