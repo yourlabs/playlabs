@@ -85,7 +85,7 @@ class Ansible(object):
         return res
 
     def spawn(self, cmd):
-        timeout = os.getenv('TIMEOUT', 300)
+        timeout = int(os.getenv('TIMEOUT', 300))
         child = pexpect.spawn(' '.join(cmd), encoding='utf8', timeout=timeout)
         if self.parser.password:
             child.expect('SSH password.*')
