@@ -5,13 +5,6 @@ import subprocess
 BASH_PROFILE = f'{os.getenv("HOME")}/.bash_profile'
 
 
-def patch():
-    with open(BASH_PROFILE, 'a+') as f:
-        f.write(
-            'export PATH=$PATH:$HOME/.local/bin # playlabs'
-        )
-
-
 def known_host(target):
     ssh = f'{os.getenv("HOME")}/.ssh'
     if not os.path.exists(ssh):
