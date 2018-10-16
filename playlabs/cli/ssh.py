@@ -12,6 +12,25 @@ class Ssh(object):
             'log': self.log
         }
 
+    def check_retcode(self, code, c):
+        name = self.parser.action.capitalize()
+        if code == 1:
+            raise PlaylabsCliException(
+                f'{name}: container {c} not found'
+            )
+        elif code == 2:
+            raise PlaylabsCliException(
+                f'{name}: file {self.parser.action}.sh not found'
+            )
+        elif code == 255:
+            raise PlaylabsCliException(
+                f'{name}: SSH error'
+            )
+        elif code:
+            raise PlaylabsCliException(
+                f'{name}: Uknown error ({code})'
+            )
+
     def backup(self):
         if not self.parser.options:
             raise PlaylabsCliException('Backup: Missing container')
@@ -26,14 +45,7 @@ class Ssh(object):
                 f'sudo /home/{container}/backup.sh',
             ]
             retcode = subprocess.call(subproc_p)
-            if retcode == 1:
-                raise PlaylabsCliException(
-                    f'Backup: container {container} not found'
-                )
-            elif retcode == 2:
-                raise PlaylabsCliException(
-                    f'Backup: restore.sh not found'
-                )
+            self.check_retcode(retcode, container)
 
     def restore(self):
         if not self.parser.options:
@@ -47,14 +59,7 @@ class Ssh(object):
                 f'sudo /home/{container}/restore.sh',
             ] + self.parser.options[1:]
             retcode = subprocess.call(subproc_p)
-            if retcode == 1:
-                raise PlaylabsCliException(
-                    f'Restore: container {container} not found'
-                )
-            elif retcode == 2:
-                raise PlaylabsCliException(
-                    f'Restore: restore.sh not found'
-                )
+            self.check_retcode(retcode, container)
 
     def log(self):
         if not self.parser.options:
@@ -69,7 +74,4 @@ class Ssh(object):
                 f'sudo docker logs -f {container}'
             ]
             retcode = subprocess.call(subproc_p)
-            if retcode:
-                raise PlaylabsCliException(
-                    f'Log: container {container} not found'
-                )
+            self.check_retcode(retcode, container)
