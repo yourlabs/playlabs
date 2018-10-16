@@ -1,13 +1,13 @@
 #!/bin/sh -x
+sudo=""
+[ "$USER" = "root" ] || sudo=sudo
+
 if which python3; then
     if ! which python; then
-        ln -sfn $(which python3) /usr/bin/python
+        $sudo ln -sfn $(which python3) /usr/bin/python
     fi
     exit 0
 fi
-
-sudo=""
-[ "$USER" = "root" ] || sudo=sudo
 
 if which apt; then
     $sudo apt update -y
