@@ -52,11 +52,8 @@
       groups: sudo
 
   - name: Install your ssh key on your user and root
-    with_items:
-    - root
-    - '{{ lookup("env", "USER") }}'
     authorized_key:
-      user: '{{ item }}'
+      user: '{{ lookup("env", "USER") }}'
       state: present
       key: '{{ lookup("file", item) }}'
     with_fileglob:
