@@ -27,10 +27,11 @@
     project_image_env: "{{ project_image_facts['images'][0]['Config']['Env']|docker_env_dict }}"
   tags: update
 
-- set_fact:
+- name: Get plugins from image variables
+  set_fact:
     project_plugins: "{{ project_image_env.get('PLAYLABS_PLUGINS', '').split(',') }}"
   tags: update
-  when: project_plugins == []
+  when: project_plugins == [] and 'PLAYLABS_PLUGINS' in project_image_env
 
 - include: vars.yml
   tags: update

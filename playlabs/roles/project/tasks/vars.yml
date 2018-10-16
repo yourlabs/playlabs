@@ -1,5 +1,6 @@
 ---
 - name: Load vars from plugins if any plugin/vars.yml
+  when: item|length
   with_items: '{{ project_plugins }}'
   include_vars: plugins/{{ item }}/vars.yml
   tags: update,check
