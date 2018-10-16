@@ -6,6 +6,7 @@
     firewall_rules_path: /etc/iptables/iptables.rules
     firewall_packages: iptables
     firewall_service: iptables
+    service_manager: systemctl
 
 - name: Set facts for Debian
   when: ansible_os_family == 'Debian'
@@ -13,6 +14,15 @@
     firewall_rules_path: /etc/iptables/rules.v4
     firewall_packages: iptables,iptables-persistent
     firewall_service: netfilter-persistent
+    service_manager: systemctl
+
+- name: Set facts for Alpine
+  when: ansible_os_family == 'Alpine'
+  set_fact:
+    firewall_rules_path: /etc/iptables/iptables.rules
+    firewall_packages: iptables
+    firewall_service: iptables
+    service_manager: rc-service
 
 - name: Create /etc/iptables
   file:

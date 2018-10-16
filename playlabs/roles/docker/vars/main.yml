@@ -1,0 +1,5 @@
+---
+pip_package_name:
+  Alpine: python3
+  Archlinux: python-pip
+  Debian: python3-pip

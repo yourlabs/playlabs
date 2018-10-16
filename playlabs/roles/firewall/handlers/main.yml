@@ -2,11 +2,15 @@
 
 - name: Apply firewall
   notify: Restart docker
+  when: ansible_os_family != 'Alpine'
   shell: systemctl daemon-reload
 
 - name: Restart iptables
   notify: Restart docker
-  service: name={{ firewall_service }} state=restarted enabled=yes
+  service:
+    name: '{{ firewall_service }}'
+    state: restarted
+    enabled: yes
 
 - name: Restart docker
   service: name=docker state=restarted

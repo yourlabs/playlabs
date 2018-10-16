@@ -1,5 +1,9 @@
 ---
 
+- name: Set Log driver
+  set_fact:
+    log_driver: "{{ 'syslog' if ansible_os_family == 'Alpine' else 'journald' }}"
+
 - name: Install passlib library for ansible htpasswd module
   pip:
     name: passlib
@@ -9,11 +13,11 @@
   docker_container:
     pull: true
     name: nginx-proxy
-    image: jwilder/nginx-proxy
+    image: '{{ nginx_image }}'
     hostname: nginx-proxy
     published_ports: ['80:80', '443:443']
     restart_policy: always
-    log_driver: journald
+    log_driver: '{{ log_driver }}'
     volumes:
     - '{{ nginx_home }}conf.d:/etc/nginx/conf.d'
     - '{{ nginx_home }}vhosts.d:/etc/nginx/vhost.d'
@@ -30,7 +34,7 @@
     image: jrcs/letsencrypt-nginx-proxy-companion
     volumes_from: [nginx-proxy]
     restart_policy: always
-    log_driver: journald
+    log_driver: '{{ log_driver }}'
     env:
       ACME_CA_URI: '{{ letsencrypt_uri }}'
     volumes:
