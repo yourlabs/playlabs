@@ -9,7 +9,7 @@
     color: warning
     channel: '{{ project_slack_channel }}'
     msg: |
-      {{ project_instance }}: Deploying {{ project_image }} on {{ project_dns }}
+      {{ project_instance }}: {{ lookup("env", "GITLAB_USER_LOGIN") }} deploying {{ project_image }} on {{ project_dns }}
       {{ lookup("env", "CI_JOB_URL") }}
       {{ lookup("env", "CI_COMMIT_SHA") }}
       {{ lookup("env", "CI_COMMIT_MESSAGE") }}
