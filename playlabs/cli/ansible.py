@@ -90,7 +90,7 @@ class Ansible(object):
     def spawn(self, cmd):
         # timeout of one hour to match default ci job timeouts
         child = pexpect.spawn(
-            ' '.join(cmd), encoding='utf8', logfile=sys.stdout, timeout=3600)
+            ' '.join(cmd), encoding='utf8', timeout=3600)
 
         if self.parser.action == 'init':
             child.setecho(False)
