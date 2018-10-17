@@ -163,9 +163,9 @@ project_slack_token: >-
 
 project_slack_channel: >-
   {{
-    slack_token|default(
+    slack_channel|default(
         hostvars[inventory_hostname].get(
-            project_variable + '_slack_token',
+            project_variable + '_slack_channel',
             false
         )
     )
