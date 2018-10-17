@@ -150,3 +150,31 @@ project_env: >-
         )
     )
   }}
+
+project_slack_token: >-
+  {{
+    slack_token|default(
+        hostvars[inventory_hostname].get(
+            project_variable + '_slack_token',
+            false
+        )
+    )
+  }}
+
+project_slack_channel: >-
+  {{
+    slack_token|default(
+        hostvars[inventory_hostname].get(
+            project_variable + '_slack_token',
+            false
+        )
+    )
+  }}
+
+project_slack_icon: >-
+  {{
+    hostvars[inventory_hostname].get(
+        prefix + '_slack_icon',
+        false
+    )
+  }}

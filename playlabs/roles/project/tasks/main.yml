@@ -1,5 +1,13 @@
 ---
 
+- name: Hello ChatOps are you there 4 biche ?
+  when: slack_token is defined
+  slack:
+    token: '{{ project_slack_token }}'
+    msg: '{{ project_instance }}: Deploying {{ project_image }} on {{ project_dns }}'
+    username: Playlabs
+    icon_url: '{{ project_slack_icon }}'
+
 - name: Pull project image
   tags: update
   docker_image:
