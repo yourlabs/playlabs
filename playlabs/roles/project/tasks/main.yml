@@ -162,7 +162,7 @@
     until: url_verify.failed == false
     tags: check,update
     changed_when: false
-    shell: curl -I {{ "" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "-k" }} {{ url }}
+    shell: curl {% if project_htaccess %}-I {% endif %} {{ "" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "-k" }} {{ url }}
     #get_url:
     #  url: '{{ url }}'
     #  validate_certs: '{{ "yes" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "no" }}'
