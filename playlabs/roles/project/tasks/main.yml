@@ -2,6 +2,7 @@
 
 - name: Send slack message
   when: slack_token is defined
+  tags: update
   slack:
     token: '{{ project_slack_token }}'
     username: Playlabs
@@ -117,6 +118,7 @@
     #  tmp_dest: /tmp
   - name: Send slack message
     when: slack_token is defined
+    tags: update
     slack:
       token: '{{ project_slack_token }}'
       username: Playlabs
@@ -128,6 +130,7 @@
   rescue:
   - name: Send slack message
     when: slack_token is defined
+    tags: update
     slack:
       token: '{{ project_slack_token }}'
       username: Playlabs
