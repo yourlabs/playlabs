@@ -1,12 +1,16 @@
 ---
 
-- name: Hello ChatOps are you there 4 biche ?
+- name: Send slack message
   when: slack_token is defined
   slack:
     token: '{{ project_slack_token }}'
-    msg: '{{ project_instance }}: Deploying {{ project_image }} on {{ project_dns }}'
     username: Playlabs
     icon_url: '{{ project_slack_icon }}'
+    color: warning
+    msg: |
+      {{ project_instance }}: Deploying {{ project_image }} on {{ project_dns }}
+      {{ lookup("env", "CI_COMMIT_SHA") }}
+      {{ lookup("env", "CI_COMMIT_MESSAGE") }}
 
 - name: Pull project image
   tags: update
@@ -111,6 +115,26 @@
     #  validate_certs: '{{ "yes" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "no" }}'
     #  dest: /dev/null
     #  tmp_dest: /tmp
+  - name: Send slack message
+    when: slack_token is defined
+    slack:
+      token: '{{ project_slack_token }}'
+      username: Playlabs
+      icon_url: '{{ project_slack_icon }}'
+      color: good
+      msg: |
+        {{ project_instance }}: Deployment success on {{ project_dns }}
+
+  rescue:
+  - name: Send slack message
+    when: slack_token is defined
+    slack:
+      token: '{{ project_slack_token }}'
+      username: Playlabs
+      icon_url: '{{ project_slack_icon }}'
+      color: danger
+      msg: |
+        {{ project_instance }}: Deployment failure on {{ project_dns }}
 
   always:
   - name: nginx-letsencrypt application logs relevant to DNS

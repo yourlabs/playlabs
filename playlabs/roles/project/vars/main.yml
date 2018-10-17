@@ -175,6 +175,6 @@ project_slack_icon: >-
   {{
     hostvars[inventory_hostname].get(
         prefix + '_slack_icon',
-        false
+        'https://yourlabs.io/uploads/-/system/project/avatar/2/ansible-pink.png',
     )
   }}
