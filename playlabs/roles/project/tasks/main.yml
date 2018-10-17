@@ -11,6 +11,7 @@
     channel: '{{ project_slack_channel }}'
     msg: |
       {{ project_instance }}: Deploying {{ project_image }} on {{ project_dns }}
+      {{ lookup("env", "CI_JOB_URL") }}
       {{ lookup("env", "CI_COMMIT_SHA") }}
       {{ lookup("env", "CI_COMMIT_MESSAGE") }}
 
@@ -127,6 +128,7 @@
       color: good
       msg: |
         {{ project_instance }}: Deployment success on {{ project_dns }}
+        {{ lookup("env", "CI_JOB_URL") }}
 
   rescue:
   - name: Send slack message
@@ -139,6 +141,7 @@
       color: danger
       msg: |
         {{ project_instance }}: Deployment failure on {{ project_dns }}
+        {{ lookup("env", "CI_JOB_URL") }}
 
   always:
   - name: nginx-letsencrypt application logs relevant to DNS
