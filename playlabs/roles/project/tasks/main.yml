@@ -9,7 +9,7 @@
     color: warning
     channel: '{{ project_slack_channel }}'
     msg: |
-      {{ project_instance }}: {{ lookup("env", "GITLAB_USER_LOGIN") }} deploying {{ project_image }} on {{ project_dns }}
+      {{ project_instance }}: {{ lookup("env", "GITLAB_USER_LOGIN") }} deploying {{ project_image }} on {{ project_dns }} :matrix:
       {{ lookup("env", "CI_JOB_URL") }}
       {{ lookup("env", "CI_COMMIT_SHA") }}
       {{ lookup("env", "CI_COMMIT_MESSAGE") }}
@@ -68,7 +68,7 @@
     icon_url: '{{ project_slack_icon }}'
     color: warning
     channel: '{{ project_slack_channel }}'
-    msg: '{{ project_instance }}: Backup started'
+    msg: '{{ project_instance }}: Backup starting ... :blob-grin:'
 
 - name: Backup
   block:
@@ -76,17 +76,6 @@
     when: project_backup_password != False
     tags: [update, migrate, backup]
     shell: sudo {{ project_home }}/backup.sh
-
-  - name: Send backup success slack message
-    when: slack_token is defined
-    tags: update,backup
-    slack:
-      token: '{{ project_slack_token }}'
-      username: Playlabs
-      icon_url: '{{ project_slack_icon }}'
-      color: danger
-      channel: '{{ project_slack_channel }}'
-      msg: '{{ project_instance }}: Backup success, STOPPING application before update'
 
   rescue:
   - name: Send backup failed slack message
@@ -98,10 +87,22 @@
       icon_url: '{{ project_slack_icon }}'
       color: danger
       channel: '{{ project_slack_channel }}'
-      msg: '{{ project_instance }}: Backup FAILED ! aborting deploy.'
+      msg: '{{ project_instance }}: Backup FAILED ! aborting deploy ! :redlight:'
+
   - name: Abort if backup failed
     fail: msg="Backup failed"
     tags: update,backup
+
+- name: Send backup success slack message
+  when: slack_token is defined
+  tags: update,backup
+  slack:
+    token: '{{ project_slack_token }}'
+    username: Playlabs
+    icon_url: '{{ project_slack_icon }}'
+    color: danger
+    channel: '{{ project_slack_channel }}'
+    msg: '{{ project_instance }}: Backup success :blob-angel: STOPPING application before predeploy hooks and deploy ... :blob-cry:'
 
 - name: Stop container if any
   failed_when: false
@@ -138,7 +139,7 @@
     icon_url: '{{ project_slack_icon }}'
     color: good
     channel: '{{ project_slack_channel }}'
-    msg: '{{ project_instance }}: Deploy success, executing postdeploy hooks and checking deploy'
+    msg: '{{ project_instance }}: Deploy success, executing postdeploy hooks and checking deploy :redknight:'
 
 - name: Running deploy.post.yml for plugins
   with_items: '{{ project_plugins }}'
@@ -177,8 +178,8 @@
       color: good
       channel: '{{ project_slack_channel }}'
       msg: |
-        {{ project_instance }}: Checks are happy with {{ project_dns }} :joy:
-        {{ lookup("env", "CI_JOB_URL") }}
+        {{ project_instance }}: Checks are happy with {{ project_dns }} :calton: :fiesta_parrot:
+        {{ lookup("env", "CI_JOB_URL") }} :deal_with_it:
 
   rescue:
   - name: Send checks failed slack message
@@ -191,8 +192,8 @@
       color: danger
       channel: '{{ project_slack_channel }}'
       msg: |
-        {{ project_instance }}: Checks say {{ project_dns }} is not behaving !
-        Click the following for all relevant logs {{ lookup("env", "CI_JOB_URL") }}
+        {{ project_instance }}: Checks say {{ project_dns }} is not behaving :redsiren:
+        Click the following for all relevant logs {{ lookup("env", "CI_JOB_URL") }} :facepalm:
 
   always:
   - name: nginx-letsencrypt application logs relevant to DNS
