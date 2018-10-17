@@ -1,6 +1,5 @@
 ---
-
-- name: Send slack message
+- name: Send deployment start slack message
   when: slack_token is defined
   tags: update
   slack:
@@ -60,9 +59,9 @@
   docker_network:
     name: '{{ project_instance }}'
 
-- name: Send slack message
+- name: Send backup start slack message
   when: slack_token is defined
-  tags: update
+  tags: update,backup
   slack:
     token: '{{ project_slack_token }}'
     username: Playlabs
@@ -71,21 +70,38 @@
     channel: '{{ project_slack_channel }}'
     msg: '{{ project_instance }}: Backup started'
 
-- name: Execute backup
-  when: project_backup_password != False
-  tags: [update, migrate, backup]
-  shell: sudo {{ project_home }}/backup.sh
+- name: Backup
+  block:
+  - name: Execute backup
+    when: project_backup_password != False
+    tags: [update, migrate, backup]
+    shell: sudo {{ project_home }}/backup.sh
 
-- name: Send slack message
-  when: slack_token is defined
-  tags: update
-  slack:
-    token: '{{ project_slack_token }}'
-    username: Playlabs
-    icon_url: '{{ project_slack_icon }}'
-    color: warning
-    channel: '{{ project_slack_channel }}'
-    msg: '{{ project_instance }}: Backup success, stopping application before update'
+  - name: Send backup success slack message
+    when: slack_token is defined
+    tags: update,backup
+    slack:
+      token: '{{ project_slack_token }}'
+      username: Playlabs
+      icon_url: '{{ project_slack_icon }}'
+      color: warning
+      channel: '{{ project_slack_channel }}'
+      msg: '{{ project_instance }}: Backup success, stopping application before update'
+
+  rescue:
+  - name: Send backup failed slack message
+    when: slack_token is defined
+    tags: update,backup
+    slack:
+      token: '{{ project_slack_token }}'
+      username: Playlabs
+      icon_url: '{{ project_slack_icon }}'
+      color: danger
+      channel: '{{ project_slack_channel }}'
+      msg: '{{ project_instance }}: Backup FAILED ! aborting deploy.'
+  - name: Abort if backup failed
+    fail: msg="Backup failed"
+    tags: update,backup
 
 - name: Stop container if any
   failed_when: false
@@ -118,7 +134,7 @@
   include: plugins/{{ item }}/deploy.post.yml
   tags: update,postdeploy
 
-- name: Send slack message
+- name: Send deploy looks like success slack message
   when: slack_token is defined
   tags: update
   slack:
@@ -151,7 +167,7 @@
     #  validate_certs: '{{ "yes" if project_env.get("ACME_CA_URI", "") == "https://acme-v01.api.letsencrypt.org/directory" else "no" }}'
     #  dest: /dev/null
     #  tmp_dest: /tmp
-  - name: Send slack message
+  - name: Send checks success slack message
     when: slack_token is defined
     tags: update
     slack:
@@ -161,11 +177,11 @@
       color: good
       channel: '{{ project_slack_channel }}'
       msg: |
-        {{ project_instance }}: Deployment success on {{ project_dns }}
+        {{ project_instance }}: Checks are happy with {{ project_dns }} :joy:
         {{ lookup("env", "CI_JOB_URL") }}
 
   rescue:
-  - name: Send slack message
+  - name: Send checks failed slack message
     when: slack_token is defined
     tags: update
     slack:
@@ -175,8 +191,8 @@
       color: danger
       channel: '{{ project_slack_channel }}'
       msg: |
-        {{ project_instance }}: Deployment failure on {{ project_dns }}
-        {{ lookup("env", "CI_JOB_URL") }}
+        {{ project_instance }}: Checks say {{ project_dns }} is not behaving !
+        Click the following for all relevant logs {{ lookup("env", "CI_JOB_URL") }}
 
   always:
   - name: nginx-letsencrypt application logs relevant to DNS
