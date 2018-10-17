@@ -84,9 +84,9 @@
       token: '{{ project_slack_token }}'
       username: Playlabs
       icon_url: '{{ project_slack_icon }}'
-      color: warning
+      color: danger
       channel: '{{ project_slack_channel }}'
-      msg: '{{ project_instance }}: Backup success, stopping application before update'
+      msg: '{{ project_instance }}: Backup success, STOPPING application before update'
 
   rescue:
   - name: Send backup failed slack message
@@ -129,11 +129,6 @@
 - include: docker.yml
   tags: deploy
 
-- name: Running deploy.post.yml for plugins
-  with_items: '{{ project_plugins }}'
-  include: plugins/{{ item }}/deploy.post.yml
-  tags: update,postdeploy
-
 - name: Send deploy looks like success slack message
   when: slack_token is defined
   tags: update
@@ -143,7 +138,12 @@
     icon_url: '{{ project_slack_icon }}'
     color: good
     channel: '{{ project_slack_channel }}'
-    msg: '{{ project_instance }}: Deploy success, checking deploy'
+    msg: '{{ project_instance }}: Deploy success, executing postdeploy hooks and checking deploy'
+
+- name: Running deploy.post.yml for plugins
+  with_items: '{{ project_plugins }}'
+  include: plugins/{{ item }}/deploy.post.yml
+  tags: update,postdeploy
 
 - name: Set test id
   set_fact: test_id={{ ansible_date_time|to_uuid }}
