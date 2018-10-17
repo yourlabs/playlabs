@@ -88,13 +88,13 @@ class Ansible(object):
         return res
 
     def spawn(self, cmd):
-        # timeout of one hour to match default ci job timeouts
-        child = pexpect.spawn(
-            ' '.join(cmd), encoding='utf8', timeout=3600)
+        child = pexpect.spawn(' '.join(cmd), encoding='utf8', timeout=300)
+        if self.parser.password:
+            child.expect('SSH password.*')
+            child.sendline(self.parser.password)
 
-        if self.parser.action == 'init':
-            child.setecho(False)
-            while child.expect([pexpect.EOF, '(SSH|BECOME) password.*']):
+            if self.parser.user != 'root':
+                child.expect('BECOME password.*')
                 child.sendline(self.parser.password)
         self.interact(child)
         return child.exitstatus
@@ -105,7 +105,7 @@ class Ansible(object):
             child.wait()
         else:
             while child.isalive():
-                for i in child.readline():
+                for i in child.read(1):
                     print(i, end='', flush=True)
 
     def prepare_init(self):
