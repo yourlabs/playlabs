@@ -1,5 +1,5 @@
 ansible
-pexpect
+pexpect-py3-patch
 flake8
 pytest
 pytest-cov
