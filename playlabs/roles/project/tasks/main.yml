@@ -126,6 +126,7 @@
       username: Playlabs
       icon_url: '{{ project_slack_icon }}'
       color: good
+      channel: '{{ project_slack_channel }}'
       msg: |
         {{ project_instance }}: Deployment success on {{ project_dns }}
         {{ lookup("env", "CI_JOB_URL") }}
@@ -139,6 +140,7 @@
       username: Playlabs
       icon_url: '{{ project_slack_icon }}'
       color: danger
+      channel: '{{ project_slack_channel }}'
       msg: |
         {{ project_instance }}: Deployment failure on {{ project_dns }}
         {{ lookup("env", "CI_JOB_URL") }}
