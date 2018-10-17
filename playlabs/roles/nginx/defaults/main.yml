@@ -1,6 +1,7 @@
 ---
 
 nginx_home: /home/nginx/
+nginx_image: jwilder/nginx-proxy:alpine
 
 # For fake certs, no rate limit, but not a valid CA, good for testing
 # letsencrypt_uri: https://acme-staging.api.letsencrypt.org/directory
