@@ -8,6 +8,7 @@
     username: Playlabs
     icon_url: '{{ project_slack_icon }}'
     color: warning
+    channel: '{{ project_slack_channel }}'
     msg: |
       {{ project_instance }}: Deploying {{ project_image }} on {{ project_dns }}
       {{ lookup("env", "CI_COMMIT_SHA") }}
