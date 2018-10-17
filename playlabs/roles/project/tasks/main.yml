@@ -60,10 +60,32 @@
   docker_network:
     name: '{{ project_instance }}'
 
+- name: Send slack message
+  when: slack_token is defined
+  tags: update
+  slack:
+    token: '{{ project_slack_token }}'
+    username: Playlabs
+    icon_url: '{{ project_slack_icon }}'
+    color: warning
+    channel: '{{ project_slack_channel }}'
+    msg: '{{ project_instance }}: Backup started'
+
 - name: Execute backup
   when: project_backup_password != False
   tags: [update, migrate, backup]
   shell: sudo {{ project_home }}/backup.sh
+
+- name: Send slack message
+  when: slack_token is defined
+  tags: update
+  slack:
+    token: '{{ project_slack_token }}'
+    username: Playlabs
+    icon_url: '{{ project_slack_icon }}'
+    color: warning
+    channel: '{{ project_slack_channel }}'
+    msg: '{{ project_instance }}: Backup success, stopping application before update'
 
 - name: Stop container if any
   failed_when: false
@@ -95,6 +117,17 @@
   with_items: '{{ project_plugins }}'
   include: plugins/{{ item }}/deploy.post.yml
   tags: update,postdeploy
+
+- name: Send slack message
+  when: slack_token is defined
+  tags: update
+  slack:
+    token: '{{ project_slack_token }}'
+    username: Playlabs
+    icon_url: '{{ project_slack_icon }}'
+    color: good
+    channel: '{{ project_slack_channel }}'
+    msg: '{{ project_instance }}: Deploy success, checking deploy'
 
 - name: Set test id
   set_fact: test_id={{ ansible_date_time|to_uuid }}
