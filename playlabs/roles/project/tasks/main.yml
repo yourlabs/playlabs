@@ -10,7 +10,7 @@
     channel: '{{ project_slack_channel }}'
     parse: full
     msg: |
-      {{ project_instance }}: {{ lookup("env", "GITLAB_USER_LOGIN") }} deploying {{ project_image }} on {{ project_dns }} :matrix:
+      {{ project_instance }}: {{ lookup("env", "GITLAB_USER_LOGIN") }} deploying {{ project_image }} on {{ project_dns }}
       {{ lookup("env", "CI_JOB_URL") }}
       {{ lookup("env", "CI_COMMIT_SHA") }}
       {{ lookup("env", "CI_COMMIT_MESSAGE") }}
@@ -90,7 +90,7 @@
       color: danger
       parse: full
       channel: '{{ project_slack_channel }}'
-      msg: '{{ project_instance }}: Backup FAILED ! aborting deploy ! :redlight:'
+      msg: '{{ project_instance }}: Backup FAILED ! aborting deploy ! '
 
   - name: Abort if backup failed
     fail: msg="Backup failed"
@@ -144,7 +144,7 @@
     icon_url: '{{ project_slack_icon }}'
     color: good
     channel: '{{ project_slack_channel }}'
-    msg: '{{ project_instance }}: Deploy success, executing postdeploy hooks and checking deploy :redknight:'
+    msg: '{{ project_instance }}: Deploy success, executing postdeploy hooks and checking deploy '
 
 - name: Running deploy.post.yml for plugins
   with_items: '{{ project_plugins }}'
@@ -184,7 +184,7 @@
       color: good
       channel: '{{ project_slack_channel }}'
       msg: |
-        {{ project_instance }}: Checks are happy with {{ project_dns }} :calton: :fiesta_parrot:
+        {{ project_instance }}: Checks are happy with {{ project_dns }}  :fiesta_parrot:
         {{ lookup("env", "CI_JOB_URL") }} :deal_with_it:
 
   rescue:
@@ -199,8 +199,8 @@
       channel: '{{ project_slack_channel }}'
       parse: full
       msg: |
-        {{ project_instance }}: Checks say {{ project_dns }} is not behaving :redsiren:
-        Click the following for all relevant logs {{ lookup("env", "CI_JOB_URL") }} :facepalm:
+        {{ project_instance }}: Checks say {{ project_dns }} is not behaving
+        Click the following for all relevant logs {{ lookup("env", "CI_JOB_URL") }}
 
   always:
   - name: nginx-letsencrypt application logs relevant to DNS
