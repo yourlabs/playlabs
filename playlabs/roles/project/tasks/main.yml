@@ -106,14 +106,7 @@
     icon_url: '{{ project_slack_icon }}'
     color: danger
     channel: '{{ project_slack_channel }}'
-    msg: '{{ project_instance }}: Backup success STOPPING application before predeploy hooks and deploy ...'
-
-- name: Stop container if any
-  failed_when: false
-  tags: update,stop
-  docker_container:
-    name: '{{ project_instance }}'
-    state: stopped
+    msg: '{{ project_instance }}: Backup success, deploying ...'
 
 - name: Running deploy.pre.yml for plugins
   with_items: '{{ project_plugins }}'
