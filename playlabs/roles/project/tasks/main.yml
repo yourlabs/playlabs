@@ -70,7 +70,7 @@
     icon_url: '{{ project_slack_icon }}'
     color: warning
     channel: '{{ project_slack_channel }}'
-    msg: '{{ project_instance }}: Backup starting ... :blob-grin:'
+    msg: '{{ project_instance }}: Backup starting ...'
 
 - name: Backup
   block:
@@ -106,7 +106,7 @@
     icon_url: '{{ project_slack_icon }}'
     color: danger
     channel: '{{ project_slack_channel }}'
-    msg: '{{ project_instance }}: Backup success :blob-angel: STOPPING application before predeploy hooks and deploy ... :blob-cry:'
+    msg: '{{ project_instance }}: Backup success STOPPING application before predeploy hooks and deploy ...'
 
 - name: Stop container if any
   failed_when: false
@@ -184,8 +184,8 @@
       color: good
       channel: '{{ project_slack_channel }}'
       msg: |
-        {{ project_instance }}: Checks are happy with {{ project_dns }}  :fiesta_parrot:
-        {{ lookup("env", "CI_JOB_URL") }} :deal_with_it:
+        {{ project_instance }}: Checks are happy with {{ project_dns }}
+        {{ lookup("env", "CI_JOB_URL") }}
 
   rescue:
   - name: Send checks failed slack message
