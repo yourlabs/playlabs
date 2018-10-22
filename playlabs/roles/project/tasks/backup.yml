@@ -66,8 +66,7 @@
       pushd {{ project_home }}
       export RESTIC_PASSWORD_FILE=.backup_password
       export RESTIC_REPOSITORY=restic
-      cp -a $RESTIC_REPOSITORY .${RESTIC_REPOSITORY}.backup
-      restic forget --keep-last 90 --keep-daily 7 --keep-weekly 5 --keep-monthly 12 --keep-yearly 75
+      restic forget --keep-last 7 --keep-daily 7 --keep-weekly 5 --keep-monthly 12 --keep-yearly 75
       if ! restic check; then
           rm -rf $RESTIC_REPOSITORY && mv .${RESTIC_REPOSITORY}.backup $RESTIC_REPOSITORY
           exit 1
