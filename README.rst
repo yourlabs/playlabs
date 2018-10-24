@@ -13,17 +13,17 @@ DISCLAMER: maybe it even works for you, but that's far from garanteed so far.
 Quick start
 ===========
 
-Init your ssh user with your key and secure sshd and passwordless sudo:
+Init your ssh user with your key and secure sshd and passwordless sudo::
 
     playlabs init root@1.2.3.4
     # all options are ansible options are proxied
     playlabs init @somehost --ask-become-pass
 
-Now your user can install roles:
+Now your user can install roles::
 
     playlabs install ssh,docker,firewall,nginx @somehost
 
-And deploy a project, examples:
+And deploy a project, examples::
 
     playlabs @somehost deploy image=betagouv/mrs:master
     playlabs @somehost deploy
