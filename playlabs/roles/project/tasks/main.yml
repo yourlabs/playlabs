@@ -53,6 +53,7 @@
 
 - include: home.yml
 - include: http.yml
+  tags: users
 - include: backup.yml
 - include: logrotate.yml
 

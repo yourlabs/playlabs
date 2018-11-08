@@ -2,6 +2,7 @@
 
 - name: Install htaccess
   with_items: '{{ users }}'
+  tags: users
   when: >-
     item.name|vaulted_password(false)
     and (
