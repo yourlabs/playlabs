@@ -17,6 +17,7 @@ shutil.copyfile('bash-completion.sh', bashcompletion_path)
 
 setup(
     name='playlabs',
+    setup_requires='setupmeta',
     versioning='dev',
     description='The obscene ansible paas distribution',
     author='James Pic, Thomas Mignot',
