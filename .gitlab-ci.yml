@@ -90,10 +90,9 @@ ubuntu-update:
 pypi:
   stage: release
   image: yourlabs/python
-  only:
-  - /^\d+\./
-  script:
-  - VERSION=$CI_COMMIT_REF_NAME release
+  script: pypi-release
+  except:
+  - tags
 
 docker-push:
   stage: release
