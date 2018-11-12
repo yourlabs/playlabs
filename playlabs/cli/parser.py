@@ -39,9 +39,9 @@ class Parser(object):
     def action(self, name):
         if self._action:
             raise PlaylabsCliException(
-                'Only one action can be set:\n' +
-                f'Action defined: "{self._action}"\n' +
-                f'Current action: "{name}"'
+                'Only one action can be set:\n'
+                + f'Action defined: "{self._action}"\n'
+                + f'Current action: "{name}"'
             )
         elif self.password and name != 'init':
             raise PlaylabsCliException(
@@ -178,15 +178,15 @@ class Parser(object):
         if '=' in arg and not arg.startswith('--'):
             if arg[0] == '=' or arg[-1] == '=':
                 raise PlaylabsCliException(
-                    f'Wrong variable format {arg}, ' +
-                    'variable definition cannot start neither end with "="'
+                    f'Wrong variable format {arg}, '
+                    + 'variable definition cannot start neither end with "="'
                 )
             name = arg.split('=')[0]
             if '.' in name:
                 if name[0] == '.' or name[-1] == '.':
                     raise PlaylabsCliException(
-                        f'Wrong variable format {name}, ' +
-                        'variable name cannot start neither end with "."'
+                        f'Wrong variable format {name}, '
+                        + 'variable name cannot start neither end with "."'
                     )
 
                 def setattribute(a, v):
