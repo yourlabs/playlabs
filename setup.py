@@ -27,7 +27,7 @@ setup(
     license='MIT',
     entry_points={
         'console_scripts': [
-            'playlabs = playlabs.cli.main:cli',
+            'playlabs = playlabs.cli.main:_cli',
         ],
     },
     classifiers=[

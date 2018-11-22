@@ -16,7 +16,7 @@ _playlabs_autocomplete()
 	prevm="${COMP_WORDS[COMP_CWORD-2]}"
 
 	local opts
-	opts=('deploy' 'init' 'scaffold' 'install' 'git ' 'backup' 'restore' 'log')
+	opts=('deploy' 'init' 'scaffold' 'install' 'backup' 'restore' 'log')
 
 	for i in ${opts[*]}
 	do
@@ -53,17 +53,11 @@ _playlabs_autocomplete()
 			deploy)
 				COMPREPLY=( $(compgen -P 'image=' -A file -- ${cur}) )
 			;;
-			git)
-				((COMP_CWORD -=1))
-				COMP_WORDS=(${COMP_WORDS[@]:1})
-				__git_func_wrap __git_main ;
-				return 0
-			;;
 			*)
 			;;
 		esac
 	else
-		COMPREPLY=($(compgen -W "${opts[*]}" -- ${cur}))  
+		COMPREPLY=($(compgen -W "${opts[*]}" -- ${cur}))
 	fi
 
 }
