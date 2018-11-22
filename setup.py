@@ -30,6 +30,7 @@ setup(
             'playlabs = playlabs.cli.main:_cli',
         ],
     },
+    install_requires=['clitoo', 'processcontroller'],
     classifiers=[
         'Development Status :: 1 - Planning',
         'Environment :: Web Environment',
