@@ -19,12 +19,14 @@ PLAYBOOKS = os.path.join(
 INVENTORY_FILE = None
 INVENTORY_DIR = None
 
-for i in [
-            'inventory.yaml',
-            'inventory.yml',
-            'inventory/inventory.yaml',
-            'inventory/inventory.yml'
-        ]:
+find = [
+    'inventory.yaml',
+    'inventory.yml',
+    'inventory/inventory.yaml',
+    'inventory/inventory.yml'
+]
+
+for i in find:
     if os.path.exists(i):
         INVENTORY_FILE = os.path.abspath(i)
         INVENTORY_DIR = os.path.abspath(os.path.dirname(i))

@@ -74,7 +74,7 @@ class Ansible(object):
         return retcode
 
     @classmethod
-    def sudo(options):
+    def sudo(cls, options):
         if '--become' not in options:
             options.append('--become')
         if '--become-method' not in options:
