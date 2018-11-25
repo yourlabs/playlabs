@@ -124,7 +124,8 @@
       {% for key, value in project_env.items() %}
       -e {{ key }}='{{ value | regex_replace("\'", "\\\'") }}' \
       {% endfor %}
-      --network {{ project_instance }}
+      --network {{ project_instance }} \
+      {{ project_image }} \
 
 - name: Run image pre-deploy script if any
   tags: [update, migrate]
