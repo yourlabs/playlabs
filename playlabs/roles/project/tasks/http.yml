@@ -15,6 +15,15 @@
     content: |
       client_max_body_size 10M;
       client_body_buffer_size 10M;
+      {% if 'STATIC_ROOT' in project_image_env and 'STATIC_URL' in project_image_env %}
+      location {{ project_image_env['STATIC_URL'] }} {{ '{' }}
+        root {{ project_image_env['STATIC_ROOT'] }};
+        gzip on;
+        {% if 'STATIC_EXPIRES' in project_image_env %}
+        expires {{ project_image_env['STATIC_EXPIRES'] }};
+        {% endif %}
+      {{ '}' }}
+      {% endif %}
 
 - name: Configure nginx for redirects
   with_items: '{{ project_dns_redirect }}'
