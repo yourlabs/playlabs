@@ -109,11 +109,6 @@
     channel: '{{ project_slack_channel }}'
     msg: '{{ project_instance }}: Backup success, deploying ...'
 
-- name: Running deploy.pre.yml for plugins
-  with_items: '{{ project_plugins }}'
-  include: plugins/{{ item }}/deploy.pre.yml
-  tags: update,predeploy
-
 - name: Define the project_exec variable
   tags: [check, update, users, migrate]
   set_fact:
@@ -126,6 +121,11 @@
       {% endfor %}
       --network {{ project_instance }} \
       {{ project_image }} \
+
+- name: Running deploy.pre.yml for plugins
+  with_items: '{{ project_plugins }}'
+  include: plugins/{{ item }}/deploy.pre.yml
+  tags: update,predeploy
 
 - name: Run image pre-deploy script if any
   tags: [update, migrate]

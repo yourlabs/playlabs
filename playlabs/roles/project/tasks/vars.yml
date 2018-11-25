@@ -11,6 +11,11 @@
   set_fact:
     project_env: '{{ lookup("vars", "project_" + item + "_env")|combine(project_env) }}'
 
+- name: Combine project_image_env into project_env
+  tags: update,check
+  set_fact:
+    project_env: '{{ project_env|combine(project_image_env) }}'
+
 - name: Configure letsencrypt variable if email is provided
   when: project_letsencrypt_email != ''
   tags: update,check
