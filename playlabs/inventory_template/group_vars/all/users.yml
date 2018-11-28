@@ -1,16 +1,20 @@
 ---
-# This is the reason why you want CI on your inventory script: to auto-update
-# user accounts with `playlabs install ssh`, every time a change to this file
-# is pushed.
-
-users:
-# Your user, all permissions, generate password for htaccess and all http
-# services with:
+# This YAML document defines a list of users for playlabs ansible playbooks.
+# You can have an automated job that will update users for example with
+# `playlabs install ssh` and then users will get their credentials deployed on
+# git push.
+#
+# You need the ansible vault password in cleartext a file that will not be
+# tracked in git to edit secret variables such as passwords. You should create
+# this file with the ``.vault`` name at the root of your inventory repository
+# clone then you can use ansible-vault commands with the ``--vault-id .vault``
+# argument ie.::
 #
 #     echo -n your password | ansible-vault encrypt --vault-id .vault > passwords/hacker
-#
-# The reason we don't keep passwords in the users variable is to avoid
-# unintended leaking.
+#     ansible-vault view --vault-id .vault passwords/hacker
+#     ansible-vault rekey --vault-id .vault passwords/hacker
+
+users:
 - name: hacker
   email: hacker1337@example.pcom
   roles:
