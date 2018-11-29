@@ -38,10 +38,15 @@ SSH Public key
 --------------
 
 Playlabs will use the SSH key it finds in the ``keys/`` inventory of the
-inventory repository. You can set it up as such::
+inventory repository. You can set it up as such:
+
+.. code-block:: bash
 
     # generate a key if you don't have any
     ssh-keygen -t ed25519 -a 100
+
+    # create a branch for adding your user
+    git checkout -b $USER
 
     # copy the public key to the keys subdirectory of the inventory repo
     # if you have generated your key with the above it will be
@@ -49,6 +54,8 @@ inventory repository. You can set it up as such::
 
     # add to the inventory repository
     git add keys/$USER
+
+Then, read on the adding your user to the user list.
 
 YAML user list
 --------------
@@ -64,6 +71,39 @@ use your local username if you want to have a nicer playlabs experience.
         email: your@email.com
         roles:
           ssh: sudo
+
+Add your modification with git and push it in a branch, then you can create a
+merge request on gitlab or whatever you use, ie:
+
+.. code-block:: bash
+
+    git add -p group_vars/all/users.yml
+    git commit -m "Add $USER"
+    git push origin $USER
+
+Removing users
+==============
+
+To remove a user, remove it from the ``users`` variables and then add its
+username to the ``users_remove`` list of ``group_vars/all/users.yml`` ie.:
+
+.. code-block:: yaml
+
+    users_remove:
+    - usernametodelete
+
+Applying users
+==============
+
+To apply users, you can run the ``playlabs install ssh @host`` command that
+will execute the SSH role, setting up the SSH users.
+
+If you already have a host ``inventory.yml`` then you don't need to specify the
+hosts on the command line: all hosts that are in the ssh group will benefit
+from a ``playlabs install ssh`` call.
+
+The convention accross playlabs is to have a tag named ``users`` so that we can
+also run roles partially in order to only update users with little efforts.
 
 Reference
 =========
