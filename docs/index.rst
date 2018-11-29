@@ -10,10 +10,12 @@ Welcome to Playlabs's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   readme
+   cli
+   inventory
    users
    hosts
    projects
-   readme
 
 Indices and tables
 ==================
