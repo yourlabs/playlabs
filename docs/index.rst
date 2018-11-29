@@ -11,11 +11,11 @@ Welcome to Playlabs's documentation!
    :caption: Contents:
 
    readme
-   cli
-   inventory
    users
    hosts
+   inventory
    projects
+   cli
 
 Indices and tables
 ==================
