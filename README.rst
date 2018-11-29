@@ -10,14 +10,32 @@ configure your own sentry or kubernetes servers !
 
 DISCLAMER: maybe it even works for you, but that's far from garanteed so far.
 
+Install playlabs
+================
+
+Install with::
+
+    pip3 install --user -e git+https://yourlabs.io/oss/playlabs#egg=playlabs
+
+Run the ansible-playbook wrapper command without argument to see the quick
+getting started commands::
+
+    ~/.local/bin/playlabs
+
 Quick start
 ===========
 
-Init your ssh user with your key and secure sshd and passwordless sudo::
+You have a new host and you need your user to be installed with your public
+key, passwordless sudo, and secure SSH. The first command to run on a new host
+is ``playlabs init``, ie.::
 
     playlabs init root@1.2.3.4
+
     # all options are ansible options are proxied
     playlabs init @somehost --ask-become-pass
+
+    # example with a typical openstack vm
+    playlabs init ubuntu@somehost --ask-become-pass
 
 Now your user can install roles::
 
@@ -40,23 +58,15 @@ And deploy a project, examples::
 
 If you have that work, creating an inventory is the way to move on, wether you
 want to version configuration, add a deploy user for your CI, configure a
-secret backup password, add ssh-keys ...:
+secret backup password, add ssh-keys ...::
 
     playlabs scaffold ./your-inventory
 
-Install playlabs
-================
+Read on this README for gory details if you are already an Ansible user and
+only need to know about the patterns we're using playlabs for.
 
-Install with::
-
-    pip3 install --user -e git+https://yourlabs.io/oss/playlabs#egg=playlabs
-
-Run the ansible-playbook wrapper command without argument to see the quick
-getting started commands::
-
-    ~/.local/bin/playlabs
-
-Read the following for more gory details.
+A more extensive and user-friendly documentation is in the docs sub-directory
+of playlabs and online @ https://playlabs.rtfd.io thanks to RTFD :)
 
 0. Init
 =======
@@ -186,7 +196,9 @@ where you will store your data that the roles should use::
     playlabs scaffold your-inventory
 
 In inventory.yml you can define your machines as well as the roles they should
-be included by default in when playing a role without a specific target::
+be included by default in when playing a role without a specific target:
+
+.. code-block:: yaml
 
     all:
       hosts:
@@ -220,7 +232,6 @@ users to ``your-inventory/group_vars/all/users.yml``::
     - name: jl
       first_name: John  # used by django role for example
       email: aoeu@example.com
-      key: 'ssh-...'
       roles:
         ssh: sudo
         k8s: cluster-admin
@@ -320,17 +331,17 @@ Plugin structure
 Default plugins live in playlabs/plugins and have the following files:
 
 - `backup.pre.sh` take files out of containers and add them to the $backup
-  `variable
+  variable
 - `backup.post.sh` clean up files you have taken out after the backup has been
-  `done
+  done
 - `restore.pre.sh` clear the place where you want to extract data from the
-  `restic backup repository
+  restic backup repository
 - `restore.post.sh` load new data and clean after the project was restarted in
-  `the snapshot version,
+  the snapshot version,
 - `deploy.pre.yml` ansible tasks to execute before project deployment, ie. spawn
-  `postgres
+  postgres
 - `deploy.post.yml` ansible tasks to execute after project deployment, ie.
-  `create users from inventory
+  create users from inventory
 - `vars.yml` plugin variables declaration
 
 Operations
@@ -342,12 +353,12 @@ activated plugins.
 In the /home/ directory of the role or project there are scripts:
 
 - `docker-run.sh` standalone command to start the project container, feel free
-  `to have on that one
+  to have on that one
 - `backup.sh` cause a secure backup, upload with lftp if inventory defines dsn
 - `restore.sh` recovers the secure backup repository
-  `with lftp if inventory desfines dsn. Without argument` list snapshots. With a
-  `snapshot argument` proceed to a restore of that snapshot including project
-  `image version and plugin data
+  with lftp if inventory desfines dsn. Without argument` list snapshots. With a
+  snapshot argument` proceed to a restore of that snapshot including project
+  image version and plugin data
 - `prune.sh` removes un-needed old backup snapshots
 - `log` logs that playlabs rotates for you, just fill in log files, it will do
   a copy truncate though, but works until you need prometheus or something

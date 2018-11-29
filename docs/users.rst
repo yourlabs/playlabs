@@ -10,29 +10,25 @@ playlabs ... wait wut ?
 Anyway, when you're onboarding a hacker you can point them to your inventory
 repository url and also this documentation with the mission to add themselve.
 
+Pre-requisite
+=============
+
+Clone the inventory repository that you have been given if any. If it doesn't
+work, make sure that the git server knows your ssh public key if authenticating
+with SSH.
+
+If you haven't been given an inventory repository to clone, create one with the scaffolt command (note that you can have as many inventories as you want)::
+
+    playlabs scaffold your-inventory
+
 Adding a new user
 =================
-
-Clone the playlabs inventory repository. If it doesn't work, make sure that the
-git server knows your ssh public key if authenticating with SSH.
 
 The users list and roles are defined in a YAML document that would be located
 in your repository at path ``group_vars/all/users.yml``. Ansible offers a wide
 range of possibilities so it might also be elsewhere, but that's the convention
 used in the default playlabs inventory that you can generate with the
 ``playlabs scaffold`` command.
-
-Secret variables
-----------------
-
-Create a password for yourself::
-
-    echo -n your password | ansible-vault encrypt --vault-id .vault > passwords/$USER
-
-SSH will not accept password authentication with playlabs by default, however
-your password will be useable with the rest of services installed with
-playlabs, even custom projects if their plugin support it, which is the case of
-the Django plugin, thanks to `djcli <https://yourlabs.io/oss/djcli>`_.
 
 SSH Public key
 --------------
@@ -80,6 +76,43 @@ merge request on gitlab or whatever you use, ie:
     git add -p group_vars/all/users.yml
     git commit -m "Add $USER"
     git push origin $USER
+
+Kubernetes provisioning
+-----------------------
+
+Add ``k8s: clusten-admin`` or ``cluster-admin: k8s`` to the user ``roles``
+ie.:
+
+.. code-block:: yaml
+
+    - name: jcarmack
+      roles:
+        ssh: sudo
+        k8s: cluster-admin
+
+Then, ``playlabs install ssh,k8s @hostname`` for example will add that user to
+ssh with sudo and make it a cluster-admin. It will create a signed certificate
+in the home directory of the user that they will be able to scp back and use to
+authenticate as cluster-admin with kubectl.
+
+Password and secret variables
+-----------------------------
+
+Secret content is handled with the ansible-vault command. You need to store
+your vault password in a file that will not be added to the inventory
+repository. The convention in playlabs is to name the file ``.vault``. Then,
+ansible will recognize it with the ``--vault-id .vault`` command line argument.
+
+Create a password for yourself::
+
+    ansible-vault create passwords/$USER
+    # or, automated:
+    echo -n your password | ansible-vault encrypt --vault-id .vault > passwords/$USER
+
+SSH will not accept password authentication with playlabs by default, however
+your password will be useable with the rest of services installed with
+playlabs, even custom projects if their plugin support it, which is the case of
+the Django plugin, thanks to `djcli <https://yourlabs.io/oss/djcli>`_.
 
 Removing users
 ==============

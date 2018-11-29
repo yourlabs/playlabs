@@ -11,6 +11,9 @@ Welcome to Playlabs's documentation!
    :caption: Contents:
 
    users
+   hosts
+   projects
+   readme
 
 Indices and tables
 ==================
