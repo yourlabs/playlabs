@@ -26,3 +26,10 @@ def _clitoo_clean():
         if os.path.exists(settings.KEYPATH):
             os.unlink(settings.KEYPATH)
         vault.clean()
+
+
+def test(*args, **kwargs):
+    print(args)
+    print(kwargs)
+    print(clitoo.context.args)
+    print(clitoo.context.kwargs)

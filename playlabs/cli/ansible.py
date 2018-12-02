@@ -1,6 +1,6 @@
+import collections
 import os
 import sh
-import shlex
 
 from processcontroller import ProcessController
 from . import settings
@@ -46,27 +46,46 @@ class Ansible(object):
         cmd.append('-v')
 
         cmd += cls.inventory()
+        cmd += cls.ssh_config()
+        cmd.append(f'--user={settings.USER}')
         cmd += args
         if os.path.exists(settings.KEYPATH):
             cmd.append(f'--private-key={settings.KEYPATH}')
         cmd.append(os.path.join(settings.PLAYBOOKS, name))
-        cmd = [shlex.quote(i) for i in cmd]
 
         return cls.spawn(cmd)
 
     @classmethod
+    def ssh_config(cls):
+        ssh = collections.OrderedDict()
+
+        ssh['ControlMaster'] = 'auto'
+        ssh['ControlPersist'] = '60s'
+        ssh['ControlPath'] = f'.ssh_control_path_{settings.USER}'
+        ssh['StrictHostKeyChecking'] = 'no'
+        return ['--ssh-extra-args', ' '.join([
+            f'-o {key}={value}' for key, value in ssh.items()
+        ])]
+
+    @classmethod
     def spawn(cls, cmd):
-        pc_opt = {'echo': True}
+        pc_opt = {
+                    'echo': False,
+                    'private': False,
+                    'decode': False,
+                    'interactive': True
+                }
+
         if settings.PASSWORD:
-            def send_pass(proc, line, char):
-                proc.options['echo'] = False
+            def send_pass(proc, line):
+                print(f'sending password {settings.PASSWORD}')
                 proc.send(settings.PASSWORD)
-                proc.options['echo'] = True
 
             pc_opt['when'] = [
-                ['^(SSH|BECOME) password.*$', send_pass]
+                    ['^(SSH|SUDO|BECOME) password.*: $', send_pass],
             ]
 
+        print(' '.join(cmd))
         proc = ProcessController()
         proc.run(cmd, pc_opt)
 
@@ -78,9 +97,9 @@ class Ansible(object):
         if '--become' not in options:
             options.append('--become')
         if '--become-method' not in options:
-            options.append('--become-method=sudo')
+            options += ['--become-method', 'sudo']
         if '--become-user' not in options:
-            options.append('--become-user=root')
+            options += ['--become-user', 'root']
 
     @classmethod
     def install_sshpass(cls):
@@ -94,13 +113,19 @@ def init(host):
 
     miscellaneous.parse_host(host)
     Ansible.install_sshpass()
+
+    sudo = settings.USER != 'root'
     options = [
-        f'--inventory={settings.HOST}',
-        f'--limit={settings.HOST}',
+        f'--inventory', f'{settings.HOST},',
+        f'--limit', f'{settings.HOST},',
     ]
     options += miscellaneous.context_options()
 
-    sudo = settings.USER != 'root'
+    if settings.PASSWORD:
+        if '--ask-pass' not in options:
+            options.append('--ask-pass')
+        if '--ask-become-pass' not in options and sudo:
+            options.append('--ask-become-pass')
 
     return Ansible.playbook('init.yml', options, sudo)
 
@@ -116,8 +141,8 @@ def install(host, roles):
         options = ['-e', f'role={role}']
         if settings.HOST:
             options += [
-                f'--inventory={settings.HOST}',
-                f'--limit={settings.HOST}',
+                f'--inventory={settings.HOST},',
+                f'--limit={settings.HOST},',
             ]
             playbook = 'role-all.yml'
         else:
@@ -131,7 +156,7 @@ def install(host, roles):
     return retcode
 
 
-def deploy(host, *kwargs):
+def deploy(host, *args, **kwargs):
     print(f'Deploying project')
 
     miscellaneous.parse_host(host)
@@ -139,14 +164,14 @@ def deploy(host, *kwargs):
     options = []
     if settings.HOST:
         options += [
-            f'--inventory={settings.HOST}',
-            f'--limit={settings.HOST}',
+            f'--inventory={settings.HOST},',
+            f'--limit={settings.HOST},',
             '-e', f'role=project',
         ]
         playbook = 'role-all.yml'
     else:
         playbook = 'project.yml'
 
-    options += miscellaneous.context_options()
+    options += miscellaneous.context_options(*args, **kwargs)
 
     return Ansible.playbook(playbook, options)

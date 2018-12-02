@@ -63,8 +63,13 @@ def parse_host(host):
         settings.HOST = host
 
 
-def context_options():
-    options = context.args
-    for k, v in context.kwargs:
-        options.append(f'{k}={v}')
+def context_options(*args, **kwargs):
+    options = context.args + list(args)
+
+    if kwargs:
+        kwargs.update(context.kwargs)
+    else:
+        kwargs = context.kwargs
+    for k, v in kwargs.items():
+        options.append(f'-e {k}={v}')
     return options
