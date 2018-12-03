@@ -1,0 +1,4 @@
+---
+
+- hosts: '*{{ role }}*'
+  roles: ['{{ role }}']
