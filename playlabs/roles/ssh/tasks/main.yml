@@ -1,5 +1,21 @@
 ---
 
+- name: Install packages to add user
+  package: name={{ item }}
+  with_items:
+  - '{{ "shadow" if ansible_os_family in ("Alpine", "Archlinux") else "passwd" }}'
+  - sudo
+  - bash
+
+- name: Passwordless sudo for sudo group
+  lineinfile:
+    path: /etc/sudoers.d/passwordless
+    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    create: yes
+    owner: root
+    group: root
+    mode: 0600
+
 - name: Set ssh service name for Arch
   when: ansible_os_family in ('Alpine', 'Archlinux', 'RedHat')
   set_fact:
