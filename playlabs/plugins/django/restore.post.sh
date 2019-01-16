@@ -1,1 +1,1 @@
-mv $restore/media media
+mv $restore/{{ project_django_media_home }} media

@@ -23,16 +23,30 @@ EOF
   exit $retcode
 fi
 
+# restic code commented for posterity
+
 set -eu
-export RESTIC_PASSWORD_FILE={{ project_home }}/.backup_password
+#export RESTIC_PASSWORD_FILE={{ project_home }}/.backup_password
 export backup=""
+export PASSPHRASE="$(<{{ project_home }}/.backup_password)"
 set -x
-export RESTIC_REPOSITORY={{ repo }}
+backup_type="${BACKUP_TYPE-}"
+#export RESTIC_REPOSITORY={{ repo }}
 pushd {{ project_home }}
 {{ script_content_pre }}
-restic backup $backup
+
+# build the line for duplicity ...
+include_line=""
+for name in $backup; do
+    if [[ ! $name =~ ^/ ]]; then
+        name="$(pwd)/$name"
+    fi
+    include_line="$include_line --include $name"
+done
 {% if backup_lftp_dsn|default(False) %}
-lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}; mkdir -p {{ project_instance }}; mirror -Rv {{ project_home }}/restic {{ project_instance }}/restic'
+duplicity $backup_type $include_line --exclude '**' / {{ backup_lftp_dsn }}/duplicity-{{ project_instance }}
+# connect manually with
+# lftp -c 'set ssl:check-hostname false;connect {{ backup_lftp_dsn }}'
 {% endif %}
 {{ script_content_post }}
 popd

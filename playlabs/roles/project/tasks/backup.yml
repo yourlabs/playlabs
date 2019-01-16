@@ -1,14 +1,11 @@
 ---
 
-- name: install restic
-  package: name=restic
-
 - name: Install backup scripts
   when: project_backup_password != False
   vars:
     repo: '{{ project_backup_repo }}'
     backup_lftp_dsn: '{{ project_backup_lftp_dsn }}'
-    restic_password: '{{ project_backup_password }}'
+    backup_passphrase: '{{ project_backup_password }}'
     unit_name: 'backup-{{ project_instance }}'
     unit_description: '{{ project_instance }} backup'
     script_path: '{{ project_home }}/backup.sh'
@@ -16,13 +13,13 @@
       getcommit="docker inspect --format='{{ '{{' }}.Config.Env{{ '}}' }}' {{ project_image }} | grep -o 'GIT_COMMIT=[a-z0-9]*'"
       if $getcommit; then
         export $($getcommit)
-        backup="$backup --tag $GIT_COMMIT"
+        echo $GIT_COMMIT > commit
+        backup="$backup commit"
       fi
 
-      image="$(docker inspect --format='{{ '{{' }}.Config.Image{{ '}}' }}' {{ project_instance }} || echo {{ project_image }})"
-      backup="$backup --tag $image"
-      echo Image this will restore with is "$image"
-      echo $image > image
+      docker inspect --format='{{ '{{' }}.Config.Image{{ '}}' }}' {{ project_instance }} || echo {{ project_image }} > image
+      backup="$backup image"
+      echo Image this will restore with is "$(<image)"
 
       echo Backing-up container logs as docker will shoot them
       docker logs {{ project_instance }} &> {{ project_log_home }}/docker.log || echo "Couldn't get logs from instance"
@@ -57,7 +54,7 @@
       {%- if loop.last %}# last plugin end: {{ plugin }}{% endif %}
       {%- endfor %}
 
-      mv $restore/docker-run.sh .
+      mv $restore{{ project_home }}/docker-run.sh .
       bash -eux {{ project_home }}/docker-run.sh
 
     prune_path: '{{ project_home }}/prune.sh'

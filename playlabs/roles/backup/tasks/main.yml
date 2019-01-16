@@ -30,17 +30,21 @@
 - name: Upload backup password
   copy:
     dest: '{{ project_home }}/.backup_password'
-    content: '{{ restic_password }}'
+    content: '{{ backup_passphrase }}'
     owner: deploy
     group: root
     mode: 0700
 
-- name: Init restic repository
-  register: backup_init
-  shell: 'RESTIC_REPOSITORY={{ project_backup_repo }} RESTIC_PASSWORD_FILE={{ project_home }}/.backup_password restic init --repo {{ project_backup_repo }}'
-  args:
-    executable: /bin/bash
-    creates: '{{ project_backup_repo }}'
+- name: Install duplicity role
+  include_role: name=duplicity
+
+# from when we used restic. Shall tat be revived one day when restic progresses
+# - name: Init restic repository
+#   register: backup_init
+#   shell: 'RESTIC_REPOSITORY={{ project_backup_repo }} RESTIC_PASSWORD_FILE={{ project_home }}/.backup_password restic init --repo {{ project_backup_repo }}'
+#   args:
+#     executable: /bin/bash
+#     creates: '{{ project_backup_repo }}'
 
 - name: Create backup unit
   notify: backup unit
