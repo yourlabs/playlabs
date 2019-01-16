@@ -1,11 +1,13 @@
 ---
+- name: Install djcli
+  shell: docker exec --user root {{ project_instance }} pip3 install --upgrade djcli
 
 - name: Create super users
   register: django_createsuperuser
   with_items: '{{ users|default([]) }}'
   tags: users
   when: item['name']|vaulted_password(false) and ('superuser' in item.get('roles', {}).get(project_instance, []) or project_instance in item.get('roles', {}).get('superuser', {}))
-  shell: docker exec {{ project_instance }} djcli save settings.AUTH_USER_MODEL username username={{ item['name'] }} email={{ item['email'] }}
+  shell: docker exec {{ project_instance }} djcli save settings.AUTH_USER_MODEL +username={{ item['name'] }} email={{ item['email'] }} is_superuser=1
 
 - name: Update passwords
   tags: users
