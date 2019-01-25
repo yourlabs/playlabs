@@ -79,6 +79,7 @@ class Ansible(object):
         cmd += args
         if os.path.exists(self.key_path):
             cmd += ['--private-key', self.key_path]
+        cmd += ['-e', 'ansible_python_interpreter=/usr/bin/python3']
         cmd.append(os.path.join(self.PLAYBOOKS, name))
         cmd = [shlex.quote(i) for i in cmd]
 
