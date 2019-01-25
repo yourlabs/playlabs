@@ -13,14 +13,21 @@ DISCLAMER: maybe it even works for you, but that's far from garanteed so far.
 Install playlabs
 ================
 
-Install with::
+This would install in the ~/src/playlabs directory::
 
-    pip3 install --user -e git+https://yourlabs.io/oss/playlabs#egg=playlabs
+    pip3 install --user --editable git+https://yourlabs.io/oss/playlabs#egg=playlabs
 
 Run the ansible-playbook wrapper command without argument to see the quick
 getting started commands::
 
     ~/.local/bin/playlabs
+
+Vagrant
+=======
+
+In the git directory of playlabs, you can run ``vagrant up`` to have a VM on
+192.168.168.168 that you can ssh to with sudo access (it has been "initialized"
+by playlabs, see next section for detail about playlabs initialization)
 
 Quick start
 ===========
