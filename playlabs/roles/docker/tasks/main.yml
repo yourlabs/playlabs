@@ -13,32 +13,13 @@
 #       ExecStart=
 #       ExecStart=/usr/bin/dockerd -H fd:// --iptables=false --ip-masq=false
 
-- name: Install apt-transport-https
-  when: ansible_os_family == 'Debian'
-  apt:
-    name:
-    - apt-transport-https
-    - gpg
-    update_cache: yes
-    cache_valid_time: 3600
-
-- name: Install docker repository key
-  when: ansible_os_family == 'Debian'
-  apt_key:
-    id: "9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
-    url: https://download.docker.com/linux/ubuntu/gpg
-    state: present
-
-- name: Install docker repository
-  when: ansible_os_family == 'Debian'
-  apt_repository:
+- name: add docker repository
+  include_role:
+    name: aptrepo
+  vars:
+    key_id: '9DC858229FC7DD38854AE2D88D81803C0EBFCD88'
+    key_url: https://download.docker.com/linux/ubuntu/gpg
     repo: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution|lower }} {{ ansible_distribution_release|lower }} edge
-    state: present
-
-- name: Update apt
-  when: ansible_os_family == 'Debian'
-  apt:
-    update_cache: yes
 
 - name: Install docker-ce
   package:

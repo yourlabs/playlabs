@@ -1,0 +1,29 @@
+---
+
+- name: Install apt-transport-https
+  when: ansible_os_family == 'Debian'
+  apt:
+    name:
+    - apt-transport-https
+    - gpg
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install repository key
+  when: ansible_os_family == 'Debian'
+  apt_key:
+    id: '{{ key_id }}'
+    url: '{{ key_url }}'
+    state: present
+
+- name: Install repository
+  when: ansible_os_family == 'Debian'
+  register: aptrepo_install
+  apt_repository:
+    repo: '{{ repo }}'
+    state: present
+
+- name: Update apt
+  when: ansible_os_family == 'Debian' and aptrepo_install.changed
+  apt:
+    update_cache: yes
