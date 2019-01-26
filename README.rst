@@ -9,6 +9,12 @@ yourself, or use kubernetes ... but Playlabs will do everything else, even
 configure your own sentry or kubernetes servers !
 
 DISCLAMER: maybe it even works for you, but that's far from garanteed so far.
+Most tasks have been put inside this repository without prior testing with the
+playlabs command or the playlabs inventory. I like to keep them there so I have
+them when I need them I fix them, those that are fixed work for me.
+
+A more extensive and user-friendly documentation is in the docs sub-directory
+of playlabs and online @ https://playlabs.rtfd.io thanks to RTFD :)
 
 Install playlabs
 ================
@@ -22,26 +28,28 @@ getting started commands::
 
     ~/.local/bin/playlabs
 
-Vagrant
-=======
+Then, install your user with your public key, passwordless sudo, and secure SSH
+for the playlabs install command to work. Playlabs provide two ways.
+
+Vagrant/VirtualBox
+------------------
 
 In the git directory of playlabs, you can run ``vagrant up`` to have a VM on
-192.168.168.168 that you can ssh to with sudo access (it has been "initialized"
-by playlabs, see next section for detail about playlabs initialization)::
+192.168.168.168 that you can ssh to with sudo access::
 
    cd ~/src/playlabs
    vagrant destroy -f
    vagrant up
+   ssh 192.168.168.168 date
    playlabs install docker,k8s @192.168.168.168
 
-Quick start
-===========
+Bare host
+---------
 
-You have a new host and you need your user to be installed with your public
-key, passwordless sudo, and secure SSH. The first command to run on a new host
-is ``playlabs init``, ie.::
+The ``playlabs init`` command can setup your user for you::
 
-    playlabs init root@1.2.3.4
+    # example with root acces
+    playlabs init root:aoeu@1.2.3.4
 
     # all options are ansible options are proxied
     playlabs init @192.168.168.168 --ask-become-pass
@@ -49,20 +57,41 @@ is ``playlabs init``, ie.::
     # example with a typical openstack vm
     playlabs init ubuntu@192.168.168.168 --ask-become-pass
 
-Now your user can install roles::
+Now you should be able to install roles.
 
-    # nginx-proxy based infra
-    playlabs install ssh,docker,firewall,nginx @192.168.168.168
+Installing roles
+================
 
-    # k8s based infra
-    playlabs install ssh,docker,k8s @192.168.168.168
+If you're going to use playlabs to deploy docker images, you have the choice
+between the nginx-proxy infra::
 
-    # run k8s/tasks/users.yml instead of k8s/tasks/main.yml
-    playlabs install k8s/users @192.168.168.168
+   # nginx-proxy based infra
+   playlabs install ssh,docker,firewall,nginx @192.168.168.168
 
-And deploy a project, examples::
+And the k8s-based infra::
+
+   # k8s based infra
+   playlabs install ssh,docker,k8s @192.168.168.168
+
+As you might have noticed, playlabs prints out the ansible-playbook command
+line it bakes. This allows for many obscenities such as this little shortcut::
+
+   # run k8s/tasks/init.yml instead of k8s/tasks/main.yml to reset a cluster
+   playlabs install k8s/init @192.168.168.168
+
+   # run k8s/tasks/users.yml in the CI of your inventory for example
+   playlabs install k8s/users @192.168.168.168
+
+Deploy a project with the nginx-proxy based infra
+=================================================
+
+Deploying an image on the host ip in container ``project-staging``::
 
     playlabs @192.168.168.168 deploy image=betagouv/mrs:master
+
+This time with more variables and in ``ybs-hack`` instead of
+``project-staging``::
+
     playlabs @192.168.168.168 deploy
         image=betagouv/mrs:master
         plugins=postgres,django,uwsgi
@@ -70,25 +99,26 @@ And deploy a project, examples::
         prefix=ybs
         instance=hack
         env.SECRET_KEY=itsnotasecret
-    playlabs @192.168.168.168 deploy
-        prefix=testenv
-        instance=$CI_BRANCH
-        image=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
-If you have that work, creating an inventory is the way to move on, wether you
-want to version configuration, add a deploy user for your CI, configure a
-secret backup password, add ssh-keys ...::
+To generate a starter inventory where you can store variables such as users,
+keys, passwords with ansible-vault, etc::
 
     playlabs scaffold ./your-inventory
 
-Read on this README for gory details if you are already an Ansible user and
-only need to know about the patterns we're using playlabs for.
+Then from CI of a project, you can auto-deploy the ybs-hack instance from above
+as such (it will pickup the ``ybs_hack_*`` variables from the inventory)::
 
-A more extensive and user-friendly documentation is in the docs sub-directory
-of playlabs and online @ https://playlabs.rtfd.io thanks to RTFD :)
+    playlabs @192.168.168.168 deploy
+        prefix=ybs
+        instance=hack
+        instance=$CI_BRANCH
+        image=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+Command explanation
+===================
 
 ``playlabs init``
-=================
+-----------------
 
 Initializing means going from a naked system to a system with your own user,
 ssh key, dotfiles, sudo access, secure sshd, and all necessary dependencies to
@@ -106,7 +136,7 @@ password in the CLI, since initializing will remove ::
     playlabs init root@192.168.168.168
 
 ``playlabs install``
-====================
+--------------------
 
 If you want to deploy your project, then you need to install the paas which
 consists of three roles: docker, firewall, and nginx. The nginx role sets up
@@ -141,7 +171,7 @@ This approach comes from migrating away from "building in production" to
 "building immutable tested chroots", away from "pet" to "cattle".
 
 But if you're already an ansible hacker you're better off with ansible to do a
-**lot** more than than what docker-compose has to offer, such as managing users
+**lot** more than than what docker-compose has to offer, such as managing k
 and roles, on your SDN as in your apps.
 
 In fact, you will see role that consist of a single docker ansible module call,
