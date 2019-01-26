@@ -146,7 +146,6 @@ class Ansible(object):
                         'ansible-galaxy', 'install', role
                     ]))
 
-
             options = self.parser.options + ['-e', f'role={role}']
 
             if self.parser.hosts:
@@ -161,7 +160,10 @@ class Ansible(object):
                     # compensate for vagrant
                     options += [
                         '-e',
-                        '{"ansible_default_ipv4": {"address": "192.168.168.168"}}'
+                        ' '.join([
+                            '{"ansible_default_ipv4":',
+                            '{"address": "192.168.168.168"}}',
+                        ])
                     ]
 
                 if task:
