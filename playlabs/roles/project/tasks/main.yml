@@ -6,8 +6,8 @@
   vars:
     name: '{{ item }}'
   with_items:
-    - firewall
     - docker
+    - firewall
     - nginx
 
 - name: Install docker ?
