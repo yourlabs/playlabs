@@ -88,6 +88,9 @@ This time with more variables and in ``ybs-hack`` instead of
         plugins=postgres,django,uwsgi
         backup_password=foo
         env.SECRET_KEY=itsnotasecret
+        env.VIRTUAL_HOST=ybs.hack.example.com
+        env.LETSENCRYPT_HOST=ybs.hack.example.com
+        env.LETSENCRYPT_EMAIL=your@example.com
 
 With inventory
 --------------
@@ -130,6 +133,13 @@ Note that the dot and slash notations should be compatible.
 You can also execute multiple roles at once if you separate them by comma::
 
    playlabs install netdata,ferrarimarco.virtualbox,k8s/users @192.168.168.168
+
+You can set ansible variables directly on the command line. If you use dot in
+variable name, it will build a dict, ie.::
+
+   playlabs install netdata @192.168.168.168 example=lol foo.bar=test
+   # will generate the extra ansible-playbook options:
+   ansible-playbook ... -e example=lol -e '{"foo": {"bar": "test"}}'
 
 Kubernetes
 ==========
