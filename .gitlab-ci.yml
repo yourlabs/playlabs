@@ -53,6 +53,11 @@ py-test:
   image: $IMAGE_TAG
   script: cd playlabs/tests/ && py.test --cov playlabs
 
+vagrant:
+  stage: build
+  tags: [shell]
+  script: vagrant up
+
 ubuntu-init:
   stage: test
   image: $IMAGE_TAG
