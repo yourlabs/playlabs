@@ -136,6 +136,17 @@ class Ansible(object):
             if '/' in role:
                 role, task = role.split('/')
 
+            if '.' in role:
+                # is the role installed ?
+                out = subprocess.check_output([
+                    'ansible-galaxy', 'list', role
+                ])
+                if b'not found' in out:
+                    print(subprocess.check_output([
+                        'ansible-galaxy', 'install', role
+                    ]))
+
+
             options = self.parser.options + ['-e', f'role={role}']
 
             if self.parser.hosts:
