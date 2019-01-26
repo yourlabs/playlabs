@@ -1,0 +1,7 @@
+---
+
+- hosts: '*'
+  tasks:
+  - include_role:
+      name: '{{ role }}'
+      tasks_from: '{{ playlabs_task }}'
