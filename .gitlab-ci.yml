@@ -58,13 +58,13 @@ vagrant-nginx-proxy:
   tags: [shell]
   before_script:
   - test -f $HOME/.ssh/id_rsa || ssh-keygen -f $HOME/.ssh/id_rsa
-  - VAGRANT_TYPE=dhcp vagrant up
+  - vagrant up
+  - vagrant ssh-config > ${CI_JOB_ID}-ssh-config
   - virtualenv -p python3 ${CI_JOB_ID}-env
   - ${CI_JOB_ID}-env/bin/pip install -e .
-  - export ip=$(vagrant ssh -c "ip -o -4 addr show dev eth1 | cut -d' ' -f7 | cut -d'/' -f1" )
   script:
-  - ${CI_JOB_ID}-env/bin/playlabs deploy image=yourlabs/crudlfap @$ip
-  - ${CI_JOB_ID}-env/bin/playlabs install netdata @$ip
+  - ${CI_JOB_ID}-env/bin/playlabs deploy image=yourlabs/crudlfap @default --ssh-extra-args="-F ${CI_JOB_ID}-ssh-config"
+  - ${CI_JOB_ID}-env/bin/playlabs install netdata @default
   after_script:
   - vagrant destroy -f
 

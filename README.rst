@@ -47,7 +47,7 @@ In the git directory of playlabs, you can run ``vagrant up`` to have a VM on
 
    cd ~/src/playlabs
    vagrant destroy -f
-   VAGRANT_GUI=1 vagrant up
+   VAGRANT_IP=192.168.168.168 VAGRANT_GUI=1 vagrant up
    ssh 192.168.168.168 date
    playlabs install docker,k8s @192.168.168.168
 

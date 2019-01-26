@@ -6,10 +6,8 @@ Vagrant.configure("2") do |config|
   config.ssh.insert_key = false
   config.ssh.forward_agent = true
 
-  if ENV['VAGRANT_TYPE'] == 'dhcp'
-    config.vm.network "private_network", type: "dhcp"
-  else
-    config.vm.network "private_network", ip: "192.168.168.168"
+  if ENV['VAGRANT_IP']
+    config.vm.network "private_network", ip: ENV['VAGRANT_IP']
   end
 
   config.vm.provider "virtualbox" do |vb|
