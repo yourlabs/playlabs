@@ -18,8 +18,10 @@ users:
 - name: hacker
   email: hacker1337@example.pcom
   roles:
-    netdata: [sysadmin, domainadmin, dba, webmaster, proxyadmin]
     ssh: [sudo]
+    k8s: [cluster-admin]
+    # that one should only be used on an nginx-proxy host, not on a k8s host !
+    netdata: [sysadmin, domainadmin, dba, webmaster, proxyadmin]
     # superuser on all project instances
     project: [superuser]
     # setting role on group works both ways: don't have groups and roles with
@@ -62,4 +64,4 @@ users_remove:
 - name: olduser
 
 # Name of the user that will be able to write /home/service/docker-image
-deploy_user: deploy
+deploy_user: deploy  # not used on k8s host, only for nginx-proxy hosts
