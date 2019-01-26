@@ -1,5 +1,15 @@
 ---
 
+- name: Setup
+  include_role:
+    name: roleonce
+  vars:
+    name: '{{ item }}'
+  with_items:
+    - docker
+    - firewall
+    - nginx
+
 - name: Create configuration directories
   with_filetree: roles/netdata/templates
   when: item.state == 'directory'
