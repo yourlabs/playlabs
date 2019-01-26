@@ -53,17 +53,17 @@ py-test:
   image: $IMAGE_TAG
   script: cd playlabs/tests/ && py.test --cov playlabs
 
-vagrant:
+vagrant-nginx-proxy:
   stage: build
   tags: [shell]
   before_script:
   - VAGRANT_TYPE=dhcp vagrant up
-  - virtualenv -p python3 env
-  - env/bin/pip install -e .
+  - virtualenv -p python3 ${CI_JOB_ID}-env
+  - ${CI_JOB_ID}-env/bin/pip install -e .
   script:
   - export ip=$(vagrant ssh -c "ip -o -4 addr show dev eth1 | cut -d' ' -f7 | cut -d'/' -f1" )
-  - env/bin/playlabs deploy image=yourlabs/crudlfap @$ip
-  - env/bin/playlabs install netdata @$ip
+  - ${CI_JOB_ID}-env/bin/playlabs deploy image=yourlabs/crudlfap @$ip
+  - ${CI_JOB_ID}-env/bin/playlabs install netdata @$ip
   after_script:
   - vagrant destroy -f
 
