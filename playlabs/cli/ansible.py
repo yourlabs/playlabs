@@ -132,6 +132,10 @@ class Ansible(object):
     def prepare_install(self):
         install_options_array = []
         for role in self.parser.roles:
+            task = None
+            if '/' in role:
+                role, task = role.split('/')
+
             options = self.parser.options + ['-e', f'role={role}']
 
             if self.parser.hosts:
@@ -141,7 +145,11 @@ class Ansible(object):
                     '--limit',
                     ','.join(self.parser.hosts) + ',',
                 ]
-                playbook = 'role-all.yml'
+                if task:
+                    playbook = 'role-task-all.yml'
+                    options += ['-e', f'playlabs_task={task}']
+                else:
+                    playbook = 'role-all.yml'
             else:
                 playbook = 'role.yml'
 

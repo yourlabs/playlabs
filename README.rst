@@ -34,7 +34,6 @@ by playlabs, see next section for detail about playlabs initialization)::
    vagrant up
    playlabs install docker,k8s @192.168.168.168
 
-
 Quick start
 ===========
 
@@ -45,26 +44,33 @@ is ``playlabs init``, ie.::
     playlabs init root@1.2.3.4
 
     # all options are ansible options are proxied
-    playlabs init @somehost --ask-become-pass
+    playlabs init @192.168.168.168 --ask-become-pass
 
     # example with a typical openstack vm
-    playlabs init ubuntu@somehost --ask-become-pass
+    playlabs init ubuntu@192.168.168.168 --ask-become-pass
 
 Now your user can install roles::
 
-    playlabs install ssh,docker,firewall,nginx @somehost
+    # nginx-proxy based infra
+    playlabs install ssh,docker,firewall,nginx @192.168.168.168
+
+    # k8s based infra
+    playlabs install ssh,docker,k8s @192.168.168.168
+
+    # run k8s/tasks/users.yml instead of k8s/tasks/main.yml
+    playlabs install k8s/users @192.168.168.168
 
 And deploy a project, examples::
 
-    playlabs @somehost deploy image=betagouv/mrs:master
-    playlabs @somehost deploy
+    playlabs @192.168.168.168 deploy image=betagouv/mrs:master
+    playlabs @192.168.168.168 deploy
         image=betagouv/mrs:master
         plugins=postgres,django,uwsgi
         backup_password=foo
         prefix=ybs
         instance=hack
         env.SECRET_KEY=itsnotasecret
-    playlabs @somehost deploy
+    playlabs @192.168.168.168 deploy
         prefix=testenv
         instance=$CI_BRANCH
         image=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
@@ -94,10 +100,10 @@ You might need to pass extra options to ansible in some cases, for example if
 your install provides a passworded sudo, add ``--ask-sudo-pass`` or put the
 password in the CLI, since initializing will remove ::
 
-    playlabs init @somehost
-    playlabs init user:pass@somehost
-    playlabs init user@somehost --ask-sudo-pass
-    playlabs init root@somehost
+    playlabs init @192.168.168.168
+    playlabs init user:pass@192.168.168.168
+    playlabs init user@192.168.168.168 --ask-sudo-pass
+    playlabs init root@192.168.168.168
 
 ``playlabs install``
 ====================
@@ -119,7 +125,7 @@ Remember the architecture:
 
 The CLI itself is pretty straightforward::
 
-    playlabs install docker,firewall,nginx @somehost # the paas for the project role
+    playlabs install docker,firewall,nginx @192.168.168.168 # the paas for the project role
     playbabs install sendmail,netdata,mailcatcher,gitlab @staging
     playbabs install sendmail,netdata,sentry user@production
 
