@@ -11,3 +11,5 @@
     key: '{{ name }}'
     value: 'installed'
     setfact_mode: 0755
+
+- meta: flush_handlers
