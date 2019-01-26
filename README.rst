@@ -1,17 +1,23 @@
 Playlabs: the obscene ansible distribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Playlabs combines simple ansible patterns with packaged roles to create a
-docker orchestrated paas to prototype products for development to production.
-
-Playlabs does not deal with HA, for HA you will need to do the ansible plugins
-yourself, or use kubernetes ... but Playlabs will do everything else, even
-configure your own sentry or kubernetes servers !
-
 DISCLAMER: maybe it even works for you, but that's far from garanteed so far.
-Most tasks have been put inside this repository without prior testing with the
-playlabs command or the playlabs inventory. I like to keep them there so I have
-them when I need them I fix them, those that are fixed work for me.
+
+I love ansible most of the time, the rest of the time it makes me feel like
+it deserves better UX. Playlabs unfrustrates me:
+
+- provides a CLI to generate ansible-playbook commands,
+- works without inventory with options passed on the CLI,
+- also works with an inventory, that it standardizes,
+- able to combine both of the above,
+- provides a generic "project" role for my custom projects CD, that provides
+  with nginx-proxy, letsencrypt-companion, netdata monitoring, sentry, etc
+- 1-click galaxy role install, role sub-task execution, chaining, etc, using
+  generic playbooks
+- provides a command to setup ansible host dependencies (enforcing python3), my
+  user with my key and passwordless sudo and disable root and password ssh
+  access (my way or the highway !)
+- also supports k8s, but I won't prescribe it until you need HA
 
 A more extensive and user-friendly documentation is in the docs sub-directory
 of playlabs and online @ https://playlabs.rtfd.io thanks to RTFD :)
@@ -27,6 +33,8 @@ Run the ansible-playbook wrapper command without argument to see the quick
 getting started commands::
 
     ~/.local/bin/playlabs
+    # or:
+    echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bashrc
 
 Then, install your user with your public key, passwordless sudo, and secure SSH
 for the playlabs install command to work. Playlabs provide two ways.
@@ -59,33 +67,14 @@ The ``playlabs init`` command can setup your user for you::
 
 Now you should be able to install roles.
 
-Installing roles
+Deploy a project
 ================
 
-If you're going to use playlabs to deploy docker images, you have the choice
-between the nginx-proxy infra::
+Without inventory
+-----------------
 
-   # nginx-proxy based infra
-   playlabs install ssh,docker,firewall,nginx @192.168.168.168
-
-And the k8s-based infra::
-
-   # k8s based infra
-   playlabs install ssh,docker,k8s @192.168.168.168
-
-As you might have noticed, playlabs prints out the ansible-playbook command
-line it bakes. This allows for many obscenities such as this little shortcut::
-
-   # run k8s/tasks/init.yml instead of k8s/tasks/main.yml to reset a cluster
-   playlabs install k8s/init @192.168.168.168
-
-   # run k8s/tasks/users.yml in the CI of your inventory for example
-   playlabs install k8s/users @192.168.168.168
-
-Deploy a project with the nginx-proxy based infra
-=================================================
-
-Deploying an image on the host ip in container ``project-staging``::
+You can now deploy a container for a custom image, it will create a
+``project-staging`` container by default::
 
     playlabs @192.168.168.168 deploy image=betagouv/mrs:master
 
@@ -94,11 +83,14 @@ This time with more variables and in ``ybs-hack`` instead of
 
     playlabs @192.168.168.168 deploy
         image=betagouv/mrs:master
-        plugins=postgres,django,uwsgi
-        backup_password=foo
         prefix=ybs
         instance=hack
+        plugins=postgres,django,uwsgi
+        backup_password=foo
         env.SECRET_KEY=itsnotasecret
+
+With inventory
+--------------
 
 To generate a starter inventory where you can store variables such as users,
 keys, passwords with ansible-vault, etc::
@@ -113,6 +105,43 @@ as such (it will pickup the ``ybs_hack_*`` variables from the inventory)::
         instance=hack
         instance=$CI_BRANCH
         image=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+Installing roles
+================
+
+You will probably want to monitor your server::
+
+   playlabs install netdata @192.168.168.168
+
+You could also install galaxy roles that contain a dot, in which case playlabs
+will automatically download it if necessary::
+
+   playlabs install ferrarimarco.virtualbox @192.168.168.168
+
+You could also execute a specific role task file instead of main.yml, if your
+role name contains a slash::
+
+   # run k8s/tasks/users.yml instead of k8s/tasks/main.yml
+   # in the CI of your inventory for example to react to changes ?
+   playlabs install k8s/users @192.168.168.168
+
+Note that the dot and slash notations should be compatible.
+
+You can also execute multiple roles at once if you separate them by comma::
+
+   playlabs install netdata,ferrarimarco.virtualbox,k8s/users @192.168.168.168
+
+Kubernetes
+==========
+
+We also have k8s support, but beware that it's not compatible with the deploy
+command, that relies on nginx-proxy and its letsencrypt companion, it's
+currently in-development and not tested in production, but still pretty cool::
+
+   playlabs install k8s @192.168.168.168
+
+   # run k8s/tasks/init.yml instead of k8s/tasks/main.yml to reset a cluster
+   playlabs install k8s/init @192.168.168.168
 
 Command explanation
 ===================
