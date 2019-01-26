@@ -145,6 +145,14 @@ class Ansible(object):
                     '--limit',
                     ','.join(self.parser.hosts) + ',',
                 ]
+
+                if self.parser.hosts == ['192.168.168.168']:
+                    # compensate for vagrant
+                    options += [
+                        '-e',
+                        '{"ansible_default_ipv4": {"address": "192.168.168.168"}}'
+                    ]
+
                 if task:
                     playbook = 'role-task-all.yml'
                     options += ['-e', f'playlabs_task={task}']
