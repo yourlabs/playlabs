@@ -1,7 +1,5 @@
-import pip
-from setuptools import setup, find_packages, Command
-import os, sys
-from subprocess import Popen, PIPE
+from setuptools import setup
+import os
 import shutil
 
 home_path = os.getenv('HOME')
