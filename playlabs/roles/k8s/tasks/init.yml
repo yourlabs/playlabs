@@ -1,5 +1,41 @@
 ---
 
+- name: Install google apt repo
+  include_role:
+    name: aptrepo
+  vars:
+    key_id: '54A647F9048D5688D7DA2ABE6A030B21BA07F4FB'
+    key_url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    repo: deb [arch=amd64] https://apt.kubernetes.io/ kubernetes-xenial main
+
+- name: Install kubeadm/kubectl/kubelet
+  apt:
+    name: '{{ k8s_packages }}'
+    state: installed
+    force: yes
+
+- name: Fixate versions
+  with_items: '{{ k8s_packages }}'
+  dpkg_selections:
+    name: '{{ item }}'
+    selection: hold
+
+- name: Setup docker
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "100m"
+        },
+        "storage-driver": "overlay2"
+      }
+
+- name: Restart docker
+  service: name=docker state=restarted
+
 - name: Reset Kubernetes component
   shell: kubeadm reset --force
   register: reset_cluster
