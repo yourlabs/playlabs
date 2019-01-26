@@ -27,7 +27,13 @@ Vagrant
 
 In the git directory of playlabs, you can run ``vagrant up`` to have a VM on
 192.168.168.168 that you can ssh to with sudo access (it has been "initialized"
-by playlabs, see next section for detail about playlabs initialization)
+by playlabs, see next section for detail about playlabs initialization)::
+
+   cd ~/src/playlabs
+   vagrant destroy -f
+   vagrant up
+   playlabs install docker,k8s @192.168.168.168
+
 
 Quick start
 ===========
