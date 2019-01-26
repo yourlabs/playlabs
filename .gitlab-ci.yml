@@ -62,7 +62,7 @@ vagrant-nginx-proxy:
   - rm -rf "*-env"; virtualenv -p python3 ${CI_JOB_ID}-env
   - ${CI_JOB_ID}-env/bin/pip install -e .
   script:
-  - ${CI_JOB_ID}-env/bin/playlabs deploy image=yourlabs/crudlfap @default --ssh-common-args="-F ${CI_JOB_ID}-ssh-config"
+  - ${CI_JOB_ID}-env/bin/playlabs deploy image=yourlabs/crudlfap:master @default --ssh-common-args="-F ${CI_JOB_ID}-ssh-config"
   - ${CI_JOB_ID}-env/bin/playlabs install netdata @default
   after_script:
   - vagrant destroy -f
