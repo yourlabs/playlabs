@@ -57,6 +57,7 @@ vagrant-nginx-proxy:
   stage: build
   tags: [shell]
   before_script:
+  - ssh-keygen -f $HOME/.ssh/id_rsa
   - VAGRANT_TYPE=dhcp vagrant up
   - virtualenv -p python3 ${CI_JOB_ID}-env
   - ${CI_JOB_ID}-env/bin/pip install -e .
