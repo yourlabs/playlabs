@@ -58,10 +58,12 @@ vagrant:
   tags: [shell]
   before_script:
   - VAGRANT_TYPE=dhcp vagrant up
+  - virtualenv -p python3 env
+  - env/bin/pip install -e .
   script:
   - export ip=$(vagrant ssh -c "ip -o -4 addr show dev eth1 | cut -d' ' -f7 | cut -d'/' -f1" )
-  - playlabs deploy image=yourlabs/crudlfap @$ip
-  - playlabs install netdata @$ip
+  - env/bin/playlabs deploy image=yourlabs/crudlfap @$ip
+  - env/bin/playlabs install netdata @$ip
   after_script:
   - vagrant destroy -f
 
