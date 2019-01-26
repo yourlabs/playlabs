@@ -15,6 +15,7 @@ k8s_swap: true
 
 k8s_admin_config: /etc/kubernetes/admin.conf
 k8s_dashboard: true
+k8s_namespaces: []
 
 # 1.8.x feature: --feature-gates SelfHosting=true
 # init_opts: ""
