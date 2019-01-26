@@ -4,6 +4,9 @@
   when: not ansible_facts.ansible_local[name]|default(false)
   include_role: name={{ name }}
 
+- meta: flush_handlers
+  when: not ansible_facts.ansible_local[name]|default(false)
+
 - name: Prevent role from installing automatically next time
   include_role:
     name: setfact
@@ -11,5 +14,3 @@
     key: '{{ name }}'
     value: 'installed'
     setfact_mode: 0755
-
-- meta: flush_handlers
