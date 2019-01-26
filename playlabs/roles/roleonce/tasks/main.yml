@@ -10,3 +10,4 @@
   vars:
     key: '{{ name }}'
     value: 'installed'
+    setfact_mode: 0755

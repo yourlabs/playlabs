@@ -11,4 +11,4 @@
       #!/bin/bash
       echo '{"{{ key }}" : "{{ value }}"}'
     dest: /etc/ansible/facts.d/{{ key }}.fact
-    mode: 0700
+    mode: '{{ setfact_mode }}'
