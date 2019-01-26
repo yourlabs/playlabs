@@ -117,6 +117,7 @@ docker-push:
   - docker logout
 
 cleanup:
+  tags: [shell]
   stage: cleanup
   script: vagrant destroy -f
   when: always
