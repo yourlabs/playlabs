@@ -3,12 +3,16 @@
 - name: Create private key
   openssl_privatekey:
     path: /home/{{ user.name }}/k8s.{{ user.name }}.key
+    owner: '{{ user.name }}'
+    mode: 0700
 
 - name: Create CSR
   openssl_csr:
     path: /home/{{ user.name }}/k8s.{{ user.name }}.csr
     privatekey_path: /home/{{ user.name }}/k8s.{{ user.name }}.key
     common_name: '{{ k8s_common_name }}'
+    owner: '{{ user.name }}'
+    mode: 0700
 
 - name: Sign CSR
   openssl_certificate:
@@ -16,12 +20,27 @@
     csr_path: /home/{{ user.name }}/k8s.{{ user.name }}.csr
     privatekey_path: /home/{{ user.name }}/k8s.{{ user.name }}.key
     provider: selfsigned
+    owner: '{{ user.name }}'
+    mode: 0700
+
+- name: Set cluster config
+  become: ansible_user|default(ansible_user_id)
+  shell: kubectl config set-cluster local --server=https://{{ k8s_common_name }} --insecure-skip-tls-verify
 
 - name: Set certificate as user credential
-  shell: kubectl config set-credentials {{ user.name }} --client-certificate=/home/{{ user.name }}/.certs/$USER.crt  --client-key=/home/$USER/.certs/$USER.key
+  become: ansible_user|default(ansible_user_id)
+  shell: kubectl config set-credentials {{ user.name }} --client-certificate=/home/{{ user.name }}/k8s.$USER.crt  --client-key=/home/$USER/k8s.$USER.key
+
+- name: Define default context
+  become: ansible_user|default(ansible_user_id)
+  shell: kubectl config set-context local --cluster=local --user={{ user.name }}
+
+- name: Set current context
+  become: ansible_user|default(ansible_user_id)
+  shell: kubectl config use-context local
 
 - name: Install role
-  delegate_to: localhost
+  become: ansible_user|default(ansible_user_id)
   k8s:
     state: present
     definition:

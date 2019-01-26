@@ -1,0 +1,12 @@
+---
+
+- name: Install role ?
+  when: not ansible_facts.ansible_local[name]|default(false)
+  include_role: name={{ name }}
+
+- name: Prevent role from installing automatically next time
+  include_role:
+    name: setfact
+  vars:
+    key: '{{ name }}'
+    value: 'installed'

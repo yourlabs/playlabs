@@ -1,4 +1,21 @@
 ---
+
+- name: Setup
+  include_role:
+    name: roleonce
+  vars:
+    name: '{{ item }}'
+  with_items:
+    - firewall
+    - docker
+    - nginx
+
+- name: Install docker ?
+  include_role:
+    name: roleonce
+  vars:
+    name: docker
+
 - name: Send deployment start slack message
   when: slack_token is defined
   tags: update

@@ -31,15 +31,9 @@
     name: python-docker
     state: absent
 
-- name: Install pip for docker pip module
-  package:
-    name: '{{ pip_package_name[ansible_os_family] }}'
-    state: present
-
-- name: Pip install docker
-  pip:
+- include_role: name=pip
+  vars:
     name: docker
-    state: present
 
 - name: Start docker on boot
   service:

@@ -1,0 +1,14 @@
+---
+
+- name: Create custom fact directory
+  file:
+    path: /etc/ansible/facts.d
+    state: directory
+
+- name: Insert custom fact file
+  copy:
+    content: |
+      #!/bin/bash
+      echo '{"{{ key }}" : "{{ value }}"}'
+    dest: /etc/ansible/facts.d/{{ key }}.fact
+    mode: 0700

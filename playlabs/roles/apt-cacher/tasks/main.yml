@@ -1,0 +1,6 @@
+---
+
+- name: Install apt-cacher proxy in /etc/apt/apt.conf.d/00aptproxy
+  copy:
+    dest: /etc/apt/apt.conf.d/00aptproxy
+    content: Acquire::http::Proxy "http://{{ cacher }}:80";

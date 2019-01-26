@@ -28,9 +28,9 @@
         namespace: '{{ namespace.name }}'
         name: '{{ namespace.name }}'
       rules:
-      - apiGroups: [""]
-        resources: ["*"]
-        verbs: ["*"]
+      - apiGroups: ['']
+        resources: ['*']
+        verbs: ['*']
 
 - name: Setup ServiceAccount role binding
   delegate_to: localhost

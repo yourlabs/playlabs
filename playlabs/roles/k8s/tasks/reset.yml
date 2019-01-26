@@ -1,0 +1,38 @@
+---
+
+- name: Reset Kubernetes component
+  shell: kubeadm reset --force
+  register: reset_cluster
+
+- name: Configure kubelet --fail-on-swap
+  when: k8s_swap
+  copy:
+    content: KUBELET_EXTRA_ARGS=--fail-swap-on=false
+    dest: /etc/default/kubelet
+
+- name: Init Kubernetes cluster
+  when: reset_cluster is succeeded
+  shell: |
+    kubeadm init --service-cidr {{ k8s_service_cidr }} \
+                 --kubernetes-version {{ k8s_version }} \
+                 --pod-network-cidr {{ k8s_pod_network_cidr }} \
+                 --token {{ k8s_token }} \
+                 --apiserver-advertise-address {{ k8s_master_ip }} \
+                 {% if k8s_swap %}--ignore-preflight-errors Swap{% endif %}
+  register: init_cluster
+
+- name: Create Kubernetes config directory
+  file:
+    path: /root/.kube/
+    state: directory
+
+- name: Copy admin.conf to Home directory
+  when: init_cluster is succeeded
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: '/root/.kube/config'
+    mode: 0700
+    remote_src: true
+
+- include: dashboard.yml
+  when: init_cluster is succeeded and k8s_dashboard
