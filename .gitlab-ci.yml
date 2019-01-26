@@ -2,7 +2,6 @@ stages:
 - build
 - test
 - update
-- cleanup
 - release
 
 variables:
@@ -57,7 +56,14 @@ py-test:
 vagrant:
   stage: build
   tags: [shell]
-  script: vagrant up
+  before_script:
+  - VAGRANT_TYPE=dhcp vagrant up
+  script:
+  - export ip=$(vagrant ssh -c "ip -o -4 addr show dev eth1 | cut -d' ' -f7 | cut -d'/' -f1" )
+  - playlabs deploy image=yourlabs/crudlfap @$ip
+  - playlabs install netdata @$ip
+  after_script:
+  - vagrant destroy -f
 
 ubuntu-init:
   stage: test
@@ -115,9 +121,3 @@ docker-push:
   - docker tag $IMAGE_TAG $PUBLIC_RELEASE_TAG
   - docker push $PUBLIC_RELEASE_TAG
   - docker logout
-
-cleanup:
-  tags: [shell]
-  stage: cleanup
-  script: vagrant destroy -f
-  when: always
