@@ -1,0 +1,37 @@
+---
+
+- name: Install users
+  with_items: '{{ users }}'
+  when: item['name']|key_pub_exists
+  user:
+    name: '{{ item["name"] }}'
+    state: present
+    shell: /bin/bash
+    groups: '{% if "ssh" in item.get("roles", {}) %}{{ ",".join(item["roles"]["ssh"]) }},{% endif %}users'
+    append: yes
+
+- name: Install ssh public keys
+  with_items: '{{ users }}'
+  when: item['name']|key_pub_exists
+  authorized_key:
+    user: '{{ item["name"] }}'
+    state: present
+    key: '{{ item["name"]|key_pub_read }}'
+
+- name: Install user specific sudos if any
+  with_items: '{{ users }}'
+  when: "'sudo' in item and item['name']|key_pub_exists"
+  blockinfile:
+    path: /etc/sudoers
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.name }}"
+    block: |
+      {% for line in item.get("sudo", []) %}
+      {{ item["name"] }} ALL=(ALL) NOPASSWD: {{ line }}
+      {% endfor %}
+    backup: yes
+
+- name: Remove users to remove
+  with_items: '{{ users_remove|default([]) }}'
+  user:
+    name: '{{ item }}'
+    state: absent
