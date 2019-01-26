@@ -1,0 +1,39 @@
+---
+
+- name: Create private key
+  openssl_privatekey:
+    path: /home/{{ user.name }}/k8s.{{ user.name }}.key
+
+- name: Create CSR
+  openssl_csr:
+    path: /home/{{ user.name }}/k8s.{{ user.name }}.csr
+    privatekey_path: /home/{{ user.name }}/k8s.{{ user.name }}.key
+    common_name: '{{ k8s_common_name }}'
+
+- name: Sign CSR
+  openssl_certificate:
+    path: /home/{{ user.name }}/k8s.{{ user.name }}.crt
+    csr_path: /home/{{ user.name }}/k8s.{{ user.name }}.csr
+    privatekey_path: /home/{{ user.name }}/k8s.{{ user.name }}.key
+    provider: selfsigned
+
+- name: Set certificate as user credential
+  shell: kubectl config set-credentials {{ user.name }} --client-certificate=/home/{{ user.name }}/.certs/$USER.crt  --client-key=/home/$USER/.certs/$USER.key
+
+- name: Install role
+  delegate_to: localhost
+  k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1beta1
+      kind: ClusterRoleBinding
+      metadata:
+        name: '{{ user.name }}'
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - kind: User
+        name: '{{ user.name }}'
+        namespace: default

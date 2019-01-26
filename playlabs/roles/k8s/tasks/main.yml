@@ -3,13 +3,6 @@
 
 - name: Install users
   include: users.yml
-  when: '"k8s" in user.get("roles", [])'
-  loop: '{{ users }}'
-  loop_control:
-    loop_var: user
 
 - name: Install namespaces
   include: namespaces.yml
-  loop: '{{ k8s_namespaces }}'
-  loop_control:
-    loop_var: namespace

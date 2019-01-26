@@ -47,3 +47,11 @@
   delay: 2
   ignore_errors: true
   tags: dashboard
+
+- name: Install your user
+  include: user.yml
+  vars:
+    user:
+      name: '{{ lookup("env", "USER") }}'
+      roles:
+        k8s:
