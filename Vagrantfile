@@ -8,6 +8,8 @@ Vagrant.configure("2") do |config|
 
   if ENV['VAGRANT_IP']
     config.vm.network "private_network", ip: ENV['VAGRANT_IP']
+  else
+    config.vm.network "private_network", type: "dhcp"
   end
 
   config.vm.provider "virtualbox" do |vb|
