@@ -1,10 +1,10 @@
 ---
 
 # Set your email for letsencrypt to activate letsencrypt
-letsencrypt_email: ci@yourlabs.org
+# letsencrypt_email: ci@yourlabs.org
 
 # For fake certs, no rate limit, but not a valid CA, good for testing
-# letsencrypt_uri: https://acme-staging.api.letsencrypt.org/directory
+letsencrypt_uri: https://acme-staging.api.letsencrypt.org/directory
 
 # For real certs, has rate limit, make sure your DNS records are ready !
-letsencrypt_uri: https://acme-v01.api.letsencrypt.org/directory
+# letsencrypt_uri: https://acme-v01.api.letsencrypt.org/directory
