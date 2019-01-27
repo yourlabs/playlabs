@@ -20,7 +20,7 @@ variables:
   - rm -rf "vagrant-*-env"; virtualenv -p python3 $venv
   - source $venv/bin/activate
   - pip install -e .
-  - playlabs scaffold inventory && cd inventory
+  - playlabs scaffold inventory
 
   - vagrant destroy -f; vagrant up
   - export ssh_config="vagrant-${CI_JOB_ID}-ssh-config"
@@ -37,6 +37,7 @@ deployment:
   - playlabs deploy @default --ssh-common-args="-F $ssh_config"
         image=yourlabs/crudlfap:master
         dns=$VAGRANT_IP
+  - cd inventory
   - playlabs install ssh @default --ssh-common-args="-F $ssh_config"
   - playlabs deploy deploy@$VAGRANT_IP
         image=yourlabs/crudlfap:master
@@ -46,6 +47,8 @@ deployment:
 monitoring:
   <<: *vagrant
   script:
+  - playlabs install netdata @default --ssh-common-args="-F $ssh_config"
+  - cd inventory
   - playlabs install netdata @default --ssh-common-args="-F $ssh_config"
 
 k8s:
