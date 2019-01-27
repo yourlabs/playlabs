@@ -18,7 +18,7 @@ variables:
   before_script:
   - export venv="vagrant-${CI_JOB_ID}-env"
   - rm -rf "vagrant-*-env"; virtualenv -p python3 $venv
-  - export PATH=$venv/bin:$PATH
+  - source $venv/bin/activate
   - pip install -e .
   - playlabs scaffold inventory && cd inventory
 
