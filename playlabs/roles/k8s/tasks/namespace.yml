@@ -1,14 +1,12 @@
 ---
 
 - name: Install namespace
-  delegate_to: localhost
   k8s:
     state: present
     kind: Namespace
     name: '{{ namespace.name }}'
 
 - name: Install service account
-  delegate_to: localhost
   k8s:
     state: present
     definition:
@@ -18,7 +16,6 @@
         name: '{{ namespace.name }}'
 
 - name: Setup ServiceAccount role
-  delegate_to: localhost
   k8s:
     state: present
     definition:
