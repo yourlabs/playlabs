@@ -1,18 +1,12 @@
 ---
 
-- name: Run migrations
-  shell: docker exec {{ project_instance }} django-admin migrate --noinput
-
-- name: Ensure djcli is installed
-  tags: users
-  shell: docker exec --user root {{ project_instance }} pip install djcli
-
 - name: Create super users
   register: django_createsuperuser
   with_items: '{{ users|default([]) }}'
   tags: users
   when: item['name']|vaulted_password(false) and ('superuser' in item.get('roles', {}).get(project_instance, []) or project_instance in item.get('roles', {}).get('superuser', {}))
   shell: docker exec {{ project_instance }} djcli save settings.AUTH_USER_MODEL username username={{ item['name'] }} email={{ item['email'] }}
+  failed_when: false
 
 - name: Update passwords
   tags: users
@@ -21,6 +15,7 @@
   when: item['name']|vaulted_password(false) and ('superuser' in item.get('roles', {}).get(project_instance, []) or project_instance in item.get('roles', {}).get('superuser', {}))
   shell: docker exec {{ project_instance }} djcli chpasswd '{{ item["name"]|vaulted_password }}' username={{ item['name'] }}
   no_log: true
+  failed_when: false
 
 #- name: How many users are in the database ?
 #  tags: users
