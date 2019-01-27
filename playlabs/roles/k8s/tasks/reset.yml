@@ -18,6 +18,11 @@
   shell: ipvsadm --clear
   failed_when: false
 
+- name: Pull for Kubernetes cluster init
+  when: reset_cluster is succeeded
+  shell: |
+    kubeadm config images pull --kubernetes-version {{ k8s_version }}
+
 - name: Init Kubernetes cluster
   when: reset_cluster is succeeded
   shell: |
