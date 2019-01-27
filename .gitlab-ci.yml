@@ -12,6 +12,33 @@ variables:
   ANSIBLE_FORCE_COLOR: 'true'
   USER: gitlab
 
+.vagrant: &vagrant
+  stage: build
+  tags: [shell]
+  before_script:
+  - vagrant destroy -f; vagrant up
+  - export ssh_config="vagrant-${CI_JOB_ID}-ssh-config"
+  - export venv="vagrant-${CI_JOB_ID}-env"
+  - rm -rf "vagrant-*-ssh-config"; vagrant ssh-config > $ssh_config
+  - rm -rf "vagrant-*-env"; virtualenv -p python3 $venv
+  - export PATH=$venv/bin:$PATH
+  - pip install -e .
+  after_script:
+  - vagrant destroy -f
+  - rm -rf $venv $ssh_config
+
+deployment:
+  <<: *vagrant
+  script:
+  - playlabs deploy image=yourlabs/crudlfap:master @default --ssh-common-args="-F $ssh_config"
+  - playlabs scaffold inventory
+  - playlabs deploy deploy@ci.yourlabs.io prefix=ci instance=$CI_COMMIT_REF_NAME image=yourlabs/crudlfap:master dns=${CI_COMMIT_REF_NAME}.playlabs.ci.yourlabs.io --tags=update
+
+monitoring:
+  <<: *vagrant
+  script:
+  - ${CI_JOB_ID}-env/bin/playlabs install netdata @default
+
 build:
   stage: build
   image: docker:stable
