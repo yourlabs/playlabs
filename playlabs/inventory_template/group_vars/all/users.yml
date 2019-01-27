@@ -45,6 +45,8 @@ users:
   - /home/*/backup.sh
   - /home/*/docker-run.sh
   - /usr/bin/docker pull *
+  - /usr/bin/docker inspect *
+  - /usr/bin/docker run * id -u
 
 # The productowner user does not have ssh access because it does not have a
 # public key in keys/productowner.pub.

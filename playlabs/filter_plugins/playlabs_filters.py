@@ -1,5 +1,6 @@
 #!/usr/bin/python
 from urllib.parse import urlparse
+import json
 import os
 import subprocess
 
@@ -33,6 +34,8 @@ class FilterModule(object):
         return os.path.exists(path)
 
     def docker_env_dict(self, env):
+        if isinstance(env, dict) and 'stdout' in env:
+            env = json.loads(env['stdout'])[0]['Config']['Env']
         return {
             i.split('=')[0]: i.split('=')[1]
             for i in env

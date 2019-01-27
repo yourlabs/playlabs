@@ -37,7 +37,7 @@
   shell: sudo /usr/bin/docker pull {{ project_image }}
 
 - name: Get image USER uuid
-  shell: docker run {{ project_image }} id -u
+  shell: sudo /usr/bin/docker run {{ project_image }} id -u
   tags: update
   register: project_image_uuid_shell
   changed_when: false
@@ -46,15 +46,14 @@
   tags: update
   set_fact: project_image_uuid={{ project_image_uuid_shell.stdout }}
 
-- name: Docker inspect image
+- name: Inspect image for env vars
+  shell: sudo /usr/bin/docker inspect {{ project_image }}
+  register: project_image_env
   tags: update
-  docker_image_facts:
-    name: '{{ project_image }}'
-  register: project_image_facts
 
 - name: Merge environment variables
   set_fact:
-    project_image_env: "{{ project_image_facts['images'][0]['Config']['Env']|docker_env_dict }}"
+    project_image_env: "{{ project_image_env|docker_env_dict }}"
   tags: update
 
 - name: Get plugins from image variables
@@ -130,7 +129,6 @@
     project_exec: |
       docker run --name {{ project_instance }}-temp --rm \
       -v {{ project_log_home }}:{{ project_log_mount }} \
-      --user root \
       {% for key, value in project_env.items() %}
       -e {{ key }}='{{ value | regex_replace("\'", "\\\'") }}' \
       {% endfor %}
