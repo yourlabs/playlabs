@@ -1,8 +1,8 @@
 ---
+letsencrypt_email:
 
 netdata_home: /home/netdata
-# we haz sendmail
-netdata_image: titpetric/netdata
+netdata_email_sender: netdata@localhost
 
 netdata_packages:
 - autoconf

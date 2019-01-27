@@ -1,7 +1,7 @@
 ---
 
 - name: Install htaccess
-  with_items: '{{ users }}'
+  with_items: '{{ users|default([]) }}'
   tags: users
   when: >-
     item.name|vaulted_password(false)
