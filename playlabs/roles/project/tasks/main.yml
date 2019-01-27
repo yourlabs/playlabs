@@ -140,11 +140,6 @@
   include: plugins/{{ item }}/deploy.pre.yml
   tags: update,predeploy
 
-- name: Run image pre-deploy script if any
-  tags: [update, migrate]
-  shell: |
-    {{ project_exec }} bash -c '[ ! -f /app/predeploy ] || /app/predeploy'
-
 - include: docker.yml
   tags: deploy
 
