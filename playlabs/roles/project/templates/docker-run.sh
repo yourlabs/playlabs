@@ -16,3 +16,5 @@ docker network connect {{ project_instance }} {{ project_instance }}
 {% for network in project_networks -%}
 docker network connect {{ network }} {{ project_instance }}
 {% endfor %}
+
+docker logs {{ project_instance }}

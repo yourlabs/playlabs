@@ -201,20 +201,20 @@
 
   always:
   - name: nginx-letsencrypt application logs relevant to DNS
-    shell: docker logs --since=2m nginx-letsencrypt 2>&1 | grep {{ project_dns }} | tail -n 10
+    shell: /usr/bin/docker logs --since=2m nginx-letsencrypt 2>&1 | grep {{ project_dns }} | tail -n 10
     tags: check,update
     changed_when: false
     failed_when: false
     when: project_letsencrypt_email|default(false)
 
   - name: nginx-proxy application logs relevant to current deploy
-    shell: docker logs --since=2m nginx-proxy 2>&1 | grep -C1 "{{ test_id }}"
+    shell: /usr/bin/docker logs --since=2m nginx-proxy 2>&1 | grep -C1 "{{ test_id }}"
     tags: check,update
     failed_when: false
     changed_when: false
 
   - name: project application logs
-    shell: docker logs --since=2m {{ project_instance }}
+    shell: /usr/bin/docker logs --since=2m {{ project_instance }}
     tags: check,update
     failed_when: false
     changed_when: false
