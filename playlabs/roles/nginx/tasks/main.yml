@@ -28,6 +28,7 @@
     labels: com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=nginx-letsencrypt
 
 - name: Create nginx-letsencrypt container with jrcs/letsencrypt-nginx-proxy-companion
+  when: letsencrypt_email|default()
   docker_container:
     pull: true
     name: nginx-letsencrypt
