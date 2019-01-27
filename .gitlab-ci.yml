@@ -40,6 +40,11 @@ monitoring:
   script:
   - playlabs install netdata @default --ssh-common-args="-F $ssh_config"
 
+k8s:
+  <<: *vagrant
+  script:
+  - playlabs install k8s @default --ssh-common-args="-F $ssh_config"
+
 build:
   stage: build
   image: docker:stable
