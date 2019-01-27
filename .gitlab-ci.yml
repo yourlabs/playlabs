@@ -16,14 +16,14 @@ variables:
   stage: build
   tags: [shell]
   before_script:
-  - export venv="vagrant-${CI_JOB_ID}-env"
+  - export venv="$(pwd)/vagrant-${CI_JOB_ID}-env"
   - rm -rf "vagrant-*-env"; virtualenv -p python3 $venv
   - source $venv/bin/activate
   - pip install -e .
   - rm -rf inventory
 
   - vagrant destroy -f; vagrant up
-  - export ssh_config="vagrant-${CI_JOB_ID}-ssh-config"
+  - export ssh_config="$(pwd)/vagrant-${CI_JOB_ID}-ssh-config"
   - rm -rf "vagrant-*-ssh-config"; vagrant ssh-config > $ssh_config
   - export VAGRANT_IP=$(vagrant ssh -c "ip -o -4 addr show dev eth1 | cut -d' ' -f7 | cut -d'/' -f1" )
 
