@@ -33,7 +33,6 @@
         verbs: ['*']
 
 - name: Setup ServiceAccount role binding
-  delegate_to: localhost
   k8s:
     state: present
     definition:
@@ -52,7 +51,6 @@
         apiGroup: rbac.authorization.k8s.io
 
 - name: Install secret
-  delegate_to: localhost
   k8s:
     state: present
     definition:
