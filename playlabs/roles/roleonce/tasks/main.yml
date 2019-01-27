@@ -1,16 +1,20 @@
 ---
 
-- name: Install role ?
-  when: not ansible_facts.ansible_local[name]|default(false)
-  include_role: name={{ name }}
-
-- meta: flush_handlers
-  when: not ansible_facts.ansible_local[name]|default(false)
-
-- name: Prevent role from installing automatically next time
-  include_role:
-    name: setfact
-  vars:
-    key: '{{ name }}'
-    value: 'installed'
-    setfact_mode: 0755
+- name: roleonce
+  block:
+  - assert:
+      that:
+      - ansible_facts.ansible_local[name]
+  rescue:
+  - include_role: name={{ name }}
+  - file: path=/etc/ansible/facts.d state=directory
+  - set_fact: '{{ name }}="installed"'
+  - shell:
+      cmd: |
+        cat > /etc/ansible/facts.d/{{ name }}.fact << EOF
+        #!/bin/sh
+        echo '{"{{ name }}" : "installed"}'
+        EOF
+  - file: path=/etc/ansible/facts.d/{{ name }}.fact mode=0755
+  - meta: flush_handlers
+  - setup: filter=ansible_local
