@@ -6,8 +6,8 @@
   when: >-
     item.name|vaulted_password(false)
     and (
-        'superuser' in item.get('roles', {}).get(htaccess_service, [])
-        or htaccess_service in item.get('roles', {}).get('superuser', {})
+        htaccess_service in item.get('roles', {})
+        or htaccess_service in item.get('roles', {}).get('superuser', [])
     )
   htpasswd:
     path: '{{ nginx_home }}/htpasswd/{{ htaccess_dns }}'
