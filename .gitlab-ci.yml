@@ -34,9 +34,14 @@ variables:
 deployment:
   <<: *vagrant
   script:
-  - playlabs deploy image=yourlabs/crudlfap:master @default --ssh-common-args="-F $ssh_config" dns=$VAGRANT_IP
+  - playlabs deploy @default --ssh-common-args="-F $ssh_config"
+        image=yourlabs/crudlfap:master
+        dns=$VAGRANT_IP
   - playlabs install ssh @default --ssh-common-args="-F $ssh_config"
-  - playlabs deploy deploy@$VAGRANT_IP dns=$VAGRANT_IP image=yourlabs/crudlfap:master --tags=update
+  - playlabs deploy deploy@$VAGRANT_IP
+        image=yourlabs/crudlfap:master
+        dns=$VAGRANT_IP
+        --tags=update
 
 monitoring:
   <<: *vagrant
@@ -47,9 +52,9 @@ k8s:
   <<: *vagrant
   script:
   - playlabs install k8s @default
-		k8s_master_ip=$VAGRANT_IP
-		k8s_common_name=$VAGRANT_IP
-		--ssh-common-args="-F $ssh_config"
+        k8s_master_ip=$VAGRANT_IP
+        k8s_common_name=$VAGRANT_IP
+        --ssh-common-args="-F $ssh_config"
 
 build:
   stage: build
