@@ -40,7 +40,6 @@
   shell: kubectl config use-context local
 
 - name: Install role
-  become: ansible_user|default(ansible_user_id)
   k8s:
     state: present
     definition:
