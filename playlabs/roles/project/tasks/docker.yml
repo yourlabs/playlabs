@@ -6,7 +6,7 @@
     content: '{{ project_image }}'
     dest: '{{ project_home }}/docker-image'
     mode: 0700
-    owner: '{{ deploy_user|default("root") }}'
+    owner: deploy
     unsafe_writes: true
 
 - name: Update docker-run.sh
