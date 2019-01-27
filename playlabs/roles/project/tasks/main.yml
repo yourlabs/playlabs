@@ -34,9 +34,7 @@
 
 - name: Pull project image
   tags: update
-  docker_image:
-    name: '{{ project_image }}'
-    force: yes
+  shell: sudo docker pull {{ project_image }}
 
 - name: Get image USER uuid
   shell: docker run {{ project_image }} id -u
