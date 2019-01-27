@@ -1,8 +1,13 @@
 ---
+
 - name: Require nginx for this config
   include_role: name=roleonce
   vars:
     name: nginx
+
+- name: Install a deploy user for updates
+  user:
+    name: deploy
 
 - name: Send deployment start slack message
   when: slack_token is defined
