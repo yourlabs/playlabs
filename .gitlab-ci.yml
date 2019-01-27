@@ -12,6 +12,10 @@ variables:
   ANSIBLE_FORCE_COLOR: 'true'
   USER: gitlab
 
+cache:
+  paths:
+  - .vagrant/cache
+
 .vagrant: &vagrant
   stage: build
   tags: [shell]
