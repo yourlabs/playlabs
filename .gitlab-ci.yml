@@ -37,7 +37,7 @@ deployment:
 monitoring:
   <<: *vagrant
   script:
-  - ${CI_JOB_ID}-env/bin/playlabs install netdata @default
+  - playlabs install netdata @default
 
 build:
   stage: build
