@@ -1,4 +1,8 @@
 ---
+- name: Require docker for this config
+  include_role: name=roleonce
+  vars:
+    name: docker
 
 - name: Set facts for Arch
   when: ansible_os_family == 'Archlinux'

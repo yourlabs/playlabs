@@ -1,20 +1,8 @@
 ---
-
-- name: Setup
-  include_role:
-    name: roleonce
+- name: Require nginx for this config
+  include_role: name=roleonce
   vars:
-    name: '{{ item }}'
-  with_items:
-    - docker
-    - firewall
-    - nginx
-
-- name: Install docker ?
-  include_role:
-    name: roleonce
-  vars:
-    name: docker
+    name: nginx
 
 - name: Send deployment start slack message
   when: slack_token is defined

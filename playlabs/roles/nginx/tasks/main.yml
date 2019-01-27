@@ -1,4 +1,8 @@
 ---
+- name: Require firewall
+  include_role: name=roleonce
+  vars:
+    name: firewall
 
 - name: Set Log driver
   set_fact:
