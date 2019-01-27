@@ -1,4 +1,10 @@
 ---
+- name: Dependency roles
+  include_role:
+    name: roleonce
+  vars:
+    name: docker
+
 - include: setup.yml
 
 - name: Install users

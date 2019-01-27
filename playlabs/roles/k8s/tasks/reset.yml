@@ -1,14 +1,22 @@
 ---
 
+- name: Configure kubelet --fail-on-swap
+  when: k8s_swap
+  copy:
+    content: KUBELET_EXTRA_ARGS="--fail-swap-on=false --network-plugin=cni --cni-conf-dir=/etc/cni/net.d --allow-privileged=true"
+    dest: /etc/default/kubelet
+
 - name: Reset Kubernetes component
   shell: kubeadm reset --force
   register: reset_cluster
 
-- name: Configure kubelet --fail-on-swap
-  when: k8s_swap
-  copy:
-    content: KUBELET_EXTRA_ARGS=--fail-swap-on=false
-    dest: /etc/default/kubelet
+- name: Reset iptables
+  shell: iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+
+
+- name: Reset ipvs
+  shell: ipvsadm --clear
+  failed_when: false
 
 - name: Init Kubernetes cluster
   when: reset_cluster is succeeded
@@ -34,5 +42,5 @@
     mode: 0700
     remote_src: true
 
-- include: dashboard.yml
-  when: init_cluster is succeeded and k8s_dashboard
+- name: Install kuberouter-all-features
+  shell: kubectl apply -f https://raw.githubusercontent.com/cloudnativelabs/kube-router/master/daemonset/kubeadm-kuberouter-all-features.yaml

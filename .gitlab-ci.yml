@@ -46,7 +46,10 @@ monitoring:
 k8s:
   <<: *vagrant
   script:
-  - playlabs install k8s @default --ssh-common-args="-F $ssh_config"
+  - playlabs install k8s @default
+		k8s_master_ip=$VAGRANT_IP
+		k8s_common_name=$VAGRANT_IP
+		--ssh-common-args="-F $ssh_config"
 
 build:
   stage: build
