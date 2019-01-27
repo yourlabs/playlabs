@@ -1,0 +1,34 @@
+---
+
+- name: Install user
+  user:
+    name: '{{ user["name"] }}'
+    state: present
+    shell: /bin/bash
+    groups: '{% if "ssh" in user.get("roles", {}) %}{{ ",".join(user["roles"]["ssh"]) }},{% endif %}users'
+    append: yes
+
+- name: Install ssh public keys
+  authorized_key:
+    user: '{{ user["name"] }}'
+    state: present
+    key: '{{ user["name"]|key_pub_read }}'
+
+- name: Install user specific sudos if any
+  when: "'sudo' in user"
+  blockinfile:
+    path: /root/sudoers_{{ user.name }}
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{ user.name }}"
+    block: |
+      {% for line in user.get("sudo", []) %}
+      {{ user["name"] }} ALL=(ALL) NOPASSWD: {{ line }}
+      {% endfor %}
+    backup: yes
+
+- name: Check sudo files syntax
+  when: "'sudo' in user"
+  block:
+  - shell: visudo -cf /root/sudoers_{{ user.name }} && cp /root/sudoers_{{ user.name }} /etc/sudoers.d/{{ user.name }}
+  rescue:
+  - fail: msg="/root/sudoers_{{ user.name }} did not pass syntax check"
