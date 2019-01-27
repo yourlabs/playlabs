@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder ".vagrant/cache/apt", "/var/cache/apt"
 
   FileUtils.mkdir_p ".vagrant/cache/docker"
-  config.vm.synced_folder ".vagrant/cache/docker", "/var/lib/docker/image"
+  config.vm.synced_folder ".vagrant/cache/docker", "/var/lib/docker/image/overlay2/layerdb/sha256"
 
   FileUtils.mkdir_p ".vagrant/cache/pip"
   config.vm.synced_folder ".vagrant/cache/pip", "/root/.cache/pip"
