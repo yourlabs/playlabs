@@ -39,10 +39,11 @@ deployment:
         dns=$VAGRANT_IP
   - rm -rf inventory && playlabs scaffold inventory && cd inventory
   - playlabs install ssh @default --ssh-common-args="-F $ssh_config"
-  - playlabs deploy deploy@$VAGRANT_IP
+  - playlabs deploy deploy@default
         image=yourlabs/crudlfap:master
         dns=$VAGRANT_IP
         --tags=update
+        --ssh-common-args="-F $ssh_config"
 
 monitoring:
   <<: *vagrant
