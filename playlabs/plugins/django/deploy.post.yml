@@ -1,5 +1,12 @@
 ---
 
+- name: Run migrations
+  shell: docker exec {{ project_instance }} django-admin migrate --noinput
+
+- name: Ensure djcli is installed
+  tags: users
+  shell: docker exec --user root {{ project_instance }} pip install djcli
+
 - name: Create super users
   register: django_createsuperuser
   with_items: '{{ users|default([]) }}'
