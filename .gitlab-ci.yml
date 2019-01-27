@@ -17,7 +17,7 @@ cache:
   - .vagrant/cache
 
 .vagrant: &vagrant
-  stage: build
+  stage: test
   tags: [shell]
   before_script:
   - export venv="$(pwd)/vagrant-${CI_JOB_ID}-env"
