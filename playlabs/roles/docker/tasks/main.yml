@@ -43,6 +43,7 @@
 
 - name: Add active_users to docker group
   with_items: '{{ users|default([]) }}'
+  when: '{{ "docker" in item.get("roles", {}).get("ssh", []) }}'
   user:
     name: '{{ item["name"] }}'
     state: present

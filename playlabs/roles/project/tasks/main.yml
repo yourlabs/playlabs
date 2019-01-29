@@ -10,7 +10,7 @@
     name: deploy
 
 - name: Send deployment start slack message
-  when: slack_token is defined
+  when: slack_token is defined and project_slack_channel
   tags: update
   slack:
     token: '{{ project_slack_token }}'
@@ -69,7 +69,7 @@
     name: '{{ project_instance }}'
 
 - name: Send backup start slack message
-  when: slack_token is defined
+  when: slack_token is defined and project_slack_channel
   tags: update,backup
   slack:
     parse: full
@@ -89,7 +89,7 @@
 
   rescue:
   - name: Send backup failed slack message
-    when: slack_token is defined
+    when: slack_token is defined and project_slack_channel
     tags: update,backup
     slack:
       token: '{{ project_slack_token }}'
@@ -105,7 +105,7 @@
     tags: update,backup
 
 - name: Send backup success slack message
-  when: slack_token is defined
+  when: slack_token is defined and project_slack_channel
   tags: update,backup
   slack:
     parse: full
@@ -137,7 +137,7 @@
   tags: deploy
 
 - name: Send deploy looks like success slack message
-  when: slack_token is defined
+  when: slack_token is defined and project_slack_channel
   tags: update
   slack:
     parse: full
@@ -176,7 +176,7 @@
     #  dest: /dev/null
     #  tmp_dest: /tmp
   - name: Send checks success slack message
-    when: slack_token is defined
+    when: slack_token is defined and project_slack_channel
     tags: update
     slack:
       token: '{{ project_slack_token }}'
@@ -191,7 +191,7 @@
 
   rescue:
   - name: Send checks failed slack message
-    when: slack_token is defined
+    when: slack_token is defined and project_slack_channel
     tags: update
     slack:
       token: '{{ project_slack_token }}'
