@@ -1,8 +1,8 @@
 ---
-- name: Require firewall
+- name: Require docker
   include_role: name=roleonce
   vars:
-    name: firewall
+    name: docker
 
 - name: Set Log driver
   set_fact:
