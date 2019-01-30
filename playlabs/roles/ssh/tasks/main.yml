@@ -1,9 +1,13 @@
 ---
 
+- name: Include OS specific vars file
+  include_vars: 'vars/{{ ansible_os_family }}.yml'
+
 - name: Install packages to add user
   package: name={{ item }}
   with_items:
-  - '{{ "shadow" if ansible_os_family in ("Alpine", "Archlinux") else "passwd" }}'
+  - '{{ password_pkg }}'
+  - '{{ ssh_pkg }}'
   - sudo
   - bash
 
@@ -16,15 +20,10 @@
     group: root
     mode: 0600
 
-- name: Set ssh service name for Arch
-  when: ansible_os_family in ('Alpine', 'Archlinux', 'RedHat')
-  set_fact:
-    ssh_service_name: sshd
-
-- name: Set ssh service name for Debian
-  when: ansible_os_family in ('Debian')
-  set_fact:
-    ssh_service_name: ssh
+- name: Install sudo group
+  group:
+    name: sudo
+    state: present
 
 - name: Install users group
   group:
