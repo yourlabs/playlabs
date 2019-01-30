@@ -1,0 +1,4 @@
+---
+password_pkg: passwd
+ssh_pkg: ssh
+ssh_service: ssh
