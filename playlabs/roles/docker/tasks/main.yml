@@ -54,3 +54,8 @@
     name: vm.max_map_count
     value: 1048576
     state: present
+
+- name: Put docker being a secure firewall
+  include_role: name=roleonce
+  vars:
+    name: docker
