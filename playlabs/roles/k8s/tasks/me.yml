@@ -4,7 +4,7 @@
   include: user.yml
   vars:
     user:
-      name: '{{ ansible_ssh_user }}'
+      name: '{{ ansible_user }}'
       roles:
         k8s:
 
@@ -12,4 +12,4 @@
   include: namespace.yml
   vars:
     namespace:
-      name: '{{ ansible_ssh_user }}'
+      name: '{{ ansible_user }}'
