@@ -42,14 +42,13 @@ for the playlabs install command to work. Playlabs provide two ways.
 Vagrant/VirtualBox
 ------------------
 
-In the git directory of playlabs, you can run ``vagrant up`` to have a VM on
-192.168.168.168 that you can ssh to with sudo access::
+You can work in a VM if you have vagrant::
 
    cd ~/src/playlabs
    vagrant destroy -f
-   VAGRANT_IP=192.168.168.168 VAGRANT_GUI=1 vagrant up
-   ssh 192.168.168.168 date
-   playlabs install docker,k8s @192.168.168.168
+   vagrant up
+   vagrant ssh-config > ssh
+   playlabs deploy image=yourlabs/crudlfap --ssh-common-args="-F ssh" @default
 
 Bare host
 ---------

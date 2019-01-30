@@ -25,10 +25,4 @@ Vagrant.configure("2") do |config|
     vb.memory = "1024"
     vb.cpus = 2
   end
-
-  config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "playlabs/init.yml"
-    ansible.become = true
-    ansible.become_user = "root"
-  end
 end
