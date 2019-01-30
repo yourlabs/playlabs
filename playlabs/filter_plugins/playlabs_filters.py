@@ -14,6 +14,7 @@ class FilterModule(object):
             'exists': self.exists,
             'key_pub_exists': self.key_pub_exists,
             'key_pub_read': self.key_pub_read,
+            'local_key_pub_read': self.local_key_pub_read,
             'vaulted_password': self.vaulted_password,
             'vaulted_read': self.vaulted_read,
             'url_only': self.url_only,
@@ -28,6 +29,10 @@ class FilterModule(object):
 
     def key_pub_read(self, name):
         with open(f'keys/{name}.pub', 'r') as f:
+            return f.read()
+
+    def local_key_pub_read(self):
+        with open(f'{os.getenv("HOME")}/.ssh/id_rsa.pub', 'r') as f:
             return f.read()
 
     def exists(self, path):
