@@ -1,0 +1,10 @@
+---
+
+- hosts: all
+  # Don't crash if python isn't installed, we'll install it
+  gather_facts: False
+  tasks:
+  - name: Raw bootstrap.sh
+    script: 'bootstrap.sh'
+    register: out
+    changed_when: "'+ exit 0' not in out.stdout_lines"
