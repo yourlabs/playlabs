@@ -74,7 +74,7 @@ class Ansible(object):
 
         cmd = ['ansible-playbook']
         cmd.append('-v')
-
+        cmd += ['-u', self.parser.user]
         cmd += self.inventory()
         cmd += args
         if os.path.exists(self.key_path):
