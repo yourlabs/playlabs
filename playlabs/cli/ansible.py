@@ -309,7 +309,8 @@ class Vault(object):
         if os.path.exists(self.pass_file):
             os.environ['ANSIBLE_VAULT_PASSWORD_FILE'] = self.pass_file
 
-        os.environ['ANSIBLE_REMOTE_TMP'] = f'.ansible/tmp/ansible-tmp-{self.parser.user}'
+        os.environ['ANSIBLE_REMOTE_TMP'] = (
+            f'.ansible/tmp/ansible-tmp-{self.parser.user}')
 
     def clean(self):
         if self.pass_file:
