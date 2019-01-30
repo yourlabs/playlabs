@@ -55,7 +55,9 @@
       -A LOGDROP -j DROP
       -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
       -A INPUT -i lo -j ACCEPT
+      {% if not firewall_allow_ping %}
       -A INPUT -p icmp -m icmp --icmp-type 8 -m conntrack --ctstate NEW -j LOGDROP
+      {% endif %}
       -A INPUT -p udp -m conntrack --ctstate NEW -j UDP
       -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -m conntrack --ctstate NEW -j TCP
       -A DOCKER-USER -i eno1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
