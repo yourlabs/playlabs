@@ -1,7 +1,7 @@
 ---
 
-- name: install restic
-  package: name=restic
+- name: install restic, lftp
+  package: name=restic,lftp
 
 - name: Install backup scripts
   when: project_backup_password != False
