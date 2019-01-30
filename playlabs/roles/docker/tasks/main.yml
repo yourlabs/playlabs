@@ -58,4 +58,4 @@
 - name: Put docker being a secure firewall
   include_role: name=roleonce
   vars:
-    name: docker
+    name: firewall
