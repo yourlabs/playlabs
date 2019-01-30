@@ -1,0 +1,4 @@
+---
+password_pkg: shadow
+ssh_pkg: openssh
+ssh_service: sshd
