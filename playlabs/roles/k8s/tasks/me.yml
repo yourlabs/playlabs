@@ -1,10 +1,15 @@
 ---
 
+- name: Ensure user exists
+  user:
+    name: '{{ lookup("env", "USER") }}'
+    state: present
+
 - name: Install your user
   include: user.yml
   vars:
     user:
-      name: '{{ ansible_user }}'
+      name: '{{ lookup("ENV", "USER") }}'
       roles:
         k8s:
 
