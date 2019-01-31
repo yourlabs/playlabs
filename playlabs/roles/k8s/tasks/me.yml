@@ -17,4 +17,4 @@
   include: namespace.yml
   vars:
     namespace:
-      name: '{{ ansible_user }}'
+      name: '{{ lookup("env", "USER") }}'
