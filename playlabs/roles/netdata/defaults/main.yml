@@ -4,6 +4,8 @@ letsencrypt_email:
 netdata_home: /home/netdata
 netdata_email_sender: netdata@localhost
 
+netdata_dns: '{{ ansible_default_ipv4.address }}'
+
 netdata_packages:
 - autoconf
 - autoconf-archive
