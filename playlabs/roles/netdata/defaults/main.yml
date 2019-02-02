@@ -4,7 +4,10 @@ letsencrypt_email:
 netdata_home: /home/netdata
 netdata_email_sender: netdata@localhost
 
-netdata_dns: '{{ ansible_default_ipv4.address }}'
+prometheus_dns: prom.local
+grafana_dns: '{{ ansible_default_ipv4.address }}'
+netdata_dns: netdata.local
+grafana_password: 'SECRET'
 
 netdata_packages:
 - autoconf
@@ -18,3 +21,4 @@ netdata_packages:
 - pkg-config
 - uuid-dev
 - zlib1g-dev
+- sysfsutils

@@ -1,5 +1,4 @@
 ---
-
 - name: Setup
   include_role:
     name: roleonce
@@ -23,6 +22,16 @@
     name: '{{ netdata_packages }}'
     state: present
   when: ansible_os_family == "Debian"
+
+- name: enable sysfs KSM
+  lineinfile:
+    path: /etc/sysfs.conf
+    line: 'kernel/mm/ksm/run = 1'
+
+- name: config sysfs KSM
+  lineinfile:
+    path: /etc/sysfs.conf
+    line: 'kernel/mm/ksm/sleep_millisecs = 1000'
 
 - name: Clone repo
   register: netdata_git
@@ -70,6 +79,51 @@
       LETSENCRYPT_EMAIL: '{% if letsencrypt_email %}{{ letsencrypt_email }}{% endif %}'
       LETSENCRYPT_HOST: '{% if letsencrypt_email %}{{ netdata_dns }}{% endif %}'
       VIRTUAL_HOST: '{{ netdata_dns }}'
+
+- name: Make prometheus home
+  file: name=/home/prometheus state=directory
+
+- name: Copy prometheus configuration
+  copy:
+    src: files/prometheus.yml
+    dest: /home/prometheus/prometheus.yml
+
+- name: Setup prometheus container
+  tags: docker
+  docker_container:
+    hostname: prometheus
+    name: prometheus
+    image: prom/prometheus
+    restart_policy: unless-stopped
+    volumes:
+    - /home/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    - prometheus-data:/prometheus
+    ports:
+    - 9090:9090
+    env:
+      VIRTUAL_HOST: '{{ prometheus_dns }}'
+
+- name: Make grafana home
+  file: name=/home/grafana state=directory
+
+- name: Make grafana datasources dir
+  file: name=/home/grafana/datasources state=directory
+
+- name: Setup grafana container
+  tags: docker
+  docker_container:
+    name: grafana
+    image: grafana/grafana
+    restart_policy: unless-stopped
+    hostname: grafana
+    volumes:
+    - grafana-data:/var/lib/grafana
+    - grafana-plugins:/var/lib/grafana/plugins
+    ports:
+    - 3000:3000
+    env:
+      VIRTUAL_HOST: '{{ grafana_dns }}'
+      GF_SECURITY_ADMIN_PASSWORD: '{{ grafana_password }}'
 
 - name: Install netdata htaccess
   vars:
