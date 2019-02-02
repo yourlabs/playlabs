@@ -51,6 +51,7 @@
       -A LOGDROP -j DROP
       -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
       -A INPUT -i lo -j ACCEPT
+      -A INPUT -i docker0 -j ACCEPT
       {% if firewall_allow_ping %}
       -A INPUT -p icmp -m icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
       {% else %}
