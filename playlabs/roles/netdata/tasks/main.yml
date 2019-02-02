@@ -4,11 +4,7 @@
   include_role:
     name: roleonce
   vars:
-    name: '{{ item }}'
-  with_items:
-  - docker
-  - firewall
-  - nginx
+    name: nginx
 
 - name: Create configuration directories
   file:
