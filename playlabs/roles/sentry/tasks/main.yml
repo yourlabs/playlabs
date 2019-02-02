@@ -1,5 +1,7 @@
 ---
 
+- package: name=python3-pexpect
+
 - name: Create sentry network
   docker_network:
     name: sentry
