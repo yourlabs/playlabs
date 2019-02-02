@@ -273,7 +273,7 @@
   docker_container:
     name: passbolt
     hostname: '{{ passbolt_dns }}'
-    image: passbolt/passbolt:1.6.5-1-alpine
+    image: passbolt/passbolt:latest
     networks:
     - name: passbolt-network
     - name: mail
@@ -283,19 +283,22 @@
     - '{{ passbolt_config_source }}core.php:{{ passbolt_config_dest }}core.php'
     - '{{ passbolt_config_source }}database.php:{{ passbolt_config_dest }}database.php'
     - '{{ passbolt_config_source }}email.php:{{ passbolt_config_dest }}email.php'
-    - '{{ passbolt_config_source }}gpg/serverkey.asc:{{ passbolt_config_dest }}gpg/serverkey.asc'
-    - '{{ passbolt_config_source }}gpg/serverkey.private.asc:{{ passbolt_config_dest }}gpg/serverkey.private.asc'
+    - '{{ passbolt_config_source }}gpg/serverkey.asc:/var/www/passbolt/config/gpg/serverkey.asc'
+    - '{{ passbolt_config_source }}gpg/serverkey.private.asc:/var/www/passbolt/config/gpg/serverkey_private.asc'
     - '{{ nginx_data }}certs/{{ passbolt_dns }}/cert.pem:/etc/ssl/certs/certificate.crt'
     - '{{ nginx_data }}certs/{{ passbolt_dns }}/key.pem:/etc/ssl/certs/certificate.key'
     exposed_ports: ['80', '443']
     env:
-      DB_HOST: passbolt-mysql
-      DB_PASS: '{{ passbolt_mysql_password }}'
-      EMAIL_FROM: '{{ passbolt_email }}'
-      EMAIL_HOST: '{{ mail_dns }}'
-      EMAIL_USERNAME: '{{ passbolt_email }}'
-      EMAIL_PASSWORD: '{{ passbolt_email_password }}'
-      EMAIL_TLS: 'true'
+      DATASOURCES_DEFAULT_PASSWORD: '{{ passbolt_mysql_password }}'
+      DATASOURCES_DEFAULT_DATABASE: passbolt
+      DATASOURCES_DEFAULT_HOST: passbolt-mysql
+      DATASOURCES_DEFAULT_USERNAME: passbolt
+      APP_FULL_BASE_URL: https://{{ passbolt_dns }}
+      EMAIL_DEFAULT_FROM: '{{ passbolt_email }}'
+      EMAIL_TRANSPORT_DEFAULT_HOST: '{{ mail_dns }}'
+      EMAIL_TRANSPORT_DEFAULT_USERNAME: '{{ passbolt_email }}'
+      #EMAIL_TRANSPORT_DEFAULT_PASSWORD: '{{ passbolt_email_password }}'
+      #EMAIL_TRANSPORT_DEFAULT_TLS: 'true'
       KEY_NAME: passbolt
       KEY_EMAIL: '{{ gpg_email }}'
       CIPHERSEED: '{{ passbolt_cipherseed }}'
@@ -304,41 +307,41 @@
       LETSENCRYPT_HOST: '{{ passbolt_dns }}'
       VIRTUAL_HOST: '{{ passbolt_dns }}'
 
-- name: Install passbolt email account
-  vars:
-    email: '{{ passbolt_email }}'
-    password: '{{ passbolt_email_password }}'
-  include_role:
-    name: mail
-
-- name: Install backup scripts
-  vars:
-    unit_name: backup-passbolt
-    unit_description: Passbolt backup
-    script_path: '{{ passbolt_data }}/backup.sh'
-    script_content: |
-      #!/bin/bash -eux
-      export passbolt_dump={{ passbolt_backup }}passbolt.sql
-      mkdir -p ${passbolt_dump%/*}
-      docker exec -t passbolt-mysql mysqldump -upassbolt -p{{ passbolt_mysql_password }} passbolt &> $passbolt_dump
-      export FTP_PASSWORD="{{ backup_ftp_password }}"
-      /usr/bin/duplicity \
-        --encrypt-key={{ gpg_id }} \
-        {{ passbolt_backup }} \
-        {{ backup_dsn }}/passbolt
-      rm -rf $passbolt_dump
-  include_role:
-    name: backup
-
-- name: Create super users
-  failed_when: false
-  with_items: '{{ users }}'
-  tags: users
-  expect:
-    timeout: 30
-    command: docker exec -it passbolt su -s /bin/bash -c "/var/www/passbolt/app/Console/cake passbolt register_user -i" nginx
-    responses:
-      'Username': ["{{ item['email'] }}"]
-      'First': ["{{ item['first_name'] }}"]
-      'Last': ["{{ item['last_name'] }}"]
-      'Role': ["{{ item['roles']['passbolt'] }}"]
+#- name: Install passbolt email account
+#  vars:
+#    email: '{{ passbolt_email }}'
+#    password: '{{ passbolt_email_password }}'
+#  include_role:
+#    name: mail
+#
+#- name: Install backup scripts
+#  vars:
+#    unit_name: backup-passbolt
+#    unit_description: Passbolt backup
+#    project_home: '{{ passbolt_data }}'
+#    script_path: '{{ passbolt_data }}/backup.sh'
+#    prune_path: '{{ passbolt_data }}/.sh'
+#    restic_password: ''
+#    repo: '{{ passbolt_data }}/repo'
+#    script_content_pre: |
+#      #!/bin/bash -eux
+#      export passbolt_dump={{ passbolt_backup }}passbolt.sql
+#      mkdir -p ${passbolt_dump%/*}
+#      docker exec -t passbolt-mysql mysqldump -upassbolt -p{{ passbolt_mysql_password }} passbolt &> $passbolt_dump
+#      backup="$backup $passbolt_dump"
+#    script_content_post: rm -f {{ passbolt_backup }}passbolt.sql
+#  include_role:
+#    name: backup
+#
+#- name: Create super users
+#  failed_when: false
+#  with_items: '{{ users }}'
+#  tags: users
+#  expect:
+#    timeout: 30
+#    command: docker exec -it passbolt su -s /bin/bash -c "/var/www/passbolt/app/Console/cake passbolt register_user -i" nginx
+#    responses:
+#      'Username': ["{{ item['email'] }}"]
+#      'First': ["{{ item['first_name'] }}"]
+#      'Last': ["{{ item['last_name'] }}"]
+#      'Role': ["{{ item['roles']['passbolt'] }}"]
