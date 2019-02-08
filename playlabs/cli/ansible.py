@@ -73,7 +73,7 @@ class Ansible(object):
             args = self.sudo(args)
 
         os.environ['ANSIBLE_REMOTE_TMP'] = (
-            f'.ansible-{self.parser.user}')
+            f'/tmp/.ansible-{self.parser.user}')
 
         cmd = ['ansible-playbook']
         cmd.append('-v')
