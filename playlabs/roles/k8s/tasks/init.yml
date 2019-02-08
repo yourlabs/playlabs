@@ -6,4 +6,3 @@
 - include: reset.yml
 - include: dashboard.yml
   when: k8s_dashboard
-- include: me.yml

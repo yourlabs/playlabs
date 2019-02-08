@@ -1,0 +1,7 @@
+---
+
+- name: Install users
+  include: user.yml
+  loop: '{{ users }}'
+  loop_control:
+    loop_var: user

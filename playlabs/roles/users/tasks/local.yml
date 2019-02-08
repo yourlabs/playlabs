@@ -1,0 +1,20 @@
+---
+- name: Install local user
+  user:
+    name: '{{ lookup("env", "USER") }}'
+    state: present
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+
+- name: Unlock local user
+  shell: usermod -p '*' {{ lookup('env', 'USER') }}
+
+- name: Install your ssh key on your user
+  authorized_key:
+    user: '{{ lookup("env", "USER") }}'
+    state: present
+    key: '{{ lookup("file", item) }}'
+  with_fileglob:
+  - '{{ lookup("env", "HOME") + "/.ssh/id_*.pub" }}'
+
