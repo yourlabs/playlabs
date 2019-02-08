@@ -1,0 +1,44 @@
+- hosts: localhost
+  tasks:
+    - name: Create apt-cacher-server lxd container
+      include_tasks: lxd/launch.yml
+      vars:
+        container: apt-cacher-server
+
+    - name: check python is installed in container
+      delegate_to: apt-cacher-server
+      raw: dpkg -s python
+      register: python_install_check
+      failed_when: python_install_check.rc not in [0, 1]
+      changed_when: false
+
+    - name: install python in container
+      delegate_to: apt-cacher-server
+      raw: apt-get install -y python
+      when: python_install_check.rc == 1
+
+
+- hosts: apt-cacher-server
+  tasks:
+    - name: Ensure apt-cacher is installed
+      package:
+        name:
+          - apt-cacher
+          - apache2
+
+    - name: Set apt-cacher conf
+      register: cacher_conf
+      with_items:
+        - allowed_hosts
+        - allowed_ssl_locations
+      lineinfile:
+        path: /etc/apt-cacher/apt-cacher.conf
+        line: "{{ item }} = *"
+        regexp: "^#?{{ item }}"
+
+    - name: Restart apt-cacher service
+      when: cacher_conf.changed
+      service:
+        name: apt-cacher
+        state: restarted
+

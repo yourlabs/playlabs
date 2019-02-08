@@ -1,0 +1,13 @@
+---
+- name: run playlabs install docker
+  shell: playlabs install docker @playtest.lxd
+  changed_when: false
+
+- name: check that docker is installed
+  delegate_to: playtest.lxd
+  shell: docker --version
+  become: yes
+  become_user: root
+  become_method: sudo
+  register: docker_check
+  changed_when: false

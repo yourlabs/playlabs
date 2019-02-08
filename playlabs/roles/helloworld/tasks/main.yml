@@ -1,0 +1,4 @@
+---
+- name: Hello World
+  raw: echo Hello world
+  register: hello_world

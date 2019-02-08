@@ -1,0 +1,12 @@
+---
+- name: Delete test container
+  lxd_container:
+    name: playtest
+    state: absent
+  retries: 10
+  delay: 5
+
+- name: Clean host list
+  known_hosts:
+    name: playtest.lxd
+    state: absent

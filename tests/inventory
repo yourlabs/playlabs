@@ -1,0 +1,5 @@
+[hosts]
+localhost         ansible_connection=local
+apt-cacher-server ansible_connection=lxd
+playtest          ansible_conneciton=lxd
+playtest.lxd      ansible_python_interpreter=/usr/bin/python3

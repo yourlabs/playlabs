@@ -1,0 +1,25 @@
+- import_playbook: apt-cacher-server.yml
+
+- hosts: localhost
+  tasks:
+    - name: Create lxd container
+      include_tasks: lxd/launch.yml
+      vars:
+        container: playtest
+        setup: true
+        devices:
+          pip_cache:
+            type: disk
+            source: "{{ lookup('env', 'PWD') }}/.pip-cache"
+            path: "{{ lookup('env','HOME') }}/.cache/pip"
+            propagation: shared
+
+    - name: Include tests
+      with_fileglob:
+        - 'tests/*.test.yml'
+      include_tasks: '{{ item }}'
+
+    - name: Delete container
+      include_tasks: lxd/delete.yml
+      vars:
+        container: playtest

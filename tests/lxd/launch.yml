@@ -1,0 +1,30 @@
+---
+- name: create a test container
+  lxd_container:
+    name: '{{ container }}'
+    state: started
+    source:
+      type: image
+      source: pull
+      protocol: lxd
+      server: https://images.linuxcontainers.org
+      alias: ubuntu/cosmic/amd64
+    devices: '{{ devices | default({}) }}'
+    wait_for_ipv4_addresses: true
+
+- name: Ping container
+  shell: "ping -c 1 {{ container  }}.lxd"
+  ignore_errors: true
+  register: ping_result
+  until: ping_result.rc == 0
+  retries: 10
+  delay: 5
+
+- name: Run playlabs to end setup
+  when: setup is defined
+  shell: "playlabs install
+    apt-cacher,users/local,ssh
+    root@{{ container }}
+    cacher=apt-cacher-server.lxd
+    cacher_port=3142
+    --connection=lxd"
