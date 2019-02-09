@@ -3,3 +3,4 @@ playlabs.egg-info
 *.retry
 .ssh*
 .coverage
+.vagrant
