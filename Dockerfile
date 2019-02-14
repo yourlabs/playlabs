@@ -15,5 +15,4 @@ RUN pip3 install --no-cache -r /app/requirements.txt
 ADD . /app
 RUN pip3 install --no-cache --no-deps --editable /app
 
-USER app
 CMD playlabs
