@@ -18,7 +18,7 @@
 
 - name: Install gpg private key
   copy:
-    dest: '{{ passbolt_config_source }}gpg/serverkey.private.asc'
+    dest: '{{ passbolt_config_source }}gpg/serverkey_private.asc'
     owner: 100
     group: 101
     mode: 0644
@@ -32,197 +32,161 @@
     mode: 0644
     content: '{{ gpg_public_key }}'
 
-- name: Install passbolt app configuration file
-  copy:
-    dest: '{{ passbolt_config_source }}app.php'
+- name: Install passbolt configuration file
+  template:
+    dest: '{{ passbolt_config_source }}passbolt.php'
     owner: 100
     group: 101
     mode: 0644
-    content: |
-      <?php
-      $config = [
-        'App' => [
-           'ssl' => [
-              'force' => True,
-           ],
-           'registration' => [
-              'public' => false,
-           ],
-           'selenium' => [
-              'active' => false,
-           ],
-           'meta' => [
-              'robots' => [
-                'index' => false,
-              ]
-           ],
-        ],
-        'Analytics' => [
-          'piwik' => [
-            // 'url' => ''
-          ],
-        ],
-        'GPG' => [
-          'env' => [
-            'setenv' => true,
-            'home' => '/var/lib/nginx/.gnupg',
-          ],
-          'serverKey' => [
-            'fingerprint' => '{{ gpg_id }}',
-            'public' => APP . 'Config' . DS . 'gpg' . DS . 'serverkey.asc',
-            'private' => APP . 'Config' . DS . 'gpg' . DS . 'serverkey.private.asc',
-            // PHP Gnupg module currently does not support passphrase, please leave blank
-            'passphrase' => ''
-          ]
-        ]
-      ];
+    src: passbolt.php
 
-- name: Install passbolt email configuration file
-  copy:
-    dest: '{{ passbolt_config_source }}email.php'
-    owner: 100
-    group: 101
-    mode: 0644
-    content: |
-      <?php
-      class EmailConfig {
-        public $default = array(
-           'transport' => 'Smtp',
-           'from' => array('{{ passbolt_email }}' => 'Passbolt'),
-           'host' => '{{ mail_dns }}',
-           'port' => 587,
-           'timeout' => 30,
-           'username' => '{{ passbolt_email }}',
-           'password' => '{{ passbolt_email_password }}',
-           'tls' => true,
-        );
-        public $smtp = array(
-           'transport' => 'Smtp',
-           'from' => array('site@localhost' => 'My Site'),
-           'host' => 'localhost',
-           'port' => 25,
-           'timeout' => 30,
-           'username' => 'user',
-           'password' => 'secret',
-           'client' => null,
-           'log' => false,
-           //'charset' => 'utf-8',
-           //'headerCharset' => 'utf-8',
-        );
-        public $fast = array(
-           'from' => 'you@localhost',
-           'sender' => null,
-           'to' => null,
-           'cc' => null,
-           'bcc' => null,
-           'replyTo' => null,
-           'readReceipt' => null,
-           'returnPath' => null,
-           'messageId' => true,
-           'subject' => null,
-           'message' => null,
-           'headers' => null,
-           'viewRender' => null,
-           'template' => false,
-           'layout' => false,
-           'viewVars' => null,
-           'attachments' => null,
-           'emailFormat' => null,
-           'transport' => 'Smtp',
-           'host' => 'localhost',
-           'port' => 25,
-           'timeout' => 30,
-           'username' => 'user',
-           'password' => 'secret',
-           'client' => null,
-           'log' => true,
-           //'charset' => 'utf-8',
-           //'headerCharset' => 'utf-8',
-        );
-      }
-
-- name: Install passbolt db configuration file
-  copy:
-    dest: '{{ passbolt_config_source }}database.php'
-    owner: 100
-    group: 101
-    mode: 0644
-    content: |
-      <?php
-      class DATABASE_CONFIG {
-        public $default = array(
-          'datasource' => 'Database/Mysql',
-          'persistent' => false,
-          'host' => 'passbolt-mysql',
-          'port' => '3306',
-          'login' => 'passbolt',
-          'password' => '{{ passbolt_mysql_password }}',
-          'database' => 'passbolt',
-          'prefix' => '',
-          'encoding' => 'utf8',
-        );
-      }
-
-- name: Install passbolt core configuration file
-  copy:
-    dest: '{{ passbolt_config_source }}core.php'
-    owner: 100
-    group: 101
-    mode: 0644
-    content: |
-      <?php
-      require_once dirname(__DIR__) . '/Vendor/autoload.php';
-      Configure::write('debug', 0);
-      Configure::write('Error', array(
-        'handler' => 'ErrorHandler::handleError',
-        'level' => E_ALL & ~E_DEPRECATED,
-        'trace' => true
-      ));
-      Configure::write('Exception', array(
-        'handler' => 'ErrorHandler::handleException',
-        'renderer' => 'ExceptionRenderer',
-        'log' => true
-      ));
-      Configure::write('App.encoding', 'UTF-8');
-      Configure::write('App.fullBaseUrl', 'https://{{ passbolt_dns }}');
-      Configure::write('Session', array(
-        'defaults' => 'cache',
-      ));
-      Configure::write('Security.salt', '{{ passbolt_salt }}');
-      Configure::write('Security.cipherSeed', '{{ passbolt_cipherseed }}');
-      Configure::write('Acl.classname', 'DbAcl');
-      Configure::write('Acl.database', 'default');
-      $prefix = 'passbolt_';
-      $commonCache = array(
-        'engine' => 'File', // Required
-        'prefix' => $prefix,
-        'duration' => 3600,
-        'path' => CACHE,
-        'serialize' => true,
-      );
-      Configure::write('Cache.Common', $commonCache);
-      $duration = '+999 days';
-      if (Configure::read('debug') > 0) {
-        $duration = '+10 seconds';
-      }
-      $coreCache = array(
-        'prefix' => $prefix . 'cake_core_',
-        'duration' => $duration,
-      );
-      if ($commonCache['engine'] == 'File') {
-        $coreCache['path'] = CACHE . 'persistent' . DS;
-      }
-      $coreCache = array_merge($commonCache, $coreCache);
-      Cache::config('_cake_core_', $coreCache);
-      $modelCache = array(
-        'prefix' => $prefix . 'cake_model_',
-        'duration' => $duration,
-      );
-      if ($commonCache['engine'] == 'File') {
-        $modelCache['path'] = CACHE . 'models' . DS;
-      }
-      $modelCache = array_merge($commonCache, $modelCache);
-      Cache::config('_cake_model_', $modelCache);
+#
+#- name: Install passbolt email configuration file
+#  copy:
+#    dest: '{{ passbolt_config_source }}email.php'
+#    owner: 100
+#    group: 101
+#    mode: 0644
+#    content: |
+#      <?php
+#      class EmailConfig {
+#        public $default = array(
+#           'transport' => 'Smtp',
+#           'from' => array('{{ passbolt_email }}' => 'Passbolt'),
+#           'host' => '{{ mail_dns }}',
+#           'port' => 587,
+#           'timeout' => 30,
+#           'username' => '{{ passbolt_email }}',
+#           'password' => '{{ passbolt_email_password }}',
+#           'tls' => true,
+#        );
+#        public $smtp = array(
+#           'transport' => 'Smtp',
+#           'from' => array('site@localhost' => 'My Site'),
+#           'host' => 'localhost',
+#           'port' => 25,
+#           'timeout' => 30,
+#           'username' => 'user',
+#           'password' => 'secret',
+#           'client' => null,
+#           'log' => false,
+#           //'charset' => 'utf-8',
+#           //'headerCharset' => 'utf-8',
+#        );
+#        public $fast = array(
+#           'from' => 'you@localhost',
+#           'sender' => null,
+#           'to' => null,
+#           'cc' => null,
+#           'bcc' => null,
+#           'replyTo' => null,
+#           'readReceipt' => null,
+#           'returnPath' => null,
+#           'messageId' => true,
+#           'subject' => null,
+#           'message' => null,
+#           'headers' => null,
+#           'viewRender' => null,
+#           'template' => false,
+#           'layout' => false,
+#           'viewVars' => null,
+#           'attachments' => null,
+#           'emailFormat' => null,
+#           'transport' => 'Smtp',
+#           'host' => 'localhost',
+#           'port' => 25,
+#           'timeout' => 30,
+#           'username' => 'user',
+#           'password' => 'secret',
+#           'client' => null,
+#           'log' => true,
+#           //'charset' => 'utf-8',
+#           //'headerCharset' => 'utf-8',
+#        );
+#      }
+#
+#- name: Install passbolt db configuration file
+#  copy:
+#    dest: '{{ passbolt_config_source }}database.php'
+#    owner: 100
+#    group: 101
+#    mode: 0644
+#    content: |
+#      <?php
+#      class DATABASE_CONFIG {
+#        public $default = array(
+#          'datasource' => 'Database/Mysql',
+#          'persistent' => false,
+#          'host' => 'passbolt-mysql',
+#          'port' => '3306',
+#          'login' => 'passbolt',
+#          'password' => '{{ passbolt_mysql_password }}',
+#          'database' => 'passbolt',
+#          'prefix' => '',
+#          'encoding' => 'utf8',
+#        );
+#      }
+#
+#- name: Install passbolt core configuration file
+#  copy:
+#    dest: '{{ passbolt_config_source }}core.php'
+#    owner: 100
+#    group: 101
+#    mode: 0644
+#    content: |
+#      <?php
+#      require_once dirname(__DIR__) . '/Vendor/autoload.php';
+#      Configure::write('debug', 0);
+#      Configure::write('Error', array(
+#        'handler' => 'ErrorHandler::handleError',
+#        'level' => E_ALL & ~E_DEPRECATED,
+#        'trace' => true
+#      ));
+#      Configure::write('Exception', array(
+#        'handler' => 'ErrorHandler::handleException',
+#        'renderer' => 'ExceptionRenderer',
+#        'log' => true
+#      ));
+#      Configure::write('App.encoding', 'UTF-8');
+#      Configure::write('App.fullBaseUrl', 'https://{{ passbolt_dns }}');
+#      Configure::write('Session', array(
+#        'defaults' => 'cache',
+#      ));
+#      Configure::write('Security.salt', '{{ passbolt_salt }}');
+#      Configure::write('Security.cipherSeed', '{{ passbolt_cipherseed }}');
+#      Configure::write('Acl.classname', 'DbAcl');
+#      Configure::write('Acl.database', 'default');
+#      $prefix = 'passbolt_';
+#      $commonCache = array(
+#        'engine' => 'File', // Required
+#        'prefix' => $prefix,
+#        'duration' => 3600,
+#        'path' => CACHE,
+#        'serialize' => true,
+#      );
+#      Configure::write('Cache.Common', $commonCache);
+#      $duration = '+999 days';
+#      if (Configure::read('debug') > 0) {
+#        $duration = '+10 seconds';
+#      }
+#      $coreCache = array(
+#        'prefix' => $prefix . 'cake_core_',
+#        'duration' => $duration,
+#      );
+#      if ($commonCache['engine'] == 'File') {
+#        $coreCache['path'] = CACHE . 'persistent' . DS;
+#      }
+#      $coreCache = array_merge($commonCache, $coreCache);
+#      Cache::config('_cake_core_', $coreCache);
+#      $modelCache = array(
+#        'prefix' => $prefix . 'cake_model_',
+#        'duration' => $duration,
+#      );
+#      if ($commonCache['engine'] == 'File') {
+#        $modelCache['path'] = CACHE . 'models' . DS;
+#      }
+#      $modelCache = array_merge($commonCache, $modelCache);
+#      Cache::config('_cake_model_', $modelCache);
 
 - name: Create passbolt network
   docker_network:
@@ -279,12 +243,10 @@
     - name: mail
     restart_policy: always
     volumes:
-    - '{{ passbolt_config_source }}app.php:{{ passbolt_config_dest }}app.php'
-    - '{{ passbolt_config_source }}core.php:{{ passbolt_config_dest }}core.php'
-    - '{{ passbolt_config_source }}database.php:{{ passbolt_config_dest }}database.php'
-    - '{{ passbolt_config_source }}email.php:{{ passbolt_config_dest }}email.php'
-    - '{{ passbolt_config_source }}gpg/serverkey.asc:/var/www/passbolt/config/gpg/serverkey.asc'
-    - '{{ passbolt_config_source }}gpg/serverkey.private.asc:/var/www/passbolt/config/gpg/serverkey_private.asc'
+    - '{{ passbolt_config_source }}passbolt.php:{{ passbolt_config_dest }}/passbolt.php'
+    - '{{ passbolt_config_source }}gpg/serverkey.asc:{{ passbolt_config_dest }}/gpg/serverkey.asc'
+    - '{{ passbolt_config_source }}gpg/serverkey_private.asc:{{ passbolt_config_dest }}/gpg/serverkey_private.asc'
+    - '{{ passbolt_data }}/.gpg:/var/www/.gnupg'
     - '{{ nginx_data }}certs/{{ passbolt_dns }}/cert.pem:/etc/ssl/certs/certificate.crt'
     - '{{ nginx_data }}certs/{{ passbolt_dns }}/key.pem:/etc/ssl/certs/certificate.key'
     exposed_ports: ['80', '443']
@@ -294,18 +256,25 @@
       DATASOURCES_DEFAULT_HOST: passbolt-mysql
       DATASOURCES_DEFAULT_USERNAME: passbolt
       APP_FULL_BASE_URL: https://{{ passbolt_dns }}
+      SSL: false
       EMAIL_DEFAULT_FROM: '{{ passbolt_email }}'
-      EMAIL_TRANSPORT_DEFAULT_HOST: '{{ mail_dns }}'
+      EMAIL_TRANSPORT_DEFAULT_HOST: '172.17.0.1'
       EMAIL_TRANSPORT_DEFAULT_USERNAME: '{{ passbolt_email }}'
       #EMAIL_TRANSPORT_DEFAULT_PASSWORD: '{{ passbolt_email_password }}'
       #EMAIL_TRANSPORT_DEFAULT_TLS: 'true'
       KEY_NAME: passbolt
       KEY_EMAIL: '{{ gpg_email }}'
       CIPHERSEED: '{{ passbolt_cipherseed }}'
-      URL: '{{ passbolt_dns }}'
+      URL: 'https://{{ passbolt_dns }}'
       LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
       LETSENCRYPT_HOST: '{{ passbolt_dns }}'
       VIRTUAL_HOST: '{{ passbolt_dns }}'
+
+- name: Fix passbolt container
+  shell: docker exec -t passbolt sed -i s@/usr/sbin/nologin@/bin/bash@ /etc/passwd && docker exec -t passbolt su -c 'gpg --home /home/www-data/.gnupg --import /var/www/passbolt/config/gpg/serverkey_private.asc' www-data && docker restart passbolt
+
+- name: Run helthchecks
+  shell: docker exec -t passbolt sed -i s@/usr/sbin/nologin@/bin/bash@ /etc/passwd && docker exec -t passbolt su -c './bin/cake passbolt healthcheck' www-data
 
 #- name: Install passbolt email account
 #  vars:
