@@ -146,6 +146,7 @@
     - 3000:3000
     env:
       VIRTUAL_HOST: '{{ grafana_dns }}'
+      #GF_SECURITY_ADMIN_PASSWORD: '{{ grafana_password }}'
       GF_AUTH_BASIC_ENABLED: 'false'
       GF_AUTH_DISABLE_LOGIN_FORM: 'true'
       GF_AUTH_ANONYMOUS_ENABLED: 'true'
