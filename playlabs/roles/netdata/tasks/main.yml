@@ -67,6 +67,27 @@
         }
       }
 
+- name: Install netdata htaccess
+  vars:
+    htaccess_dns: '{{ netdata_dns }}'
+    htaccess_service: netdata
+  include_role:
+    name: nginx_htpasswd
+
+- name: Install prometheus htaccess
+  vars:
+    htaccess_dns: '{{ prometheus_dns }}'
+    htaccess_service: prometheus
+  include_role:
+    name: nginx_htpasswd
+
+- name: Install grafana htaccess
+  vars:
+    htaccess_dns: '{{ grafana_dns }}'
+    htaccess_service: grafana
+  include_role:
+    name: nginx_htpasswd
+
 - name: Setup nginx proxy container
   tags: docker
   docker_container:
@@ -101,6 +122,8 @@
     ports:
     - 9090:9090
     env:
+      LETSENCRYPT_EMAIL: '{% if letsencrypt_email %}{{ letsencrypt_email }}{% endif %}'
+      LETSENCRYPT_HOST: '{% if letsencrypt_email %}{{ prometheus_dns }}{% endif %}'
       VIRTUAL_HOST: '{{ prometheus_dns }}'
 
 - name: Make grafana home
@@ -123,11 +146,9 @@
     - 3000:3000
     env:
       VIRTUAL_HOST: '{{ grafana_dns }}'
-      GF_SECURITY_ADMIN_PASSWORD: '{{ grafana_password }}'
-
-- name: Install netdata htaccess
-  vars:
-    htaccess_dns: '{{ netdata_dns }}'
-    htaccess_service: netdata
-  include_role:
-    name: nginx_htpasswd
+      GF_AUTH_BASIC_ENABLED: 'false'
+      GF_AUTH_DISABLE_LOGIN_FORM: 'true'
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      LETSENCRYPT_EMAIL: '{% if letsencrypt_email %}{{ letsencrypt_email }}{% endif %}'
+      LETSENCRYPT_HOST: '{% if letsencrypt_email %}{{ grafana_dns }}{% endif %}'
+      GF_SERVER_ROOT_URL: 'http{% if letsencrypt_email %}s{% endif %}://{{ grafana_dns }}'
