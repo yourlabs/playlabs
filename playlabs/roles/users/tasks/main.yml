@@ -3,5 +3,6 @@
 - name: Install users
   include: user.yml
   loop: '{{ users }}'
+  when: '"ssh" in user.get("roles", {})'
   loop_control:
     loop_var: user
