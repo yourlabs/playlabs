@@ -1,7 +1,7 @@
 ---
 
 - name: Get nginx userid
-  shell: docker exec -it nginx-proxy id -u nginx
+  shell: docker exec nginx-proxy id -u nginx
   register: nginx_uid
 
 - name: Install htaccess
