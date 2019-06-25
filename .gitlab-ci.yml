@@ -63,11 +63,7 @@ k8s:
 
 build:
   stage: build
-  image: docker:stable
-  services: ['docker:dind']
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
+  image: docker:dind
   before_script:
   - echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
